@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import toast from 'react-hot-toast'
@@ -9,20 +9,23 @@ import Input from '@/components/Input'
 import Badge from '@/components/Badge'
 import { ASSETS_HERO } from '@/data/cloudinaryAssets'
 import { loginSchema } from '@/lib/validators'
+import { useAuth } from '@/context/useAuth'
 
 /**
  * Pantalla de Login del sistema operativo Drive Arena.
  * Acceso para operadores con rol ADMIN o TAQUILLA.
  *
- * En este commit:
- * - Notificaciones toast para feedback visual del submit
- * - El toast.success simula login OK
- * - Cuando conectemos al backend, manejaremos también toast.error en 401
- *
- * El submit todavía NO conecta al backend — solo simula con setTimeout.
+ * Flujo:
+ * 1. Validación frontend con Zod (loginSchema)
+ * 2. Submit invoca login() del AuthContext
+ * 3. AuthContext llama a authApi → backend → guarda sesión + token JWT
+ * 4. Si OK: toast.success + redirect al Home
+ * 5. Si error: toast.error con mensaje contextual según el código HTTP
  */
 function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { login } = useAuth()
+  const navigate = useNavigate()
 
   const {
     register,
@@ -38,17 +41,35 @@ function Login() {
   })
 
   /**
-   * Handler invocado por handleSubmit cuando los datos pasan validación Zod.
+   * Handler invocado cuando los datos pasan validación Zod.
+   * Llama al AuthContext para hacer login real contra el backend.
+   *
    * @param {{ username: string, password: string }} data
    */
   const onSubmit = async (data) => {
     setIsSubmitting(true)
 
-    // Simulamos llamada al backend (sustituiremos en el commit del axios client)
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    try {
+      const userInfo = await login(data)
+      toast.success(`Bienvenido, ${userInfo.username}`)
+      navigate('/', { replace: true })
+    } catch (error) {
+      // El AuthContext propaga errores del backend.
+      // Mapeamos códigos HTTP a mensajes amigables.
+      const status = error.response?.status
 
-    toast.success(`Bienvenido, ${data.username}`)
-    setIsSubmitting(false)
+      if (status === 401) {
+        toast.error('Credenciales inválidas')
+      } else if (error.code === 'ECONNABORTED') {
+        toast.error('Tiempo de espera agotado. Intenta de nuevo.')
+      } else if (!error.response) {
+        toast.error('Servidor no disponible. Verifica tu conexión.')
+      } else {
+        toast.error('Error al iniciar sesión. Intenta de nuevo.')
+      }
+
+      setIsSubmitting(false)
+    }
   }
 
   return (
