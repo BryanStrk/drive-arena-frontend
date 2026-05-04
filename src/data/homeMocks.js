@@ -108,3 +108,28 @@ export const OFFER_PACKS = [
     availability: 'Todo el año',
   },
 ]
+
+// === LODGES DEL RESORT ===
+// Estructura espejo de HotelDto del backend
+export const RESORT_LODGES = [
+  {
+    id: 1,
+    nombre: 'Apex Lodge',
+    descripcion:
+      'Suite panorámica con vistas directas al circuito principal. Decoración inspirada en escuderías clásicas y terraza privada.',
+    category: 'VIP Paddock',
+    categoryVariant: 'primary',
+    priceMedia: 180,
+    priceFull: 240,
+  },
+  {
+    id: 2,
+    nombre: 'Pit Stop Lodge',
+    descripcion:
+      'Amplio espacio para grupos y familias. Zona de juegos integrada, acceso directo a Neon Karting y garaje temático.',
+    category: 'Familiar',
+    categoryVariant: 'default',
+    priceMedia: 140,
+    priceFull: 190,
+  },
+]
