@@ -3,28 +3,41 @@
 
 @import "tailwindcss";
 
-/* === Design Tokens — Drive Arena (Cyber Lime / Glassmorphism) === */
+/* === Drive Arena Design System V1.0 === */
 @theme {
-  /* Colors */
-  --color-lime: #D4FF00;
-  --color-lime-glow: #D4FF0033;
-  --color-bg: #0A0A0A;
-  --color-bg-card: #151515;
-  --color-border: #1A1A1A;
+  /* Backgrounds */
+  --color-bg: #0A0A0A;              /* Brand Black */
+  --color-surface-1: #141414;       /* Cards, panels */
+  --color-surface-2: #1F1F1F;       /* Hover, elevated */
+  --color-border: #1A1A1A;          /* Bordes sutiles */
+  --color-border-strong: #2A2A2A;   /* Bordes definidos */
+
+  /* Brand */
+  --color-primary: #E0162B;         /* Primary Red — CTAs */
+  --color-primary-dark: #C01225;    /* Dark Red — hover/pressed */
+  --color-primary-glow: #E0162B33;  /* Red con alpha — sombras */
+
+  /* Semantic */
+  --color-success: #00C853;         /* Verde sistema online */
+  --color-danger: #FF3B30;          /* Rojo error/alerta */
+  --color-warning: #FFB800;         /* Amarillo revisión */
+
+  /* Text */
   --color-text: #FFFFFF;
   --color-text-muted: #888888;
+  --color-text-dim: #555555;
 
-  /* Fonts */
+  /* Fonts (mismas por ahora — cambiamos en próximo commit) */
   --font-display: 'Bebas Neue', sans-serif;
-  --font-mono: 'Roboto Mono', monospace;
   --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'Roboto Mono', monospace;
 
   /* Radius */
-  --radius-card: 1rem;
-  --radius-inner: 0.5rem;
+  --radius-card: 0.75rem;
+  --radius-inner: 0.375rem;
 }
 
-/* === Base styles === */
+/* === Base === */
 html, body, #root {
   min-height: 100vh;
   background-color: var(--color-bg);
@@ -33,14 +46,14 @@ html, body, #root {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Scrollbar moderna */
+/* Scrollbar */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: var(--color-bg); }
-::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--color-lime); }
+::-webkit-scrollbar-thumb { background: var(--color-border-strong); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-primary); }
 
-/* Selección de texto en lime */
+/* Selección */
 ::selection {
-  background: var(--color-lime);
-  color: var(--color-bg);
+  background: var(--color-primary);
+  color: var(--color-text);
 }

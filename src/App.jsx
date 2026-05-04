@@ -2,23 +2,29 @@ function App() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-bg">
       <div className="text-center">
-        {/* Logo principal en Bebas Neue */}
-        <h1 className="font-display text-8xl text-lime tracking-[0.15em] leading-none drop-shadow-[0_0_30px_var(--color-lime-glow)]">
-          DRIVE ARENA
+        {/* Logo principal en Saira */}
+        <h1 className="font-display font-extrabold text-8xl text-text tracking-tight leading-none">
+          DRIVE <span className="text-primary">ARENA</span>
         </h1>
 
-        {/* Línea separadora con efecto neón */}
-        <div className="mt-4 h-[2px] w-32 mx-auto bg-lime shadow-[0_0_10px_var(--color-lime)]" />
+        {/* Línea separadora roja con glow */}
+        <div className="mt-4 h-[2px] w-32 mx-auto bg-primary shadow-[0_0_10px_var(--color-primary-glow)]" />
 
-        {/* Subtitulo en Roboto Mono */}
-        <p className="font-mono text-text-muted mt-6 text-xs tracking-widest uppercase">
-          // FRONTEND_BOOT :: STATUS OK
+        {/* Subtitulo en JetBrains Mono */}
+        <p className="font-mono text-text-muted mt-6 text-xs tracking-[0.3em] uppercase">
+          // SYSTEM_BOOT :: STATUS OK
         </p>
 
-        {/* Versión en font-mono */}
-        <p className="font-mono text-text-muted/50 mt-2 text-[10px] tracking-widest">
-          v0.1.0 — DEV
+        {/* Versión */}
+        <p className="font-mono text-text-dim mt-2 text-[10px] tracking-widest">
+          v0.1.0 — DEV BUILD
         </p>
+
+        {/* Status indicator estilo header de mockups */}
+        <div className="mt-12 flex items-center justify-center gap-2 font-mono text-[10px] tracking-widest text-text-muted">
+          <span className="w-2 h-2 rounded-full bg-success shadow-[0_0_8px_var(--color-success)]" />
+          <span>SISTEMA OPERATIVO · NODO BCN-01</span>
+        </div>
       </div>
     </div>
   )

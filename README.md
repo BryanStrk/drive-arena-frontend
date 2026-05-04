@@ -75,35 +75,48 @@ src/
 
 ## 🎨 Sistema de diseño
 
-**Cyber Lime / Glassmorphism** — definido como design tokens en `src/index.css`.
+**Drive Arena Design System V1.0** — definido como design tokens en `src/index.css`.
 
-### Colores
+### Backgrounds
 
-| Token | Valor | Uso |
-|-------|-------|-----|
-| `--color-lime` | `#D4FF00` | CTAs, acentos, texto destacado |
-| `--color-lime-glow` | `#D4FF0033` | Sombras neón |
-| `--color-bg` | `#0A0A0A` | Fondo global |
-| `--color-bg-card` | `#151515` | Fondo de cards |
+| Token | HEX | Uso |
+|-------|-----|-----|
+| `--color-bg` | `#0A0A0A` | Brand Black — fondo global |
+| `--color-surface-1` | `#141414` | Cards, panels |
+| `--color-surface-2` | `#1F1F1F` | Hover, elevated |
 | `--color-border` | `#1A1A1A` | Bordes sutiles |
+| `--color-border-strong` | `#2A2A2A` | Bordes definidos |
 
-### Tipografía
+### Brand
+
+| Token | HEX | Uso |
+|-------|-----|-----|
+| `--color-primary` | `#E0162B` | Primary Red — CTAs, acentos |
+| `--color-primary-dark` | `#C01225` | Dark Red — hover, pressed |
+| `--color-primary-glow` | `#E0162B33` | Sombras y halos rojos |
+
+### Semantic
+
+| Token | HEX | Uso |
+|-------|-----|-----|
+| `--color-success` | `#00C853` | Estado online, éxito |
+| `--color-danger` | `#FF3B30` | Errores, alertas |
+| `--color-warning` | `#FFB800` | Revisión, advertencias |
+
+### Typography
 
 | Token | Familia | Uso |
 |-------|---------|-----|
-| `font-display` | Bebas Neue | Headings, números grandes |
-| `font-mono` | Roboto Mono | Métricas, labels, datos |
-| `font-sans` | Inter | Body, formularios |
+| `font-display` | Saira | Headlines, números grandes |
+| `font-sans` | Inter | Body, formularios, legibilidad |
+| `font-mono` | JetBrains Mono | Datos, métricas, código |
 
----
+### Conventions
 
-## 📋 Convenciones de código
-
-- **JavaScript estricto** — `.jsx` y `.js`. Prohibido `.tsx`/`.ts`.
-- **Conventional Commits** — `feat:`, `fix:`, `chore:`, `refactor:`, `docs:`, `build:`
-- **Feature branches** — `git checkout -b feature/<nombre>` desde `dev`, merge con `--no-ff`.
-- **Componentes pequeños y reutilizables** — cada page es composición.
-
+- **Cards**: `bg-surface-1` con `border border-border-strong` y `rounded-card`
+- **Inputs**: `bg-surface-2` sin border en estado normal
+- **CTAs primarios**: `bg-primary hover:bg-primary-dark` con texto blanco mayúsculas
+- **Status indicators**: dot 8px con shadow del color correspondiente
 ---
 
 ## 🔗 Backend
