@@ -1,30 +1,16 @@
-import { Outlet, useLocation } from 'react-router'
-import StatusBar from '@/components/StatusBar'
+import { Outlet } from 'react-router'
 
 /**
  * Layout para páginas públicas (no requieren autenticación).
- * Incluye status bar superior (excepto en Home, que tiene su propio badge en el Hero)
- * y un slot Outlet para el contenido.
+ * Es un wrapper minimal que solo renderiza el contenido de cada ruta.
+ *
+ * Cada página pública es responsable de mostrar su propio Badge de estado
+ * (variant="success" dot pulse) en la esquina top-left, manteniendo
+ * consistencia visual entre Home, Login y NotFound.
  */
 function PublicLayout() {
-  const location = useLocation()
-  const isHome = location.pathname === '/'
-
-  const today = new Date().toLocaleDateString('es-ES', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).replace(/\//g, '.')
-
   return (
     <div className="min-h-screen flex flex-col bg-bg">
-      {!isHome && (
-        <StatusBar
-          label="SISTEMA OPERATIVO · NODO BCN-01"
-          right={`v0.1.0 | ${today}`}
-        />
-      )}
-
       <main className="flex-1">
         <Outlet />
       </main>
