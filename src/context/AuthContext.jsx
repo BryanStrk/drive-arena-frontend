@@ -1,10 +1,14 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 
 import { authApi } from '@/api/authApi'
 import { setSession, getSession, clearSession } from '@/lib/storage'
+import { AuthContext } from './authContextInstance'
 
 /**
- * AuthContext — estado global del usuario autenticado.
+ * AuthProvider — provee el estado global de autenticación.
+ *
+ * Debe envolver la app en main.jsx para que useAuth() funcione en cualquier
+ * componente del árbol.
  *
  * Provee:
  * - user: objeto con info del usuario logueado o null
@@ -13,21 +17,6 @@ import { setSession, getSession, clearSession } from '@/lib/storage'
  *   en el primer render (evita parpadeos UI antes de saber si hay sesión)
  * - login(credentials): hace login contra el backend y persiste la sesión
  * - logout(): borra la sesión local
- *
- * Uso:
- *   const { user, login, logout } = useAuth()
- *
- * Patrón:
- * - Provider envuelve el árbol entero en main.jsx
- * - Hook useAuth() lo consume desde cualquier componente
- * - La sesión se rehidrata automáticamente al recargar la página
- */
-
-const AuthContext = createContext(null)
-
-/**
- * Provider del AuthContext.
- * Debe envolver la app en main.jsx para que useAuth() funcione.
  */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -91,24 +80,4 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   )
-}
-
-/**
- * Hook para consumir el AuthContext desde cualquier componente.
- * Lanza un error claro si se usa fuera del Provider (defensivo).
- *
- * @returns {{
- *   user: Object | null,
- *   isAuthenticated: boolean,
- *   isLoading: boolean,
- *   login: Function,
- *   logout: Function
- * }}
- */
-export function useAuth() {
-  const context = useContext(AuthContext)
-  if (context === null) {
-    throw new Error('useAuth debe usarse dentro de un AuthProvider')
-  }
-  return context
 }
