@@ -1,44 +1,73 @@
 import { Link } from 'react-router'
 import Button from '@/components/Button'
+import Badge from '@/components/Badge'
 
 /**
- * Página 404 — ruta no encontrada.
- * Estética motorsport: "circuito desconocido".
+ * Página 404 — circuito no encontrado.
+ *
+ * Estética temática del resort: la ruta solicitada "no existe en el circuito".
+ * Incluye Badge top-left consistente con el resto de páginas públicas.
  */
 function NotFound() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] px-6 text-center">
-      {/* Código 404 gigante */}
-      <h1 className="font-display font-extrabold text-[200px] leading-none tracking-tight text-primary drop-shadow-[0_0_30px_var(--color-primary-glow)]">
-        404
-      </h1>
-
-      {/* Línea separadora */}
-      <div className="h-[2px] w-32 bg-primary shadow-[0_0_10px_var(--color-primary-glow)] mt-2" />
-
-      {/* Mensaje principal */}
-      <h2 className="font-display font-bold text-4xl text-text mt-8 tracking-tight">
-        CIRCUITO NO ENCONTRADO
-      </h2>
-
-      {/* Mensaje secundario en mono */}
-      <p className="font-mono text-text-muted text-xs tracking-[0.25em] uppercase mt-4 max-w-md">
-        // ERROR_CODE :: ROUTE_NOT_FOUND
-      </p>
-
-      <p className="text-text-muted mt-2 max-w-md">
-        La ruta que buscas no existe en nuestro circuito. Vuelve al pit lane principal.
-      </p>
-
-      {/* CTA de vuelta a Home */}
-      <div className="mt-10 flex gap-3">
-        <Link to="/">
-          <Button variant="primary">← Volver al inicio</Button>
-        </Link>
-        <Link to="/login">
-          <Button variant="secondary">Acceder al sistema</Button>
-        </Link>
+    <div className="relative min-h-screen flex flex-col items-center justify-center px-6 py-12 bg-bg overflow-hidden">
+      {/* Badge de estado del sistema (top-left, consistente con resto de páginas) */}
+      <div className="absolute top-6 left-6 z-20">
+        <Badge variant="danger" dot pulse>
+          Error · Circuito No Encontrado
+        </Badge>
       </div>
+
+      {/* Patrón de fondo sutil con grid de puntos */}
+      <div
+        className="absolute inset-0 opacity-20"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle, var(--color-border-strong) 1px, transparent 1px)',
+          backgroundSize: '32px 32px',
+        }}
+        aria-hidden="true"
+      />
+
+      {/* Contenido principal */}
+      <div className="relative z-10 max-w-2xl text-center">
+        {/* Eyebrow */}
+        <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-primary">
+          ▌ Sector Restringido · Acceso Denegado
+        </p>
+
+        {/* 404 gigante */}
+        <h1 className="mt-6 font-display font-extrabold text-text leading-none">
+          <span className="block text-[12rem] tracking-tight text-primary drop-shadow-[0_0_40px_rgba(224,22,43,0.3)]">
+            404
+          </span>
+        </h1>
+
+        {/* Tagline */}
+        <p className="mt-4 font-display text-3xl tracking-tight text-text">
+          Ruta fuera del circuito
+        </p>
+
+        {/* Descripción */}
+        <p className="mt-4 font-sans text-base text-text-muted max-w-md mx-auto">
+          La dirección que has solicitado no existe en el sistema operativo
+          de Drive Arena. Comprueba la URL o vuelve al inicio.
+        </p>
+
+        {/* CTA volver al inicio */}
+        <div className="mt-8 flex justify-center">
+          <Link to="/">
+            <Button variant="primary" size="lg">
+              Volver al inicio
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      {/* Footer minimal */}
+<footer className="absolute bottom-6 left-0 right-0 z-10 text-center font-mono text-[10px] tracking-widest uppercase text-text-dim">
+  © 2026 Drive Arena Resort
+</footer>
     </div>
   )
 }
