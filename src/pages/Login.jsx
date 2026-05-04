@@ -30,7 +30,7 @@ function Login() {
       {/* Badge de estado del sistema (top-left, consistente con Home) */}
       <div className="absolute top-6 left-6 z-20">
         <Badge variant="success" dot pulse>
-          Acceso Restringido · Sistema Seguro
+          Acceso Restringido
         </Badge>
       </div>
 

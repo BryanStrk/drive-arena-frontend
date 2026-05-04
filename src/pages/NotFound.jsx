@@ -65,9 +65,9 @@ function NotFound() {
       </div>
 
       {/* Footer minimal */}
-      <footer className="relative z-10 absolute bottom-12 font-mono text-[10px] tracking-widest uppercase text-text-dim">
-        © 2026 Drive Arena Resort
-      </footer>
+<footer className="absolute bottom-6 left-0 right-0 z-10 text-center font-mono text-[10px] tracking-widest uppercase text-text-dim">
+  © 2026 Drive Arena Resort
+</footer>
     </div>
   )
 }
