@@ -14,25 +14,16 @@ import { ASSETS_HERO } from '@/data/cloudinaryAssets'
 function Login() {
   return (
     <div className="relative min-h-screen flex flex-col px-6 py-12 overflow-hidden">
-      {/* Background con imagen de fondo y overlay */}
+      {/* Background con imagen Cloudinary nítida */}
       <div
         className="absolute inset-0 bg-cover bg-center opacity-60"
-        style={{
-          backgroundImage: `url(${ASSETS_HERO.loginBg})`,
-          filter: 'blur(2px)',
-        }}
+        style={{ backgroundImage: `url(${ASSETS_HERO.loginBg})` }}
         aria-hidden="true"
       />
 
-      {/* Vignetting top + bottom para legibilidad */}
+      {/* Vignetting top + bottom para legibilidad de status bar y footer */}
       <div
         className="absolute inset-0 bg-gradient-to-b from-bg via-transparent to-bg"
-        aria-hidden="true"
-      />
-
-      {/* Capa adicional sutil para oscurecer el centro y dar contraste a la card */}
-      <div
-        className="absolute inset-0 bg-bg/40"
         aria-hidden="true"
       />
 
@@ -55,7 +46,7 @@ function Login() {
         {/* Card del formulario */}
         <section
           aria-labelledby="login-heading"
-          className="mt-12 w-full bg-surface-1/85 backdrop-blur-md border border-border-strong rounded-card p-8 shadow-2xl shadow-bg/50"
+          className="mt-12 w-full bg-surface-1/90 backdrop-blur-md border border-border-strong rounded-card p-8 shadow-2xl shadow-bg/70"
         >
           {/* Eyebrow + heading */}
           <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-primary">
@@ -97,7 +88,7 @@ function Login() {
           {/* Footer card: badges de estado */}
           <div className="mt-6 pt-5 border-t border-border-strong flex items-center justify-between text-[10px]">
             <Badge variant="success" dot size="xs">
-              Conexión Segura · JWT
+              Conexión Segura
             </Badge>
             <span className="font-mono tracking-widest uppercase text-text-muted">
               Soporte 24/7
