@@ -28,38 +28,38 @@ function Home() {
       {/* HERO — sin FadeInSection, debe verse instantáneamente al cargar */}
       <Hero />
 
-      {/* Stats bar — animación rápida y sutil */}
-      <FadeInSection duration={0.4} distance={12}>
+      {/* Stats bar — animación rápida */}
+      <FadeInSection duration={0.6} distance={20}>
         <StatsBar stats={RESORT_STATS} />
       </FadeInSection>
 
-      {/* Experiencias */}
-      <FadeInSection>
+      {/* Experiencias — más drama */}
+      <FadeInSection duration={0.8} distance={48}>
         <ExperiencesSection experiences={EXPERIENCES} />
       </FadeInSection>
 
       {/* Ranking del mes */}
-      <FadeInSection>
+      <FadeInSection duration={0.8} distance={48}>
         <RankingSection rankings={MONTHLY_RANKINGS} />
       </FadeInSection>
 
       {/* Packs en oferta */}
-      <FadeInSection>
+      <FadeInSection duration={0.8} distance={48}>
         <PacksSection packs={OFFER_PACKS} />
       </FadeInSection>
 
       {/* Lodges del resort */}
-      <FadeInSection>
+      <FadeInSection duration={0.8} distance={48}>
         <LodgesSection lodges={RESORT_LODGES} />
       </FadeInSection>
 
       {/* Ubicación */}
-      <FadeInSection>
+      <FadeInSection duration={0.8} distance={48}>
         <LocationSection location={RESORT_LOCATION} />
       </FadeInSection>
 
       {/* Footer rico */}
-      <FadeInSection>
+      <FadeInSection duration={0.6} distance={20}>
         <HomeFooter />
       </FadeInSection>
 
