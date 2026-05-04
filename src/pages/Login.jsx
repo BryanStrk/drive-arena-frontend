@@ -1,17 +1,59 @@
+import { useState } from 'react'
 import { Link } from 'react-router'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+
 import Button from '@/components/Button'
 import Input from '@/components/Input'
 import Badge from '@/components/Badge'
 import { ASSETS_HERO } from '@/data/cloudinaryAssets'
+import { loginSchema } from '@/lib/validators'
 
 /**
  * Pantalla de Login del sistema operativo Drive Arena.
  * Acceso para operadores con rol ADMIN o TAQUILLA.
  *
- * Incluye un Badge top-left "ACCESO RESTRINGIDO · SISTEMA SEGURO" para
- * mantener consistencia visual con el Hero del Home y el NotFound.
+ * En este commit:
+ * - Formulario validado con react-hook-form + zod (loginSchema)
+ * - Validación on blur + on submit
+ * - Estados de loading durante el submit
+ * - Errores inline bajo cada input
+ *
+ * El submit todavía NO conecta al backend — solo simula con setTimeout.
+ * La integración con la API se hace en el commit del axios client.
  */
 function Login() {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+    mode: 'onBlur',
+    defaultValues: {
+      username: '',
+      password: '',
+    },
+  })
+
+  /**
+   * Handler invocado por handleSubmit cuando los datos pasan validación Zod.
+   * @param {{ username: string, password: string }} data
+   */
+  const onSubmit = async (data) => {
+    setIsSubmitting(true)
+
+    // Simulamos llamada al backend (sustituiremos en commit del axios client)
+    console.log('Submitting login with:', data)
+
+    await new Promise((resolve) => setTimeout(resolve, 1500))
+
+    console.log('Login simulado completado.')
+    setIsSubmitting(false)
+  }
+
   return (
     <div className="relative min-h-screen flex flex-col px-6 py-12 overflow-hidden">
       {/* Background con imagen Cloudinary nítida */}
@@ -27,7 +69,7 @@ function Login() {
         aria-hidden="true"
       />
 
-      {/* Badge de estado del sistema (top-left, consistente con Home) */}
+      {/* Badge de estado del sistema (top-left, consistente con resto de páginas) */}
       <div className="absolute top-6 left-6 z-20">
         <Badge variant="success" dot pulse>
           Acceso Restringido
@@ -69,14 +111,21 @@ function Login() {
           {/* Línea separadora */}
           <hr className="mt-5 border-border-strong" />
 
-          {/* Form fields (sin lógica todavía - solo layout) */}
-          <form className="mt-6 space-y-5" noValidate>
+          {/* Form fields */}
+          <form
+            className="mt-6 space-y-5"
+            onSubmit={handleSubmit(onSubmit)}
+            noValidate
+          >
             <Input
               eyebrow="Operador"
               type="text"
               placeholder="ID de Operador"
               autoComplete="username"
               autoFocus
+              disabled={isSubmitting}
+              error={errors.username?.message}
+              {...register('username')}
             />
 
             <Input
@@ -84,11 +133,20 @@ function Login() {
               type="password"
               placeholder="••••••••"
               autoComplete="current-password"
+              disabled={isSubmitting}
+              error={errors.password?.message}
+              {...register('password')}
             />
 
-            {/* CTA submit */}
-            <Button variant="primary" size="lg" fullWidth type="submit">
-              Acceder al sistema
+            {/* CTA submit con estado loading */}
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Accediendo...' : 'Acceder al sistema'}
             </Button>
           </form>
 
