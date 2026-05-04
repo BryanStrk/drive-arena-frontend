@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import toast from 'react-hot-toast'
 
 import Button from '@/components/Button'
 import Input from '@/components/Input'
@@ -14,13 +15,11 @@ import { loginSchema } from '@/lib/validators'
  * Acceso para operadores con rol ADMIN o TAQUILLA.
  *
  * En este commit:
- * - Formulario validado con react-hook-form + zod (loginSchema)
- * - Validación on blur + on submit
- * - Estados de loading durante el submit
- * - Errores inline bajo cada input
+ * - Notificaciones toast para feedback visual del submit
+ * - El toast.success simula login OK
+ * - Cuando conectemos al backend, manejaremos también toast.error en 401
  *
  * El submit todavía NO conecta al backend — solo simula con setTimeout.
- * La integración con la API se hace en el commit del axios client.
  */
 function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -45,12 +44,10 @@ function Login() {
   const onSubmit = async (data) => {
     setIsSubmitting(true)
 
-    // Simulamos llamada al backend (sustituiremos en commit del axios client)
-    console.log('Submitting login with:', data)
-
+    // Simulamos llamada al backend (sustituiremos en el commit del axios client)
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
-    console.log('Login simulado completado.')
+    toast.success(`Bienvenido, ${data.username}`)
     setIsSubmitting(false)
   }
 
