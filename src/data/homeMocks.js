@@ -133,3 +133,18 @@ export const RESORT_LODGES = [
     priceFull: 190,
   },
 ]
+
+// === UBICACIÓN DEL RESORT ===
+export const RESORT_LOCATION = {
+  name: 'Drive Arena Resort',
+  coords: '40.4168° N, 3.7038° W',
+  address:
+    'Autovía A-1, Km 45.\n' +
+    'Salida Parque Tecnológico del Motor.\n' +
+    '28750 San Agustín del Guadalix, Madrid.',
+  transport: [
+    'A 30 min del Aeropuerto MAD',
+    'Parking gratuito clientes (1000 plazas)',
+    'Cargadores EV disponibles (Tesla/Gen)',
+  ],
+}
