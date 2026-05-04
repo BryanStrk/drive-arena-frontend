@@ -1,3 +1,9 @@
+import {
+  ASSETS_EXPERIENCES,
+  ASSETS_LODGES,
+  ASSETS_PACKS,
+} from './cloudinaryAssets'
+
 /**
  * Mock data del Home público.
  * Estructura espejo de los DTOs del backend para facilitar la migración
@@ -21,6 +27,7 @@ export const EXPERIENCES = [
     descripcion: 'Circuito profesional GT3 · 4.2km',
     tamano: 'GRANDE',
     record: '87.234s',
+    imageUrl: ASSETS_EXPERIENCES.phantomGt,
   },
   {
     id: 2,
@@ -28,6 +35,7 @@ export const EXPERIENCES = [
     descripcion: 'F1 motion 6DOF · VR',
     tamano: 'MEDIANA',
     record: '91.002s',
+    imageUrl: ASSETS_EXPERIENCES.apexSimulator,
   },
   {
     id: 3,
@@ -35,6 +43,7 @@ export const EXPERIENCES = [
     descripcion: 'BMW M3 + MX-5 · Drift',
     tamano: 'GRANDE',
     record: '102.441s',
+    imageUrl: ASSETS_EXPERIENCES.driftKing,
   },
   {
     id: 4,
@@ -42,6 +51,7 @@ export const EXPERIENCES = [
     descripcion: 'Karting cubierto · LED reactivo',
     tamano: 'PEQUENA',
     record: '45.890s',
+    imageUrl: ASSETS_EXPERIENCES.neonKarting,
   },
 ]
 
@@ -96,6 +106,7 @@ export const OFFER_PACKS = [
     currentPrice: 336,
     discountPercentage: 30,
     availability: '1 Jun - 31 Ago',
+    imageUrl: ASSETS_PACKS.gpChampionship,
   },
   {
     id: 2,
@@ -106,6 +117,7 @@ export const OFFER_PACKS = [
     currentPrice: 285,
     discountPercentage: 25,
     availability: 'Todo el año',
+    imageUrl: ASSETS_PACKS.pilotoPrivado,
   },
 ]
 
@@ -121,6 +133,7 @@ export const RESORT_LODGES = [
     categoryVariant: 'primary',
     priceMedia: 180,
     priceFull: 240,
+    imageUrl: ASSETS_LODGES.apexLodge,
   },
   {
     id: 2,
@@ -131,6 +144,7 @@ export const RESORT_LODGES = [
     categoryVariant: 'default',
     priceMedia: 140,
     priceFull: 190,
+    imageUrl: ASSETS_LODGES.pitStopLodge,
   },
 ]
 

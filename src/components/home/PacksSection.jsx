@@ -27,14 +27,15 @@ function PacksSection({ packs }) {
         <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
           {packs.map((pack) => (
             <PackCard
-              key={pack.id}
-              title={pack.title}
-              description={pack.description}
-              originalPrice={pack.originalPrice}
-              currentPrice={pack.currentPrice}
-              discountPercentage={pack.discountPercentage}
-              availability={pack.availability}
-            />
+  key={pack.id}
+  title={pack.title}
+  description={pack.description}
+  originalPrice={pack.originalPrice}
+  currentPrice={pack.currentPrice}
+  discountPercentage={pack.discountPercentage}
+  availability={pack.availability}
+  image={pack.image}
+/>
           ))}
         </div>
       </div>

@@ -29,12 +29,13 @@ function ExperiencesSection({ experiences }) {
         <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {experiences.map((exp) => (
             <ExperienceCard
-              key={exp.id}
-              name={exp.nombre}
-              description={exp.descripcion}
-              size={exp.tamano}
-              record={exp.record}
-            />
+  key={exp.id}
+  name={exp.nombre}
+  description={exp.descripcion}
+  size={exp.tamano}
+  record={exp.record}
+  image={exp.image}
+/>
           ))}
         </div>
       </div>

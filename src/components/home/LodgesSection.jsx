@@ -27,14 +27,15 @@ function LodgesSection({ lodges }) {
         <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
           {lodges.map((lodge) => (
             <LodgeCard
-              key={lodge.id}
-              name={lodge.nombre}
-              description={lodge.descripcion}
-              category={lodge.category}
-              categoryVariant={lodge.categoryVariant}
-              priceMedia={lodge.priceMedia}
-              priceFull={lodge.priceFull}
-            />
+                key={lodge.id}
+                name={lodge.nombre}
+                description={lodge.descripcion}
+                category={lodge.category}
+                categoryVariant={lodge.categoryVariant}
+                priceMedia={lodge.priceMedia}
+                priceFull={lodge.priceFull}
+                image={lodge.image}
+                />
           ))}
         </div>
       </div>
