@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 
 import { authApi } from '@/api/authApi'
 import { setSession, getSession, clearSession } from '@/lib/storage'
@@ -13,29 +13,23 @@ import { AuthContext } from './authContextInstance'
  * Provee:
  * - user: objeto con info del usuario logueado o null
  * - isAuthenticated: boolean derivado de la presencia del user
- * - isLoading: true mientras se rehidrata la sesión desde localStorage
- *   en el primer render (evita parpadeos UI antes de saber si hay sesión)
+ * - isLoading: reservado para futuras validaciones async de token (hoy false)
  * - login(credentials): hace login contra el backend y persiste la sesión
  * - logout(): borra la sesión local
+ *
+ * Rehidratación: la sesión se lee de localStorage de forma SINCRÓNICA en el
+ * initial state via lazy initialization. Esto evita renders en cascada y
+ * asegura que el primer render ya conoce la verdad sobre la autenticación.
  */
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
-
-  /**
-   * Rehidratación de sesión al montar el provider.
-   * Lee localStorage y actualiza el state si hay sesión válida.
-   *
-   * setIsLoading(false) al final desbloquea las rutas protegidas
-   * (que esperan a saber si hay sesión antes de redirigir o renderizar).
-   */
-  useEffect(() => {
+  // Lazy initial state: getSession() se ejecuta UNA sola vez al montar
+  const [user, setUser] = useState(() => {
     const session = getSession()
-    if (session) {
-      setUser(session.user)
-    }
-    setIsLoading(false)
-  }, [])
+    return session ? session.user : null
+  })
+
+  // isLoading queda reservado para futuras validaciones async (ej: GET /auth/me)
+  const [isLoading] = useState(false)
 
   /**
    * Hace login contra el backend y persiste la sesión.
