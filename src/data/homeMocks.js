@@ -44,3 +44,42 @@ export const EXPERIENCES = [
     record: '45.890s',
   },
 ]
+
+// === RANKING DEL MES ===
+// Top 5 pilotos por atracción seleccionada
+// Estructura espejo de RankingEntryDto del backend
+export const MONTHLY_RANKINGS = [
+  {
+    attractionId: 1,
+    attractionName: 'Phantom GT',
+    entries: [
+      { position: 1, name: 'Marco V.', time: '87.234s', date: '20.04.2026' },
+      { position: 2, name: 'Sofia H.', time: '88.102s' },
+      { position: 3, name: 'Lucas R.', time: '88.450s' },
+      { position: 4, name: 'Alba M.', time: '89.001s' },
+      { position: 5, name: 'Diego P.', time: '89.220s' },
+    ],
+  },
+  {
+    attractionId: 3,
+    attractionName: 'Drift King',
+    entries: [
+      { position: 1, name: 'Sofia H.', time: '92.115s', date: '19.04.2026' },
+      { position: 2, name: 'Marco V.', time: '93.002s' },
+      { position: 3, name: 'Alba M.', time: '93.450s' },
+      { position: 4, name: 'Diego P.', time: '94.001s' },
+      { position: 5, name: 'Lucas R.', time: '94.220s' },
+    ],
+  },
+  {
+    attractionId: 4,
+    attractionName: 'Neon Karting',
+    entries: [
+      { position: 1, name: 'Lucas R.', time: '45.123s', date: '22.04.2026' },
+      { position: 2, name: 'Alba M.', time: '45.890s' },
+      { position: 3, name: 'Sofia H.', time: '46.102s' },
+      { position: 4, name: 'Marco V.', time: '46.450s' },
+      { position: 5, name: 'Diego P.', time: '46.800s' },
+    ],
+  },
+]
