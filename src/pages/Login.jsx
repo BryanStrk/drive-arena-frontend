@@ -8,8 +8,8 @@ import { ASSETS_HERO } from '@/data/cloudinaryAssets'
  * Pantalla de Login del sistema operativo Drive Arena.
  * Acceso para operadores con rol ADMIN o TAQUILLA.
  *
- * NOTA: este commit construye solo el LAYOUT visual.
- * La lógica del formulario (react-hook-form + zod) se añade en el siguiente commit.
+ * Incluye un Badge top-left "ACCESO RESTRINGIDO · SISTEMA SEGURO" para
+ * mantener consistencia visual con el Hero del Home y el NotFound.
  */
 function Login() {
   return (
@@ -21,11 +21,18 @@ function Login() {
         aria-hidden="true"
       />
 
-      {/* Vignetting top + bottom para legibilidad de status bar y footer */}
+      {/* Vignetting top + bottom para legibilidad */}
       <div
         className="absolute inset-0 bg-gradient-to-b from-bg via-transparent to-bg"
         aria-hidden="true"
       />
+
+      {/* Badge de estado del sistema (top-left, consistente con Home) */}
+      <div className="absolute top-6 left-6 z-20">
+        <Badge variant="success" dot pulse>
+          Acceso Restringido · Sistema Seguro
+        </Badge>
+      </div>
 
       {/* Contenido principal */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center max-w-md mx-auto w-full">
