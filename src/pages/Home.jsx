@@ -1,48 +1,71 @@
-import { Link } from 'react-router'
-import Button from '@/components/Button'
-import Badge from '@/components/Badge'
+import Hero from '@/components/home/Hero'
+import StatsBar from '@/components/home/StatsBar'
+import ExperiencesSection from '@/components/home/ExperiencesSection'
+import RankingSection from '@/components/home/RankingSection'
+import PacksSection from '@/components/home/PacksSection'
+import LodgesSection from '@/components/home/LodgesSection'
+import LocationSection from '@/components/home/LocationSection'
+import HomeFooter from '@/components/home/HomeFooter'
+import StickyBottomNav from '@/components/home/StickyBottomNav'
+import FadeInSection from '@/components/FadeInSection'
+
+import {
+  RESORT_STATS,
+  EXPERIENCES,
+  MONTHLY_RANKINGS,
+  OFFER_PACKS,
+  RESORT_LODGES,
+  RESORT_LOCATION,
+} from '@/data/homeMocks'
 
 /**
- * Home pública (placeholder).
- * Será reemplazada por la implementación completa en feature/page-home-public.
+ * Home público de Drive Arena.
+ * Composición de las 7 secciones del landing con animaciones de entrada.
  */
 function Home() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] px-6 text-center">
-      {/* Badge de WIP */}
-      <Badge variant="warning" dot pulse>
-        WORK IN PROGRESS
-      </Badge>
+    <>
+      {/* HERO — sin FadeInSection, debe verse instantáneamente al cargar */}
+      <Hero />
 
-      {/* Logo principal */}
-      <h1 className="font-display font-extrabold text-8xl tracking-tight leading-none mt-8">
-        DRIVE <span className="text-primary">ARENA</span>
-      </h1>
+      {/* Stats bar — animación rápida */}
+      <FadeInSection duration={0.6} distance={20}>
+        <StatsBar stats={RESORT_STATS} />
+      </FadeInSection>
 
-      {/* Tagline (la del mockup) */}
-      <p className="font-display font-bold text-2xl tracking-[0.2em] uppercase text-text-muted mt-6">
-        Conduce <span className="text-primary">·</span> Compite <span className="text-primary">·</span> Domina
-      </p>
+      {/* Experiencias — más drama */}
+      <FadeInSection duration={0.8} distance={48}>
+        <ExperiencesSection experiences={EXPERIENCES} />
+      </FadeInSection>
 
-      {/* Línea decorativa */}
-      <div className="h-[2px] w-32 bg-primary shadow-[0_0_10px_var(--color-primary-glow)] mt-8" />
+      {/* Ranking del mes */}
+      <FadeInSection duration={0.8} distance={48}>
+        <RankingSection rankings={MONTHLY_RANKINGS} />
+      </FadeInSection>
 
-      {/* Status mono */}
-      <p className="font-mono text-text-muted text-xs tracking-[0.3em] uppercase mt-8">
-        // HOME_PUBLIC :: PENDING_IMPLEMENTATION
-      </p>
+      {/* Packs en oferta */}
+      <FadeInSection duration={0.8} distance={48}>
+        <PacksSection packs={OFFER_PACKS} />
+      </FadeInSection>
 
-      <p className="text-text-muted mt-3 max-w-md">
-        El home público con experiencias, ranking, packs y lodges se implementará en la próxima feature.
-      </p>
+      {/* Lodges del resort */}
+      <FadeInSection duration={0.8} distance={48}>
+        <LodgesSection lodges={RESORT_LODGES} />
+      </FadeInSection>
 
-      {/* CTA al Login mientras tanto */}
-      <div className="mt-10">
-        <Link to="/login">
-          <Button variant="primary">Acceder al sistema →</Button>
-        </Link>
-      </div>
-    </div>
+      {/* Ubicación */}
+      <FadeInSection duration={0.8} distance={48}>
+        <LocationSection location={RESORT_LOCATION} />
+      </FadeInSection>
+
+      {/* Footer rico */}
+      <FadeInSection duration={0.6} distance={20}>
+        <HomeFooter />
+      </FadeInSection>
+
+      {/* Sticky bottom nav — siempre visible, sin animación */}
+      <StickyBottomNav />
+    </>
   )
 }
 
