@@ -83,3 +83,28 @@ export const MONTHLY_RANKINGS = [
     ],
   },
 ]
+
+// === PACKS EN OFERTA ===
+// Promociones temporales del resort
+export const OFFER_PACKS = [
+  {
+    id: 1,
+    title: 'Pack GP Championship',
+    description:
+      'Fin de semana completo. Lodge Premium + Pases ilimitados a todos los circuitos + Pensión completa.',
+    originalPrice: 480,
+    currentPrice: 336,
+    discountPercentage: 30,
+    availability: '1 Jun - 31 Ago',
+  },
+  {
+    id: 2,
+    title: 'Pack Piloto Privado',
+    description:
+      'Inmersión técnica. Lodge Estándar + Sesiones privadas Phantom GT con telemetría + Media pensión.',
+    originalPrice: 380,
+    currentPrice: 285,
+    discountPercentage: 25,
+    availability: 'Todo el año',
+  },
+]
