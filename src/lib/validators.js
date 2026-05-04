@@ -2,29 +2,34 @@ import { z } from 'zod'
 
 /**
  * Schema de validación para el formulario de Login.
- * Las reglas reflejan los requisitos del backend Drive Arena.
+ *
+ * Las reglas reflejan las del backend Drive Arena (LoginRequest record):
+ *   @NotBlank en username y password
+ *
+ * El frontend valida en cliente para UX (feedback instantáneo),
+ * pero el backend valida también — nunca se confía solo en frontend.
  *
  * Backend endpoint: POST /api/auth/login
  * Espera: { username: string, password: string }
+ *
+ * Los limites máximos son defensivos (UX): si un usuario pega texto
+ * accidentalmente, evitamos enviar payloads enormes al backend.
  */
 export const loginSchema = z.object({
   username: z
     .string()
     .min(1, 'El operador es obligatorio')
-    .min(3, 'Mínimo 3 caracteres')
-    .max(50, 'Máximo 50 caracteres')
+    .max(100, 'Máximo 100 caracteres')
     .trim(),
 
   password: z
     .string()
     .min(1, 'La contraseña es obligatoria')
-    .min(6, 'Mínimo 6 caracteres')
-    .max(100, 'Máximo 100 caracteres'),
+    .max(255, 'Máximo 255 caracteres'),
 })
 
 /**
  * Type helper inferido del schema.
- * Útil para JSDoc en componentes que consumen los datos validados.
  *
  * @typedef {z.infer<typeof loginSchema>} LoginFormData
  */
