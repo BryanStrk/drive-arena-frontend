@@ -1,32 +1,150 @@
-# Drive Arena — Frontend
+<div align="center">
 
-Frontend del TFG **Drive Arena**: resort experiencial motorsport que combina hotel, atracciones, simuladores VR y sistema gamificado de pases gratuitos por récords y podios.
+# 🏎️ Drive Arena — Frontend
 
-> 🎓 Trabajo Final de Grado — DAW · Sprint final: 22 mayo 2026
+**Sistema operativo del resort experiencial motorsport**
 
----
+Frontend del TFG (Trabajo Fin de Grado) de Desarrollo de Aplicaciones Web — Drive Arena, un resort que combina hospedaje premium, circuitos, simuladores VR y experiencias de conducción gamificada.
 
-## 🏎️ Stack
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-ES2024-F7DF1E?logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![License](https://img.shields.io/badge/License-Educational-orange)]()
+[![Status](https://img.shields.io/badge/Status-In%20Development-yellow)]()
 
-| Capa | Tecnología |
-|------|------------|
-| Bundler | Vite 8 |
-| UI | React 19 + JavaScript (sin TypeScript) |
-| Estilos | Tailwind CSS v4 (Cyber Lime / Glassmorphism) |
-| Routing | React Router 7 |
-| HTTP | Axios |
-| Forms | React Hook Form + Zod |
-| Animación | Framer Motion |
-| Iconos | Lucide React |
-| Fechas | date-fns |
-| Toasts | react-hot-toast |
+[Demo](#) · [Backend repo](https://github.com/BryanStrk/drive-arena-backend) · [Reportar bug](https://github.com/BryanStrk/drive-arena-frontend/issues)
+
+</div>
 
 ---
 
-## 🚀 Setup
+## 📖 Sobre el proyecto
 
-​```bash
-# 1. Clonar
+**Drive Arena** es un resort experiencial dedicado al motorsport. El sistema operativo (este frontend) gestiona toda la operativa del resort: ventas en taquilla, gestión de lodges, mantenimiento de vehículos, ranking de pilotos, turnos de empleados y métricas analíticas en tiempo real.
+
+El frontend está dividido en dos zonas:
+
+- **Zona pública** — Landing del resort donde los visitantes descubren circuitos, lodges, packs y rankings.
+- **Zona privada** — Sistema operativo (back office) para administradores y personal de taquilla.
+
+---
+
+## 🛠️ Stack técnico
+
+### Core
+| Tecnología | Versión | Rol |
+|---|---|---|
+| **React** | 19 | Librería UI |
+| **Vite** | 8 | Build tool y dev server |
+| **JavaScript** | ES2024 | Lenguaje (sin TypeScript por requisito académico) |
+| **Tailwind CSS** | v4 | Sistema de estilos utility-first |
+
+### Routing & estado
+- **React Router** 7 — Routing declarativo con layout routes y guards
+- **React Context** + lazy initial state — Estado global de autenticación
+- **localStorage** — Persistencia de sesión (token JWT + datos de usuario)
+
+### Formularios & validación
+- **react-hook-form** 7 — Gestión de formularios performante
+- **Zod** 4 — Validación de schemas type-safe
+
+### HTTP & autenticación
+- **Axios** — Cliente HTTP con interceptors para JWT
+- **JWT (Bearer token)** — Autenticación contra API Spring Boot
+
+### UI/UX
+- **Recharts** 3 — Gráficos para dashboards analíticos
+- **react-hot-toast** — Notificaciones no intrusivas
+- **Framer Motion** — Animaciones declarativas
+- **Lucide React** — Iconografía consistente
+- **Cloudinary** — CDN de imágenes (logo, avatares, lodges, packs)
+
+---
+
+## 🎨 Sistema de diseño
+
+Drive Arena tiene una identidad visual **cyber-motorsport** definida por:
+
+### Paleta de colores
+| Token | Hex | Uso |
+|---|---|---|
+| `--color-bg` | `#0A0A0A` | Fondo global |
+| `--color-surface-1` | `#141414` | Superficies primarias (cards, sidebar) |
+| `--color-surface-2` | `#1F1F1F` | Superficies secundarias (hover, inputs) |
+| `--color-primary` | `#E0162B` | CTAs, acentos, glow |
+| `--color-success` | `#00C853` | Estados positivos |
+| `--color-warning` | `#FFB800` | Estados de revisión |
+| `--color-danger` | `#FF3B30` | Errores y estados críticos |
+
+### Tipografía
+- **Saira** — Display (títulos, números grandes)
+- **Inter** — Sans-serif (cuerpo de texto)
+- **JetBrains Mono** — Mono (labels, métricas, tracking wide)
+
+---
+
+## 📂 Estructura del proyecto
+
+\`\`\`
+drive-arena-frontend/
+├── public/                       # Assets estáticos
+├── src/
+│   ├── api/                      # Cliente HTTP y endpoints
+│   │   ├── axiosClient.js        # Axios + interceptors JWT
+│   │   └── authApi.js            # Endpoints de autenticación
+│   ├── components/
+│   │   ├── Badge.jsx             # Etiquetas con variantes
+│   │   ├── Button.jsx            # Botón base (primary/secondary/ghost/danger)
+│   │   ├── Card.jsx              # Contenedor con borde y radio
+│   │   ├── Input.jsx             # Input accesible (forwardRef + WCAG AA)
+│   │   ├── KpiCard.jsx           # Tarjeta de métrica para dashboard
+│   │   ├── ProtectedRoute.jsx    # Guard para rutas privadas
+│   │   ├── PublicOnlyRoute.jsx   # Guard para login (no autenticados)
+│   │   ├── home/                 # Componentes del Home público
+│   │   └── dashboard/            # Widgets del dashboard privado
+│   ├── context/
+│   │   ├── AuthContext.jsx       # Provider de autenticación
+│   │   ├── authContextInstance.js
+│   │   └── useAuth.js            # Hook personalizado
+│   ├── data/
+│   │   ├── cloudinaryAssets.js   # URLs de imágenes Cloudinary
+│   │   └── homeMocks.js          # Mock data para Home público
+│   ├── layouts/
+│   │   ├── PublicLayout.jsx      # Wrapper de zona pública
+│   │   └── DashboardLayout.jsx   # Shell privado (sidebar + topbar)
+│   ├── lib/
+│   │   ├── cn.js                 # Utility para merge de classNames
+│   │   ├── storage.js            # Helpers de localStorage
+│   │   └── validators.js         # Schemas Zod
+│   ├── pages/
+│   │   ├── Home.jsx              # Landing público
+│   │   ├── Login.jsx             # Formulario de acceso
+│   │   ├── Dashboard.jsx         # Panel de control privado
+│   │   └── NotFound.jsx          # 404
+│   ├── router.jsx                # Configuración de rutas
+│   ├── main.jsx                  # Entry point
+│   └── index.css                 # Tailwind + tokens del design system
+├── .env                          # Variables de entorno (no commiteado)
+├── .env.example                  # Plantilla de .env
+├── package.json
+└── vite.config.js
+\`\`\`
+
+---
+
+## 🚀 Instalación y arranque
+
+### Requisitos previos
+
+- **Node.js** ≥ 20
+- **npm** ≥ 10
+- Backend de Drive Arena corriendo en `localhost:8080` ([repo backend](https://github.com/BryanStrk/drive-arena-backend))
+
+### Pasos
+
+\`\`\`bash
+# 1. Clonar el repositorio
 git clone https://github.com/BryanStrk/drive-arena-frontend.git
 cd drive-arena-frontend
 
@@ -35,112 +153,138 @@ npm install
 
 # 3. Configurar variables de entorno
 cp .env.example .env
+# Edita .env con la URL de tu API si es necesario
 
-# 4. Arrancar en modo desarrollo
+# 4. Arrancar el servidor de desarrollo
 npm run dev
-​```
+\`\`\`
 
-Por defecto arranca en `http://localhost:5173`.
+La aplicación estará disponible en \`http://localhost:5173\`.
 
----
+### Variables de entorno
 
-## 🔐 Variables de entorno
-
-Todas las variables expuestas al frontend deben tener prefijo `VITE_`.
-
-| Variable | Descripción | Ejemplo |
-|----------|-------------|---------|
-| `VITE_API_URL` | URL base del backend | `http://localhost:8080/api` |
-
-⚠️ **Nunca commitear `.env`** — usar `.env.example` como plantilla pública.
+\`\`\`env
+VITE_API_URL=http://localhost:8080/api
+\`\`\`
 
 ---
 
-## 📁 Estructura
+## 🔐 Autenticación
 
-​```
-src/
-├── api/          Clientes Axios y endpoints por entidad
-├── components/   Componentes reutilizables
-├── constants/    Enums del backend, valores fijos
-├── context/      React Contexts (Auth, etc.)
-├── hooks/        Custom hooks
-├── layouts/      Layouts (Dashboard, Auth)
-├── lib/          Lógica de negocio pura
-├── pages/        Pantallas (rutas)
-└── utils/        Helpers genéricos
-​```
+El sistema usa **JWT** contra el backend Spring Boot. Los usuarios prueba disponibles:
+
+| Username | Password | Rol |
+|---|---|---|
+| \`admin\` | \`admin123\` | ADMIN |
+| \`taquilla\` | \`taquilla123\` | TAQUILLA |
+
+El token se almacena en \`localStorage\` y se inyecta automáticamente en cada petición vía \`axiosClient\` interceptor. La sesión se rehidrata al recargar la página gracias a \`useState\` con lazy initial state.
 
 ---
 
-## 🎨 Sistema de diseño
+## 🗺️ Mapa de rutas
 
-**Drive Arena Design System V1.0** — definido como design tokens en `src/index.css`.
-
-### Backgrounds
-
-| Token | HEX | Uso |
-|-------|-----|-----|
-| `--color-bg` | `#0A0A0A` | Brand Black — fondo global |
-| `--color-surface-1` | `#141414` | Cards, panels |
-| `--color-surface-2` | `#1F1F1F` | Hover, elevated |
-| `--color-border` | `#1A1A1A` | Bordes sutiles |
-| `--color-border-strong` | `#2A2A2A` | Bordes definidos |
-
-### Brand
-
-| Token | HEX | Uso |
-|-------|-----|-----|
-| `--color-primary` | `#E0162B` | Primary Red — CTAs, acentos |
-| `--color-primary-dark` | `#C01225` | Dark Red — hover, pressed |
-| `--color-primary-glow` | `#E0162B33` | Sombras y halos rojos |
-
-### Semantic
-
-| Token | HEX | Uso |
-|-------|-----|-----|
-| `--color-success` | `#00C853` | Estado online, éxito |
-| `--color-danger` | `#FF3B30` | Errores, alertas |
-| `--color-warning` | `#FFB800` | Revisión, advertencias |
-
-### Typography
-
-| Token | Familia | Uso |
-|-------|---------|-----|
-| `font-display` | Saira | Headlines, números grandes |
-| `font-sans` | Inter | Body, formularios, legibilidad |
-| `font-mono` | JetBrains Mono | Datos, métricas, código |
-
-### Conventions
-
-- **Cards**: `bg-surface-1` con `border border-border-strong` y `rounded-card`
-- **Inputs**: `bg-surface-2` sin border en estado normal
-- **CTAs primarios**: `bg-primary hover:bg-primary-dark` con texto blanco mayúsculas
-- **Status indicators**: dot 8px con shadow del color correspondiente
----
-
-## 🔗 Backend
-
-Repositorio: [drive-arena-backend](https://github.com/BryanStrk/drive-arena-backend)
-
-- Spring Boot 4 + MySQL
-- JWT authentication (roles `ADMIN` / `TAQUILLA`)
-- API REST en `/api/*`
-- Swagger UI en `/swagger-ui.html`
+\`\`\`
+/                  Home público
+/login             Formulario de acceso (redirige a /dashboard si ya logueado)
+/dashboard         Panel de control (requiere auth)
+/*                 NotFound (404)
+\`\`\`
 
 ---
 
-## 📜 Scripts disponibles
+## 🎯 Estado actual del proyecto
 
-| Comando | Acción |
-|---------|--------|
-| `npm run dev` | Servidor de desarrollo (puerto 5173) |
-| `npm run build` | Build de producción a `/dist` |
-| `npm run preview` | Preview del build de producción |
-| `npm run lint` | Linter ESLint |
+### ✅ Completado
+
+- [x] Sistema de diseño con tokens (colores, tipografías, radios)
+- [x] Componentes base (Badge, Button, Card, Input)
+- [x] Routing público con layout
+- [x] Home público completo (Hero, Stats, Experiences, Ranking, Packs, Lodges, Location, Footer)
+- [x] Sistema de autenticación JWT contra Spring Boot
+- [x] Rutas protegidas y rutas exclusivas para no autenticados
+- [x] Layout privado con sidebar rica + topbar (breadcrumbs, buscador, notificaciones)
+- [x] Dashboard analítico con widgets:
+  - [x] 4 KPIs del día (ventas, reservas, tiempo en pista, nuevos clientes)
+  - [x] Distribución de ventas por rango de edad
+  - [x] Top 3 Lodges del mes con podio
+  - [x] Evolución mensual de ingresos (Recharts)
+  - [x] Tabla de mantenimientos pendientes con estados
+
+### 🚧 En progreso / Próximamente
+
+- [ ] CRUD de Lodges (listado, crear, editar, borrar)
+- [ ] CRUD de Clientes
+- [ ] Asistente de Nueva Venta (wizard de 4 pasos)
+- [ ] CRUDs minimales (Atracciones, Tarifas, Empleados)
+- [ ] Integración real con backend (sustituir mocks)
+- [ ] Estados de loading y error en widgets
+- [ ] Página de perfil de usuario
+- [ ] Página de mantenimientos completa
+- [ ] Gestión de turnos
+- [ ] Ranking administrable
+- [ ] Deployment a producción (Vercel)
+
+---
+
+## 📦 Scripts disponibles
+
+\`\`\`bash
+npm run dev          # Servidor de desarrollo (Vite)
+npm run build        # Build de producción
+npm run preview      # Preview del build de producción
+npm run lint         # Linter (ESLint)
+\`\`\`
+
+---
+
+## 🌳 Workflow de Git
+
+El proyecto sigue un workflow basado en **Conventional Commits** y **feature branches**:
+
+### Ramas
+- \`main\` — Releases estables (taggeadas con SemVer)
+- \`dev\` — Integración de features completas
+- \`feature/*\` — Desarrollo de funcionalidades nuevas
+
+### Tipos de commit
+- \`feat:\` — Nueva funcionalidad
+- \`fix:\` — Corrección de bugs
+- \`refactor:\` — Refactor sin cambio funcional
+- \`chore:\` — Tareas de mantenimiento
+- \`docs:\` — Cambios en documentación
+- \`build:\` — Cambios en sistema de build o dependencias
+
+### Releases publicadas
+- **v0.1.0** — Home público completo
+- **v0.2.0** — Sistema de autenticación API
+- **v0.3.0** — Rutas protegidas, dashboard layout y logout
+
+---
+
+## 📚 Backend
+
+Este frontend consume la API REST de **Drive Arena Backend**:
+
+- Repo: [github.com/BryanStrk/drive-arena-backend](https://github.com/BryanStrk/drive-arena-backend)
+- Stack: Spring Boot 4 · Java 25 · MySQL · JWT · Spring Security 7
+
+---
+
+## 🎓 Contexto académico
+
+Este proyecto forma parte del **TFG (Trabajo Fin de Grado)** del Ciclo Formativo de Grado Superior en **Desarrollo de Aplicaciones Web (DAW)**.
+
+**Sprint final:** 22 de mayo de 2026
 
 ---
 
 ## 👤 Autor
 
-**Bryan Paico** · [@BryanStrk](https://github.com/BryanStrk)
+**Bryan** — [@BryanStrk](https://github.com/BryanStrk)
+
+---
+
+## 📄 Licencia
+
+Proyecto educativo · Todos los derechos reservados.
