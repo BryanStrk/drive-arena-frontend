@@ -10,6 +10,7 @@ const CLOUDINARY_BASE = 'https://res.cloudinary.com/dutmn3xde/image/upload'
 // === Branding ===
 export const ASSETS_BRAND = {
   logo: `${CLOUDINARY_BASE}/v1777374497/logo-drive-arena_wxkvaq.png`,
+  avatarDefault: `${CLOUDINARY_BASE}/v1777964150/avatar-default_rv2aer.jpg`,
 }
 
 // === Hero / Backgrounds ===
