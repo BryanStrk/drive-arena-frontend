@@ -1,21 +1,22 @@
-import { NavLink, Outlet } from 'react-router'
+import { NavLink, Outlet, useNavigate } from 'react-router'
+import toast from 'react-hot-toast'
+
 import { useAuth } from '@/context/useAuth'
 import Badge from '@/components/Badge'
+import Button from '@/components/Button'
 import { cn } from '@/lib/cn'
 
 /**
  * Layout del shell privado de Drive Arena.
  *
  * Estructura:
- * - Topbar fijo arriba con logo + info del usuario
+ * - Topbar fijo arriba con logo + info del usuario + botón logout
  * - Sidebar fijo a la izquierda con navegación principal
  * - Outlet para el contenido de la página activa
  *
  * Las rutas privadas se anidan dentro de este layout.
  * Solo accesible para usuarios autenticados (gestionado por
  * <ProtectedRoute> en el router).
- *
- * El botón de logout se añade en un commit posterior (separación de concerns).
  */
 
 // Items de navegación. Los `disabled: true` son placeholders para
@@ -30,7 +31,18 @@ const NAV_ITEMS = [
 ]
 
 function DashboardLayout() {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
+
+  /**
+   * Cierra la sesión del usuario actual.
+   * Limpia el estado del AuthContext + localStorage y redirige al login.
+   */
+  const handleLogout = () => {
+    logout()
+    toast.success('Sesión cerrada correctamente')
+    navigate('/login', { replace: true })
+  }
 
   return (
     <div className="min-h-screen bg-bg flex flex-col">
@@ -49,14 +61,24 @@ function DashboardLayout() {
           </span>
         </div>
 
-        {/* Usuario activo */}
-        <div className="flex items-center gap-3">
-          <span className="font-mono text-xs uppercase text-text-muted">
-            {user?.username}
-          </span>
-          <Badge variant="primary" size="xs">
-            {user?.rol}
-          </Badge>
+        {/* Usuario activo + logout */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-xs uppercase text-text-muted">
+              {user?.username}
+            </span>
+            <Badge variant="primary" size="xs">
+              {user?.rol}
+            </Badge>
+          </div>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLogout}
+          >
+            Cerrar sesión
+          </Button>
         </div>
       </header>
 
