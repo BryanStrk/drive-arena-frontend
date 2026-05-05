@@ -1,20 +1,24 @@
 import KpiCard from '@/components/KpiCard'
+import AgeRangeSalesWidget from '@/components/dashboard/AgeRangeSalesWidget'
+import TopLodgesWidget from '@/components/dashboard/TopLodgesWidget'
+import MonthlyRevenueWidget from '@/components/dashboard/MonthlyRevenueWidget'
+import PendingMaintenanceWidget from '@/components/dashboard/PendingMaintenanceWidget'
 
 /**
  * Dashboard de zona privada — vista principal de control.
  *
  * Estructura:
  * 1. Header con título + descripción
- * 2. Fila de KPIs del día (4 widgets — datos mock por ahora)
- * 3. Grid 2 cols: Ventas por edad + Top 3 Lodges (placeholders)
- * 4. Gráfico evolución mensual (placeholder)
- * 5. Tabla mantenimientos pendientes (placeholder)
+ * 2. Fila de KPIs del día (4 widgets)
+ * 3. Grid 2 cols: Ventas por edad + Top 3 Lodges
+ * 4. Gráfico evolución mensual de ingresos
+ * 5. Tabla mantenimientos pendientes
  *
  * Los datos mock se reemplazarán por llamadas reales al backend
  * en una sesión posterior (sprint de integración).
  */
 
-// Mock data de KPIs del día — sustituiremos por endpoints reales después.
+// === KPIs DEL DÍA ===
 const TODAY_KPIS = [
   {
     label: 'Ventas hoy',
@@ -47,6 +51,86 @@ const TODAY_KPIS = [
   },
 ]
 
+// === VENTAS POR RANGO DE EDAD ===
+const AGE_RANGE_SALES = {
+  total: 1284,
+  ranges: [
+    { label: 'Junior (16-24)', value: 282, percentage: 22 },
+    { label: 'Pro (25-45)', value: 835, percentage: 65 },
+    { label: 'Veterano (46+)', value: 167, percentage: 13 },
+  ],
+}
+
+// === TOP 3 LODGES DEL MES ===
+const TOP_LODGES = [
+  {
+    position: 1,
+    name: 'Apex Lodge',
+    zone: 'Zona Norte · VIP Paddock',
+    category: 'VIP',
+    revenue: 52300,
+  },
+  {
+    position: 2,
+    name: 'Pit Stop Lodge',
+    zone: 'Zona Este · Familiar',
+    category: 'Familiar',
+    revenue: 35100,
+  },
+]
+
+// === EVOLUCIÓN MENSUAL DE INGRESOS (2026) ===
+const MONTHLY_REVENUE = {
+  year: 2026,
+  currentMonth: 'MAY',
+  data: [
+    { month: 'ENE', revenue: 12400 },
+    { month: 'FEB', revenue: 14800 },
+    { month: 'MAR', revenue: 18200 },
+    { month: 'ABR', revenue: 22100 },
+    { month: 'MAY', revenue: 19850 },
+    { month: 'JUN', revenue: null },
+    { month: 'JUL', revenue: null },
+    { month: 'AGO', revenue: null },
+    { month: 'SEP', revenue: null },
+    { month: 'OCT', revenue: null },
+    { month: 'NOV', revenue: null },
+    { month: 'DIC', revenue: null },
+  ],
+}
+
+// === MANTENIMIENTOS PENDIENTES ===
+const PENDING_MAINTENANCES = [
+  {
+    id: 'M-842',
+    vehicle: 'Phantom GT',
+    unit: 'U-04',
+    system: 'Frenos Hidráulicos',
+    status: 'CRITICO',
+  },
+  {
+    id: 'M-843',
+    vehicle: 'Phantom GT',
+    unit: 'U-12',
+    system: 'Telemetría Sensor A',
+    status: 'REVISION',
+  },
+  {
+    id: 'M-845',
+    vehicle: 'Apex RSR',
+    unit: 'U-02',
+    system: 'Neumáticos Traseros',
+    status: 'PROGRAMADO',
+  },
+  {
+    id: 'M-846',
+    vehicle: 'Vortex V8',
+    unit: 'U-09',
+    system: 'Alineación Aerodinámica',
+    status: 'PROGRAMADO',
+  },
+]
+
 function Dashboard() {
   return (
     <div className="min-h-full bg-bg p-8">
@@ -76,37 +160,27 @@ function Dashboard() {
       {/* FILA 2 — Analítica: Edad + Top Lodges */}
       <section aria-label="Analítica" className="mb-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <WidgetPlaceholder label="Ventas por rango de edad" minHeight={240} />
-          <WidgetPlaceholder label="Top 3 Lodges" minHeight={240} />
+          <AgeRangeSalesWidget
+            ranges={AGE_RANGE_SALES.ranges}
+            total={AGE_RANGE_SALES.total}
+          />
+          <TopLodgesWidget lodges={TOP_LODGES} />
         </div>
       </section>
 
       {/* FILA 3 — Gráfico evolución mensual */}
       <section aria-label="Evolución mensual" className="mb-8">
-        <WidgetPlaceholder label="Evolución mensual de ingresos" minHeight={280} />
+        <MonthlyRevenueWidget
+          data={MONTHLY_REVENUE.data}
+          currentMonth={MONTHLY_REVENUE.currentMonth}
+          year={MONTHLY_REVENUE.year}
+        />
       </section>
 
       {/* FILA 4 — Mantenimientos pendientes */}
       <section aria-label="Mantenimientos pendientes" className="mb-8">
-        <WidgetPlaceholder label="Mantenimientos pendientes" minHeight={240} />
+        <PendingMaintenanceWidget maintenances={PENDING_MAINTENANCES} />
       </section>
-    </div>
-  )
-}
-
-/**
- * Placeholder temporal para widgets grandes — se sustituyen por
- * componentes funcionales en sesiones futuras.
- */
-function WidgetPlaceholder({ label, minHeight = 200 }) {
-  return (
-    <div
-      className="bg-surface-1 border border-border-strong rounded-card p-6 flex items-center justify-center"
-      style={{ minHeight: `${minHeight}px` }}
-    >
-      <p className="font-mono text-[11px] tracking-[0.2em] uppercase text-text-dim">
-        ▌ {label}
-      </p>
     </div>
   )
 }
