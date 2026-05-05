@@ -2,6 +2,7 @@ import KpiCard from '@/components/KpiCard'
 import AgeRangeSalesWidget from '@/components/dashboard/AgeRangeSalesWidget'
 import TopLodgesWidget from '@/components/dashboard/TopLodgesWidget'
 import MonthlyRevenueWidget from '@/components/dashboard/MonthlyRevenueWidget'
+import PendingMaintenanceWidget from '@/components/dashboard/PendingMaintenanceWidget'
 
 /**
  * Dashboard de zona privada — vista principal de control.
@@ -10,7 +11,7 @@ import MonthlyRevenueWidget from '@/components/dashboard/MonthlyRevenueWidget'
  * 1. Header con título + descripción
  * 2. Fila de KPIs del día (4 widgets)
  * 3. Grid 2 cols: Ventas por edad + Top 3 Lodges
- * 4. Gráfico evolución mensual
+ * 4. Gráfico evolución mensual de ingresos
  * 5. Tabla mantenimientos pendientes
  *
  * Los datos mock se reemplazarán por llamadas reales al backend
@@ -79,7 +80,6 @@ const TOP_LODGES = [
 ]
 
 // === EVOLUCIÓN MENSUAL DE INGRESOS (2026) ===
-// Meses futuros con revenue=null para que aparezcan como gap en el gráfico.
 const MONTHLY_REVENUE = {
   year: 2026,
   currentMonth: 'MAY',
@@ -98,6 +98,38 @@ const MONTHLY_REVENUE = {
     { month: 'DIC', revenue: null },
   ],
 }
+
+// === MANTENIMIENTOS PENDIENTES ===
+const PENDING_MAINTENANCES = [
+  {
+    id: 'M-842',
+    vehicle: 'Phantom GT',
+    unit: 'U-04',
+    system: 'Frenos Hidráulicos',
+    status: 'CRITICO',
+  },
+  {
+    id: 'M-843',
+    vehicle: 'Phantom GT',
+    unit: 'U-12',
+    system: 'Telemetría Sensor A',
+    status: 'REVISION',
+  },
+  {
+    id: 'M-845',
+    vehicle: 'Apex RSR',
+    unit: 'U-02',
+    system: 'Neumáticos Traseros',
+    status: 'PROGRAMADO',
+  },
+  {
+    id: 'M-846',
+    vehicle: 'Vortex V8',
+    unit: 'U-09',
+    system: 'Alineación Aerodinámica',
+    status: 'PROGRAMADO',
+  },
+]
 
 function Dashboard() {
   return (
@@ -147,25 +179,8 @@ function Dashboard() {
 
       {/* FILA 4 — Mantenimientos pendientes */}
       <section aria-label="Mantenimientos pendientes" className="mb-8">
-        <WidgetPlaceholder label="Mantenimientos pendientes" minHeight={240} />
+        <PendingMaintenanceWidget maintenances={PENDING_MAINTENANCES} />
       </section>
-    </div>
-  )
-}
-
-/**
- * Placeholder temporal para widgets no implementados todavía.
- * Se sustituyen por componentes funcionales en commits posteriores.
- */
-function WidgetPlaceholder({ label, minHeight = 200 }) {
-  return (
-    <div
-      className="bg-surface-1 border border-border-strong rounded-card p-6 flex items-center justify-center"
-      style={{ minHeight: `${minHeight}px` }}
-    >
-      <p className="font-mono text-[11px] tracking-[0.2em] uppercase text-text-dim">
-        ▌ {label}
-      </p>
     </div>
   )
 }
