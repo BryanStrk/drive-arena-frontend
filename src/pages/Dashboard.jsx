@@ -1,20 +1,21 @@
 import KpiCard from '@/components/KpiCard'
+import AgeRangeSalesWidget from '@/components/dashboard/AgeRangeSalesWidget'
 
 /**
  * Dashboard de zona privada — vista principal de control.
  *
  * Estructura:
  * 1. Header con título + descripción
- * 2. Fila de KPIs del día (4 widgets — datos mock por ahora)
- * 3. Grid 2 cols: Ventas por edad + Top 3 Lodges (placeholders)
- * 4. Gráfico evolución mensual (placeholder)
- * 5. Tabla mantenimientos pendientes (placeholder)
+ * 2. Fila de KPIs del día (4 widgets)
+ * 3. Grid 2 cols: Ventas por edad + Top 3 Lodges
+ * 4. Gráfico evolución mensual
+ * 5. Tabla mantenimientos pendientes
  *
  * Los datos mock se reemplazarán por llamadas reales al backend
  * en una sesión posterior (sprint de integración).
  */
 
-// Mock data de KPIs del día — sustituiremos por endpoints reales después.
+// === KPIs DEL DÍA ===
 const TODAY_KPIS = [
   {
     label: 'Ventas hoy',
@@ -47,6 +48,16 @@ const TODAY_KPIS = [
   },
 ]
 
+// === VENTAS POR RANGO DE EDAD ===
+const AGE_RANGE_SALES = {
+  total: 1284,
+  ranges: [
+    { label: 'Junior (16-24)', value: 282, percentage: 22 },
+    { label: 'Pro (25-45)', value: 835, percentage: 65 },
+    { label: 'Veterano (46+)', value: 167, percentage: 13 },
+  ],
+}
+
 function Dashboard() {
   return (
     <div className="min-h-full bg-bg p-8">
@@ -76,7 +87,10 @@ function Dashboard() {
       {/* FILA 2 — Analítica: Edad + Top Lodges */}
       <section aria-label="Analítica" className="mb-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <WidgetPlaceholder label="Ventas por rango de edad" minHeight={240} />
+          <AgeRangeSalesWidget
+            ranges={AGE_RANGE_SALES.ranges}
+            total={AGE_RANGE_SALES.total}
+          />
           <WidgetPlaceholder label="Top 3 Lodges" minHeight={240} />
         </div>
       </section>
@@ -95,8 +109,8 @@ function Dashboard() {
 }
 
 /**
- * Placeholder temporal para widgets grandes — se sustituyen por
- * componentes funcionales en sesiones futuras.
+ * Placeholder temporal para widgets no implementados todavía.
+ * Se sustituyen por componentes funcionales en commits posteriores.
  */
 function WidgetPlaceholder({ label, minHeight = 200 }) {
   return (
