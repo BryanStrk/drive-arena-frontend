@@ -17,19 +17,18 @@ import {
  * y el mes actual se destaca con un punto grande resaltado.
  *
  * Usa Recharts con un Tooltip custom para mantener la estética
- * cyber/motorsport del proyecto (el default es genérico).
+ * cyber/motorsport del proyecto.
  *
  * @param {Object} props
  * @param {Array<{month: string, revenue: number|null}>} props.data
- *   Datos de los 12 meses. revenue=null indica mes futuro sin datos.
  * @param {string} props.currentMonth - Label del mes actual (ej. 'MAY')
- * @param {number} props.year - Año de referencia (ej. 2026)
+ * @param {number} props.year - Año de referencia
  */
 function MonthlyRevenueWidget({ data, currentMonth, year }) {
   // Buscamos el dato del mes actual para destacarlo
   const currentMonthData = data.find((d) => d.month === currentMonth)
 
-  // Calculamos el total acumulado del año (suma de meses con datos)
+  // Calculamos el total acumulado del año (solo meses con datos)
   const totalRevenue = data
     .filter((d) => d.revenue !== null)
     .reduce((sum, d) => sum + d.revenue, 0)
@@ -100,22 +99,23 @@ function MonthlyRevenueWidget({ data, currentMonth, year }) {
               }}
             />
             <Line
-              type="monotone"
+              type="linear"
               dataKey="revenue"
-              stroke="var(--color-primary)"
-              strokeWidth={2}
+              stroke="#E0162B"
+              strokeWidth={2.5}
               dot={{
-                fill: 'var(--color-primary)',
-                stroke: 'var(--color-primary)',
+                fill: '#E0162B',
+                stroke: '#E0162B',
                 r: 3,
               }}
               activeDot={{
-                fill: 'var(--color-primary)',
-                stroke: 'var(--color-text)',
+                fill: '#E0162B',
+                stroke: '#FFFFFF',
                 strokeWidth: 2,
                 r: 5,
               }}
               connectNulls={false}
+              isAnimationActive={false}
             />
             {/* Punto destacado para el mes actual */}
             {currentMonthData && currentMonthData.revenue !== null && (
@@ -123,8 +123,8 @@ function MonthlyRevenueWidget({ data, currentMonth, year }) {
                 x={currentMonth}
                 y={currentMonthData.revenue}
                 r={6}
-                fill="var(--color-primary)"
-                stroke="var(--color-text)"
+                fill="#E0162B"
+                stroke="#FFFFFF"
                 strokeWidth={2}
               />
             )}
@@ -137,7 +137,6 @@ function MonthlyRevenueWidget({ data, currentMonth, year }) {
 
 /**
  * Tooltip custom para mantener la estética del proyecto.
- * Recharts pasa los datos del punto hovered en la prop `payload`.
  */
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload || !payload.length) return null
