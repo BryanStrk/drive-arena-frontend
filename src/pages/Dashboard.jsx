@@ -1,5 +1,6 @@
 import KpiCard from '@/components/KpiCard'
 import AgeRangeSalesWidget from '@/components/dashboard/AgeRangeSalesWidget'
+import TopLodgesWidget from '@/components/dashboard/TopLodgesWidget'
 
 /**
  * Dashboard de zona privada — vista principal de control.
@@ -58,6 +59,25 @@ const AGE_RANGE_SALES = {
   ],
 }
 
+// === TOP 3 LODGES DEL MES ===
+// El resort actualmente tiene 2 lodges activos; el slot #3 quedará vacío.
+const TOP_LODGES = [
+  {
+    position: 1,
+    name: 'Apex Lodge',
+    zone: 'Zona Norte · VIP Paddock',
+    category: 'VIP',
+    revenue: 52300,
+  },
+  {
+    position: 2,
+    name: 'Pit Stop Lodge',
+    zone: 'Zona Este · Familiar',
+    category: 'Familiar',
+    revenue: 35100,
+  },
+]
+
 function Dashboard() {
   return (
     <div className="min-h-full bg-bg p-8">
@@ -91,7 +111,7 @@ function Dashboard() {
             ranges={AGE_RANGE_SALES.ranges}
             total={AGE_RANGE_SALES.total}
           />
-          <WidgetPlaceholder label="Top 3 Lodges" minHeight={240} />
+          <TopLodgesWidget lodges={TOP_LODGES} />
         </div>
       </section>
 
