@@ -1,6 +1,7 @@
 import KpiCard from '@/components/KpiCard'
 import AgeRangeSalesWidget from '@/components/dashboard/AgeRangeSalesWidget'
 import TopLodgesWidget from '@/components/dashboard/TopLodgesWidget'
+import MonthlyRevenueWidget from '@/components/dashboard/MonthlyRevenueWidget'
 
 /**
  * Dashboard de zona privada — vista principal de control.
@@ -60,7 +61,6 @@ const AGE_RANGE_SALES = {
 }
 
 // === TOP 3 LODGES DEL MES ===
-// El resort actualmente tiene 2 lodges activos; el slot #3 quedará vacío.
 const TOP_LODGES = [
   {
     position: 1,
@@ -77,6 +77,27 @@ const TOP_LODGES = [
     revenue: 35100,
   },
 ]
+
+// === EVOLUCIÓN MENSUAL DE INGRESOS (2026) ===
+// Meses futuros con revenue=null para que aparezcan como gap en el gráfico.
+const MONTHLY_REVENUE = {
+  year: 2026,
+  currentMonth: 'MAY',
+  data: [
+    { month: 'ENE', revenue: 12400 },
+    { month: 'FEB', revenue: 14800 },
+    { month: 'MAR', revenue: 18200 },
+    { month: 'ABR', revenue: 22100 },
+    { month: 'MAY', revenue: 19850 },
+    { month: 'JUN', revenue: null },
+    { month: 'JUL', revenue: null },
+    { month: 'AGO', revenue: null },
+    { month: 'SEP', revenue: null },
+    { month: 'OCT', revenue: null },
+    { month: 'NOV', revenue: null },
+    { month: 'DIC', revenue: null },
+  ],
+}
 
 function Dashboard() {
   return (
@@ -117,7 +138,11 @@ function Dashboard() {
 
       {/* FILA 3 — Gráfico evolución mensual */}
       <section aria-label="Evolución mensual" className="mb-8">
-        <WidgetPlaceholder label="Evolución mensual de ingresos" minHeight={280} />
+        <MonthlyRevenueWidget
+          data={MONTHLY_REVENUE.data}
+          currentMonth={MONTHLY_REVENUE.currentMonth}
+          year={MONTHLY_REVENUE.year}
+        />
       </section>
 
       {/* FILA 4 — Mantenimientos pendientes */}
