@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 
 import LodgeCard from '@/components/lodges/LodgeCard'
+import LodgeFormModal from '@/components/lodges/LodgeFormModal'
 import { useLodges } from '@/hooks/useLodges'
 
 /**
@@ -23,8 +24,7 @@ import { useLodges } from '@/hooks/useLodges'
  *
  * Funcionalidad:
  *   - Búsqueda client-side por nombre o dirección (filtra en `useMemo`)
- *   - Eliminación con confirm nativo + optimistic update del hook
- *   - Crear / Editar son placeholders hasta que conectemos el modal (archivo 7)
+ *   - CRUD completo: crear, editar (modal) y eliminar (confirm + optimistic)
  *
  * Layout responsive: 1 col móvil → 2 cols sm → 3 cols xl → 4 cols 2xl.
  */
@@ -34,10 +34,18 @@ export default function LodgesPage() {
     isLoading,
     error,
     refetch,
+    createLodge,
+    updateLodge,
     removeLodge,
   } = useLodges()
 
   const [search, setSearch] = useState('')
+
+  // Estado del modal de creación/edición
+  // editingLodge === null → modo creación
+  // editingLodge === { ... } → modo edición
+  const [formOpen, setFormOpen] = useState(false)
+  const [editingLodge, setEditingLodge] = useState(null)
 
   /**
    * Filtrado client-side. Memoizado para no recalcular en renders ajenos.
@@ -68,14 +76,21 @@ export default function LodgesPage() {
     }
   }
 
-  const handleEdit = (lodge) => {
-    // TODO(archivo 7): abrir LodgeFormModal en modo edición con los datos del lodge
-    console.log('[LodgesPage] Editar', lodge)
+  const handleCreate = () => {
+    setEditingLodge(null)
+    setFormOpen(true)
   }
 
-  const handleCreate = () => {
-    // TODO(archivo 7): abrir LodgeFormModal en modo creación
-    console.log('[LodgesPage] Crear nuevo lodge')
+  const handleEdit = (lodge) => {
+    setEditingLodge(lodge)
+    setFormOpen(true)
+  }
+
+  const handleCloseForm = () => {
+    setFormOpen(false)
+    // editingLodge se actualiza en el próximo handleCreate/handleEdit.
+    // No lo limpiamos aquí para que la animación de salida del modal
+    // mantenga el header correcto ("Editar X" en lugar de "Nuevo Lodge").
   }
 
   // ─── Render ────────────────────────────────────────────────────────────
@@ -155,6 +170,15 @@ export default function LodgesPage() {
           </AnimatePresence>
         </motion.div>
       )}
+
+      {/* MODAL DE CREACIÓN / EDICIÓN */}
+      <LodgeFormModal
+        isOpen={formOpen}
+        onClose={handleCloseForm}
+        lodge={editingLodge}
+        createLodge={createLodge}
+        updateLodge={updateLodge}
+      />
     </div>
   )
 }
