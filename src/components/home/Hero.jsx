@@ -1,8 +1,9 @@
-import { Link } from 'react-router'
-import Button from '@/components/Button'
-import Badge from '@/components/Badge'
+import { Link } from "react-router";
+import Button from "@/components/Button";
+import Badge from "@/components/Badge";
 
-const HERO_BG = 'https://res.cloudinary.com/dutmn3xde/image/upload/v1777373699/hero-home_mvb26r.jpg'
+const HERO_BG =
+  "https://res.cloudinary.com/dutmn3xde/image/upload/v1777373699/hero-home_mvb26r.jpg";
 
 /**
  * Hero principal del Home público.
@@ -39,19 +40,22 @@ function Hero() {
         {/* Tagline gigante */}
         <h1 className="font-display font-extrabold text-7xl md:text-8xl lg:text-9xl tracking-tight leading-none">
           CONDUCE
-          <span className="text-primary">.</span>{' '}
+          <span className="text-primary">.</span>{" "}
           <span className="text-primary">COMPITE</span>
-          <span className="text-primary">.</span>{' '}
-          DOMINA
+          <span className="text-primary">.</span> DOMINA
           <span className="text-primary">.</span>
         </h1>
 
         {/* CTAs */}
         <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
           <Link to="/login">
-            <Button variant="primary" size="lg">Reservar Pase</Button>
+            <Button variant="primary" size="lg">
+              Reservar Pase
+            </Button>
           </Link>
-          <Button variant="secondary" size="lg">Ver Circuitos</Button>
+          <Button variant="secondary" size="lg">
+            Ver Circuitos
+          </Button>
         </div>
       </div>
 
@@ -63,7 +67,7 @@ function Hero() {
         <span className="block w-[1px] h-10 bg-gradient-to-b from-text-muted to-transparent" />
       </div>
     </section>
-  )
+  );
 }
 
-export default Hero
+export default Hero;
