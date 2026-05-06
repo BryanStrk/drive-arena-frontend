@@ -12,6 +12,7 @@ import PublicOnlyRoute from '@/components/PublicOnlyRoute'
 import Home from '@/pages/Home'
 import Login from '@/pages/Login'
 import Dashboard from '@/pages/Dashboard'
+import LodgesPage from '@/pages/LodgesPage'
 import NotFound from '@/pages/NotFound'
 
 /**
@@ -21,7 +22,10 @@ import NotFound from '@/pages/NotFound'
  * - Rutas públicas (no requieren auth) usan PublicLayout
  * - /login está envuelto en PublicOnlyRoute para evitar que un usuario
  *   ya autenticado vuelva al formulario de login
- * - Rutas privadas usan DashboardLayout + ProtectedRoute
+ * - Rutas privadas usan DashboardLayout + ProtectedRoute, organizadas
+ *   como rutas anidadas con `index: true` para `/dashboard` y `path: 'xxx'`
+ *   para los sub-módulos. Este patrón escala limpiamente: cada nuevo CRUD
+ *   se añade como un nuevo hijo sin tocar la estructura.
  * - Cualquier ruta no encontrada cae en NotFound (catch-all)
  */
 export const router = createBrowserRouter([
@@ -41,14 +45,22 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    // Rutas privadas — requieren autenticación, usan DashboardLayout
+    // Rutas privadas anidadas bajo /dashboard
+    // El DashboardLayout renderiza los hijos en su <Outlet />
+    path: '/dashboard',
     element: (
       <ProtectedRoute>
         <DashboardLayout />
       </ProtectedRoute>
     ),
     children: [
-      { path: '/dashboard', element: <Dashboard /> },
+      { index: true, element: <Dashboard /> },
+      { path: 'lodges', element: <LodgesPage /> },
+      // Próximos módulos:
+      // { path: 'circuitos', element: <CircuitosPage /> },
+      // { path: 'clientes', element: <ClientesPage /> },
+      // { path: 'empleados', element: <EmpleadosPage /> },
+      // { path: 'tarifas', element: <TarifasPage /> },
     ],
   },
   {

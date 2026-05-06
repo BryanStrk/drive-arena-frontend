@@ -34,7 +34,7 @@ const NAV_SECTIONS = [
     label: 'Gestión',
     items: [
       { label: 'Clientes', to: '/dashboard/clientes', disabled: true },
-      { label: 'Lodges', to: '/dashboard/lodges', disabled: true },
+      { label: 'Lodges', to: '/dashboard/lodges', disabled: false },
       { label: 'Circuitos', to: '/dashboard/atracciones', disabled: true },
       { label: 'Empleados', to: '/dashboard/empleados', disabled: true },
       { label: 'Tarifas', to: '/dashboard/tarifas', disabled: true },
@@ -58,6 +58,7 @@ const NAV_SECTIONS = [
 
 const BREADCRUMB_MAP = {
   '/dashboard': ['Inicio', 'Panel', 'Dashboard'],
+  '/dashboard/lodges': ['Inicio', 'Panel', 'Gestión', 'Lodges'],
 }
 
 // Mock count de notificaciones (se conectará al backend en una feature futura)
