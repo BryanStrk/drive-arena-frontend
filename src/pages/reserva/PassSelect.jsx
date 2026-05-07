@@ -1,19 +1,72 @@
 import { useReserva, RESERVA_ACTIONS } from "@/context/ReservaContext";
-import { ATRACCIONES_PUBLIC, LODGES_PUBLIC } from "@/data/reservaMocks";
+import {
+  ATRACCIONES_PUBLIC,
+  LODGES_PUBLIC,
+  PERSONAS_MIN,
+  PERSONAS_MAX,
+} from "@/data/reservaMocks";
 import { OFFER_PACKS } from "@/data/homeMocks";
 
 /**
- * PASO 1 — Selección de Pack o Pase a medida.
- *
- * Dos secciones:
- * 1. Packs Premium con descuento (atajo): seleccionar un pack rellena el
- *    state con pase + lodge incluidos y activa el flag esPack para que
- *    el wizard salte el paso 2 (Lodge) automáticamente.
- * 2. Reserva a medida: el flujo clásico de seleccionar atracción + tarifa.
- *
- * Cuando hay un pack seleccionado, las cards de atracciones se muestran
- * con opacidad reducida (visualmente "deshabilitadas") aunque siguen
- * siendo clicables — al click cambian al modo a medida automáticamente.
+ * Selector de cantidad de personas (1-10).
+ * Sub-componente local con botones [-] [valor] [+] estilizado al brand.
+ */
+function PersonasSelector({ value, onChange }) {
+  const canDecrement = value > PERSONAS_MIN;
+  const canIncrement = value < PERSONAS_MAX;
+
+  return (
+    <div className="flex items-center gap-4">
+      <button
+        type="button"
+        onClick={() => onChange(value - 1)}
+        disabled={!canDecrement}
+        aria-label="Quitar persona"
+        className={`
+          w-12 h-12 rounded-full border-2 font-display font-bold text-2xl
+          transition-all flex items-center justify-center
+          ${
+            canDecrement
+              ? "border-border-strong text-text hover:border-primary hover:text-primary"
+              : "border-border-strong text-text-muted opacity-40 cursor-not-allowed"
+          }
+        `}
+      >
+        −
+      </button>
+
+      <div className="flex flex-col items-center min-w-[80px]">
+        <span className="font-display font-extrabold text-4xl text-primary">
+          {value}
+        </span>
+        <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-text-muted mt-1">
+          {value === 1 ? "persona" : "personas"}
+        </span>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => onChange(value + 1)}
+        disabled={!canIncrement}
+        aria-label="Añadir persona"
+        className={`
+          w-12 h-12 rounded-full border-2 font-display font-bold text-2xl
+          transition-all flex items-center justify-center
+          ${
+            canIncrement
+              ? "border-border-strong text-text hover:border-primary hover:text-primary"
+              : "border-border-strong text-text-muted opacity-40 cursor-not-allowed"
+          }
+        `}
+      >
+        +
+      </button>
+    </div>
+  );
+}
+
+/**
+ * PASO 1 — Selección de Pack o Pase a medida + número de personas.
  */
 function PassSelect() {
   const { state, dispatch } = useReserva();
@@ -22,6 +75,7 @@ function PassSelect() {
   const selectedAtraccion = state.pase?.atraccion ?? null;
   const selectedTarifa = state.pase?.tarifa ?? null;
   const isPackMode = state.esPack;
+  const personas = state.personas ?? 1;
 
   const handleSelectPack = (pack) => {
     const atraccion = ATRACCIONES_PUBLIC.find(
@@ -42,7 +96,7 @@ function PassSelect() {
         pase: { atraccion, tarifa },
         lodge: {
           lodge,
-          fechaEntrada: null, // Se completará en paso de pago / TODO backend
+          fechaEntrada: null,
           fechaSalida: null,
           regimen: pack.regimen,
         },
@@ -51,7 +105,6 @@ function PassSelect() {
   };
 
   const handleSelectAtraccion = (atraccion) => {
-    // Selección manual desactiva el modo pack automáticamente
     dispatch({
       type: RESERVA_ACTIONS.SET_PASE,
       payload: { atraccion, tarifa: null },
@@ -65,6 +118,18 @@ function PassSelect() {
       payload: { atraccion: selectedAtraccion, tarifa },
     });
   };
+
+  const handlePersonasChange = (newValue) => {
+    dispatch({
+      type: RESERVA_ACTIONS.SET_PERSONAS,
+      payload: newValue,
+    });
+  };
+
+  // El selector de personas se muestra cuando ya hay algo seleccionado
+  // (pack completo o atracción + tarifa)
+  const showPersonas =
+    isPackMode || (selectedAtraccion && selectedTarifa);
 
   return (
     <section aria-label="Paso 1: Selección de reserva">
@@ -122,6 +187,9 @@ function PassSelect() {
                     <p className="font-display text-2xl font-extrabold text-primary">
                       {pack.currentPrice}€
                     </p>
+                    <span className="font-mono text-[10px] text-text-muted">
+                      / persona
+                    </span>
                   </div>
                   <p className="font-mono text-[10px] tracking-wider uppercase text-text-muted mt-2">
                     {pack.availability}
@@ -193,7 +261,7 @@ function PassSelect() {
         </div>
       </div>
 
-      {/* === TARIFAS (solo si hay atracción seleccionada en modo a medida) === */}
+      {/* === TARIFAS === */}
       {!isPackMode && selectedAtraccion && (
         <div className="mt-12">
           <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-primary">
@@ -226,10 +294,31 @@ function PassSelect() {
                   </h4>
                   <p className="font-display text-3xl font-extrabold text-primary mt-3">
                     {tarifa.precio}€
+                    <span className="font-mono text-[10px] text-text-muted ml-1">
+                      / persona
+                    </span>
                   </p>
                 </button>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* === SELECTOR DE PERSONAS === */}
+      {showPersonas && (
+        <div className="mt-12 p-6 rounded-2xl border-2 border-border-strong bg-surface-1/50">
+          <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-primary">
+            ▌ ¿Cuántos sois?
+          </p>
+          <p className="text-sm text-text-muted mt-2">
+            Incluyéndote a ti. Máximo {PERSONAS_MAX} personas por reserva.
+          </p>
+          <div className="mt-6 flex justify-center">
+            <PersonasSelector
+              value={personas}
+              onChange={handlePersonasChange}
+            />
           </div>
         </div>
       )}
