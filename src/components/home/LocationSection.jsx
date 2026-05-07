@@ -1,15 +1,38 @@
-import SectionHeader from '@/components/SectionHeader'
-import Button from '@/components/Button'
-import Card from '@/components/Card'
+import SectionHeader from "@/components/SectionHeader";
+import Button from "@/components/Button";
+import Card from "@/components/Card";
+import CircuitMap from "@/components/CircuitMap";
+import {
+  getViewMapsUrl,
+  getDirectionsUrl,
+  openMapsUrl,
+} from "@/utils/mapsUrls";
 
 /**
  * Sección "CÓMO LLEGAR" del Home público.
- * Replica el patrón visual con placeholder de mapa + info de ubicación.
+ * Mapa interactivo + card de info + integración con apps de mapas externas.
+ *
+ * Acciones disponibles:
+ * - Botón "Abrir en Maps" → abre Google Maps centrado en el lugar (modo VER)
+ * - Botón "Cómo Llegar" → abre Maps con direcciones desde la ubicación del usuario
+ *   (Apple Maps en iOS, Google Maps en lo demás)
+ * - Click en el marker del mapa → atajo a "Cómo Llegar"
  *
  * @param {Object} props
- * @param {Object} props.location - Datos de la ubicación del resort
+ * @param {Object} props.location - Datos de la ubicación
  */
 function LocationSection({ location }) {
+  const lat = location.lat ?? 41.5705;
+  const lng = location.lng ?? 2.2611;
+
+  const handleViewInMaps = () => {
+    openMapsUrl(getViewMapsUrl(lat, lng));
+  };
+
+  const handleGetDirections = () => {
+    openMapsUrl(getDirectionsUrl(lat, lng));
+  };
+
   return (
     <section
       id="ubicacion"
@@ -20,35 +43,28 @@ function LocationSection({ location }) {
         <SectionHeader
           eyebrow="Sección 05 · Ubicación"
           title="Cómo Llegar"
-          action={<Button variant="ghost">Abrir en Maps ▶</Button>}
+          action={
+            <Button variant="ghost" onClick={handleViewInMaps}>
+              Abrir en Maps ▶
+            </Button>
+          }
         />
 
         <div className="mt-10 grid grid-cols-1 lg:grid-cols-5 gap-6">
-          {/* Mapa placeholder - 60% en desktop */}
-          <Card noPadding className="lg:col-span-3 relative h-80 lg:h-auto min-h-[320px]">
-            {/* Background pattern (placeholder de mapa) */}
-            <div
-              className="absolute inset-0 bg-bg"
-              aria-hidden="true"
-              style={{
-                backgroundImage:
-                  'radial-gradient(circle at center, #1A1A1A 1px, transparent 1px)',
-                backgroundSize: '24px 24px',
-              }}
+          {/* Mapa interactivo - 60% en desktop */}
+          <Card
+            noPadding
+            className="lg:col-span-3 relative h-80 lg:h-auto min-h-[400px] overflow-hidden"
+          >
+            <CircuitMap
+              lat={lat}
+              lng={lng}
+              zoom={13}
+              onMarkerClick={handleGetDirections}
             />
 
-            {/* Dot rojo central indicando ubicación */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-              <div className="relative">
-                {/* Pulso animado externo */}
-                <div className="absolute inset-0 w-4 h-4 bg-primary rounded-full animate-ping opacity-50" />
-                {/* Dot principal */}
-                <div className="relative w-4 h-4 bg-primary rounded-full shadow-[0_0_15px_var(--color-primary-glow)]" />
-              </div>
-            </div>
-
-            {/* Label flotante con coordenadas - bottom left */}
-            <div className="absolute bottom-4 left-4 bg-surface-1 border border-border-strong rounded-inner px-4 py-3 max-w-[260px]">
+            {/* Label flotante glassmorphism con coordenadas - bottom left */}
+            <div className="absolute bottom-4 left-4 bg-surface-1/90 backdrop-blur-md border border-border-strong rounded-inner px-4 py-3 max-w-[260px] z-10 pointer-events-none">
               <p className="font-display font-bold text-sm tracking-tight uppercase text-text">
                 {location.name}
               </p>
@@ -66,7 +82,7 @@ function LocationSection({ location }) {
                 ▌ Ubicación
               </p>
               <address className="not-italic font-sans text-sm text-text mt-3 leading-relaxed">
-                {location.address.split('\n').map((line, idx) => (
+                {location.address.split("\n").map((line, idx) => (
                   <span key={idx} className="block">
                     {line}
                   </span>
@@ -81,7 +97,10 @@ function LocationSection({ location }) {
               </p>
               <ul className="mt-3 space-y-2" role="list">
                 {location.transport.map((item, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-sm text-text-muted">
+                  <li
+                    key={idx}
+                    className="flex items-start gap-2 text-sm text-text-muted"
+                  >
                     <span className="text-primary shrink-0 mt-0.5">▶</span>
                     <span>{item}</span>
                   </li>
@@ -91,7 +110,11 @@ function LocationSection({ location }) {
 
             {/* CTA */}
             <div className="mt-auto pt-6">
-              <Button variant="primary" fullWidth>
+              <Button
+                variant="primary"
+                fullWidth
+                onClick={handleGetDirections}
+              >
                 Cómo Llegar ▶▶
               </Button>
             </div>
@@ -99,7 +122,7 @@ function LocationSection({ location }) {
         </div>
       </div>
     </section>
-  )
+  );
 }
 
-export default LocationSection
+export default LocationSection;
