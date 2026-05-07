@@ -6,52 +6,34 @@ import Badge from '@/components/Badge'
 import Button from '@/components/Button'
 import { ASSETS_BRAND } from '@/data/cloudinaryAssets'
 import { cn } from '@/lib/cn'
+import packageJson from '../../package.json'
 
 /**
  * Layout del shell privado de Drive Arena.
  *
  * Estructura:
- * - Topbar fijo arriba con breadcrumbs + buscador + notificaciones + logout
- * - Sidebar fijo a la izquierda con avatar + navegación agrupada por secciones
+ * - Topbar STICKY arriba con logo + breadcrumbs + logout
+ * - Sidebar STICKY a la izquierda (avatar + nav agrupada + footer estado)
  * - Outlet para el contenido de la página activa
+ *
+ * Decisión: solo se renderizan items habilitados. Los disabled se omiten
+ * completamente hasta que el módulo esté implementado, manteniendo el shell
+ * limpio y sin "elementos al aire".
  */
+
+const APP_VERSION = packageJson.version
 
 const NAV_SECTIONS = [
   {
     label: 'Principal',
     items: [
-      { label: 'Dashboard', to: '/dashboard', disabled: false },
-    ],
-  },
-  {
-    label: 'Ventas',
-    items: [
-      { label: 'Nueva venta', to: '/dashboard/ventas/nueva', disabled: true },
-      { label: 'Compras', to: '/dashboard/compras', disabled: true },
+      { label: 'Dashboard', to: '/dashboard' },
     ],
   },
   {
     label: 'Gestión',
     items: [
-      { label: 'Clientes', to: '/dashboard/clientes', disabled: true },
-      { label: 'Lodges', to: '/dashboard/lodges', disabled: false },
-      { label: 'Circuitos', to: '/dashboard/atracciones', disabled: true },
-      { label: 'Empleados', to: '/dashboard/empleados', disabled: true },
-      { label: 'Tarifas', to: '/dashboard/tarifas', disabled: true },
-    ],
-  },
-  {
-    label: 'Operativa',
-    items: [
-      { label: 'Turnos', to: '/dashboard/turnos', disabled: true },
-      { label: 'Mantenimiento', to: '/dashboard/mantenimiento', disabled: true },
-      { label: 'Ranking', to: '/dashboard/ranking', disabled: true },
-    ],
-  },
-  {
-    label: 'Usuario',
-    items: [
-      { label: 'Mi perfil', to: '/dashboard/perfil', disabled: true },
+      { label: 'Lodges', to: '/dashboard/lodges' },
     ],
   },
 ]
@@ -60,9 +42,6 @@ const BREADCRUMB_MAP = {
   '/dashboard': ['Inicio', 'Panel', 'Dashboard'],
   '/dashboard/lodges': ['Inicio', 'Panel', 'Gestión', 'Lodges'],
 }
-
-// Mock count de notificaciones (se conectará al backend en una feature futura)
-const MOCK_NOTIFICATIONS_COUNT = 3
 
 function DashboardLayout() {
   const { user, logout } = useAuth()
@@ -75,93 +54,66 @@ function DashboardLayout() {
     navigate('/login', { replace: true })
   }
 
-  const handleNotificationsClick = () => {
-    toast('Bandeja de notificaciones · Próximamente', {
-      icon: '🔔',
-    })
-  }
-
   const breadcrumbs = BREADCRUMB_MAP[location.pathname] || ['Panel']
 
   return (
-    <div className="min-h-screen bg-bg flex flex-col">
-      {/* TOPBAR */}
-      <header className="h-14 border-b border-border-strong bg-surface-1 flex items-center justify-between px-6">
-        {/* Breadcrumbs */}
-        <nav aria-label="Breadcrumb" className="flex items-center gap-2">
-          {breadcrumbs.map((crumb, idx) => {
-            const isLast = idx === breadcrumbs.length - 1
-            return (
-              <span key={crumb} className="flex items-center gap-2">
-                <span
-                  className={cn(
-                    'font-mono text-[11px] tracking-[0.2em] uppercase',
-                    isLast ? 'text-text font-bold' : 'text-text-muted'
-                  )}
-                >
-                  {crumb}
-                </span>
-                {!isLast && (
-                  <span
-                    className="font-mono text-[10px] text-text-dim"
-                    aria-hidden="true"
-                  >
-                    ›
-                  </span>
-                )}
-              </span>
-            )
-          })}
-        </nav>
-
-        {/* Acciones derecha */}
-        <div className="flex items-center gap-3">
-          {/* Buscador */}
-          <div className="relative">
-            <span
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-text-dim font-mono text-xs"
-              aria-hidden="true"
-            >
-              ⌕
-            </span>
-            <input
-              type="search"
-              placeholder="Buscar..."
-              disabled
-              className="pl-8 pr-4 py-1.5 w-64 bg-surface-2 border border-border-strong rounded-inner text-sm text-text placeholder:text-text-dim font-sans focus:outline-none focus:border-primary disabled:opacity-60 disabled:cursor-not-allowed"
-              title="Próximamente"
-            />
-          </div>
-
-          {/* Notificaciones */}
+    <div className="min-h-screen bg-bg">
+      {/* TOPBAR — sticky top */}
+      <header className="sticky top-0 z-30 h-14 border-b border-border-strong bg-surface-1/95 backdrop-blur-md flex items-center justify-between px-6">
+        {/* Logo + Breadcrumbs */}
+        <div className="flex items-center gap-6">
           <button
             type="button"
-            onClick={handleNotificationsClick}
-            className="relative w-9 h-9 flex items-center justify-center rounded-inner border border-border-strong bg-surface-2 text-text-muted hover:text-text hover:border-primary transition-colors"
-            aria-label="Notificaciones"
+            onClick={() => navigate('/dashboard')}
+            className="block transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary rounded-sm"
+            aria-label="Ir al Dashboard"
           >
-            <span className="text-base" aria-hidden="true">🔔</span>
-            {MOCK_NOTIFICATIONS_COUNT > 0 && (
-              <span
-                className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-primary rounded-full font-mono text-[10px] font-bold text-white"
-                aria-label={`${MOCK_NOTIFICATIONS_COUNT} notificaciones nuevas`}
-              >
-                {MOCK_NOTIFICATIONS_COUNT}
-              </span>
-            )}
+            <img
+              src={ASSETS_BRAND.logo}
+              alt="Drive Arena"
+              className="h-7 w-auto"
+              style={{ mixBlendMode: 'lighten' }}
+            />
           </button>
 
-          {/* Logout */}
-          <Button variant="ghost" size="sm" onClick={handleLogout}>
-            Cerrar sesión
-          </Button>
+          <nav aria-label="Breadcrumb" className="hidden sm:flex items-center gap-2">
+            {breadcrumbs.map((crumb, idx) => {
+              const isLast = idx === breadcrumbs.length - 1
+              return (
+                <span key={crumb} className="flex items-center gap-2">
+                  <span
+                    className={cn(
+                      'font-mono text-[11px] tracking-[0.2em] uppercase',
+                      isLast ? 'text-text font-bold' : 'text-text-muted'
+                    )}
+                  >
+                    {crumb}
+                  </span>
+                  {!isLast && (
+                    <span
+                      className="font-mono text-[10px] text-text-dim"
+                      aria-hidden="true"
+                    >
+                      ›
+                    </span>
+                  )}
+                </span>
+              )
+            })}
+          </nav>
         </div>
+
+        {/* Acciones derecha — solo logout por ahora */}
+        <Button variant="ghost" size="sm" onClick={handleLogout}>
+          Cerrar sesión
+        </Button>
       </header>
 
       {/* CONTENT: SIDEBAR + OUTLET */}
-      <div className="flex-1 flex">
-        {/* SIDEBAR */}
-        <aside className="w-64 border-r border-border-strong bg-surface-1 flex flex-col">
+      <div className="flex">
+        {/* SIDEBAR — sticky bajo el topbar, llena el viewport */}
+        <aside className="sticky top-14 h-[calc(100vh-3.5rem)] w-64 shrink-0 border-r border-border-strong bg-surface-1 flex flex-col">
+          {/* Avatar + datos del usuario */}
           <div className="px-4 pt-5 pb-5 border-b border-border-strong">
             <div className="flex items-center gap-3">
               <img
@@ -180,24 +132,27 @@ function DashboardLayout() {
             </div>
           </div>
 
+          {/* Navegación scrollable interna */}
           <nav className="flex-1 overflow-y-auto py-4">
             {NAV_SECTIONS.map((section) => (
               <SidebarSection key={section.label} {...section} />
             ))}
           </nav>
 
+          {/* Footer del sidebar — Sistema Operativo (versión sincronizada con package.json) */}
           <div className="border-t border-border-strong p-4">
             <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-text-muted">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-success mr-1.5 align-middle animate-pulse" />
               Sistema Operativo
             </p>
             <p className="mt-1 font-mono text-[10px] tracking-widest uppercase text-text-dim">
-              Nodo BCN-01 · v0.3.0
+              Nodo BCN-01 · v{APP_VERSION}
             </p>
           </div>
         </aside>
 
-        <main className="flex-1 overflow-auto">
+        {/* MAIN — siempre llena al menos el alto del viewport bajo el topbar */}
+        <main className="flex-1 min-w-0 min-h-[calc(100vh-3.5rem)]">
           <Outlet />
         </main>
       </div>
@@ -218,19 +173,7 @@ function SidebarSection({ label, items }) {
   )
 }
 
-function SidebarLink({ label, to, disabled }) {
-  if (disabled) {
-    return (
-      <span
-        className="block px-3 py-2 my-0.5 font-sans text-sm text-text-dim cursor-not-allowed select-none"
-        aria-disabled="true"
-        title="Próximamente"
-      >
-        {label}
-      </span>
-    )
-  }
-
+function SidebarLink({ label, to }) {
   return (
     <NavLink
       to={to}
