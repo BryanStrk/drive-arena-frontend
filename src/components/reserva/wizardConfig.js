@@ -6,7 +6,7 @@ export const WIZARD_STEPS = [
   { number: 1, label: "Pase", path: "paso-1" },
   { number: 2, label: "Lodge", path: "paso-2" },
   { number: 3, label: "Datos", path: "paso-3" },
-  { number: 4, label: "Pago", path: "paso-4" },
+  { number: 4, label: "Confirmación", path: "paso-4" },
 ];
 
 export const TOTAL_STEPS = WIZARD_STEPS.length;
@@ -24,7 +24,9 @@ export function getCurrentStep(pathname) {
 export function isStepComplete(step, state) {
   switch (step) {
     case 1:
-      return Boolean(state.pase?.atraccion && state.pase?.tarifa);
+      return Boolean(
+        state.pase?.atraccion && state.pase?.tarifa && state.personas >= 1,
+      );
     case 2:
       if (state.esPack) return true;
       return Boolean(
