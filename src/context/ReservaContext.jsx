@@ -5,11 +5,13 @@ const STORAGE_KEY = "drive-arena:reserva";
 
 const ReservaContext = createContext(null);
 
-// === ACCIONES (constantes para evitar typos) ===
+// === ACCIONES ===
 export const RESERVA_ACTIONS = {
   SET_PASE: "SET_PASE",
   SET_LODGE: "SET_LODGE",
   SET_CLIENTE: "SET_CLIENTE",
+  SET_PACK: "SET_PACK",
+  CLEAR_PACK: "CLEAR_PACK",
   RESET: "RESET",
 };
 
@@ -17,11 +19,35 @@ export const RESERVA_ACTIONS = {
 function reservaReducer(state, action) {
   switch (action.type) {
     case RESERVA_ACTIONS.SET_PASE:
-      return { ...state, pase: action.payload };
+      // Selección manual de pase → desactiva el modo pack
+      return {
+        ...state,
+        pase: action.payload,
+        esPack: false,
+        packId: null,
+      };
     case RESERVA_ACTIONS.SET_LODGE:
       return { ...state, lodge: action.payload };
     case RESERVA_ACTIONS.SET_CLIENTE:
       return { ...state, cliente: action.payload };
+    case RESERVA_ACTIONS.SET_PACK:
+      // Rellena pase + lodge + flag de pack en un solo dispatch
+      return {
+        ...state,
+        pase: action.payload.pase,
+        lodge: action.payload.lodge,
+        esPack: true,
+        packId: action.payload.packId,
+      };
+    case RESERVA_ACTIONS.CLEAR_PACK:
+      // Quita el pack y limpia las selecciones asociadas
+      return {
+        ...state,
+        pase: null,
+        lodge: null,
+        esPack: false,
+        packId: null,
+      };
     case RESERVA_ACTIONS.RESET:
       return RESERVA_INITIAL_STATE;
     default:
@@ -31,7 +57,6 @@ function reservaReducer(state, action) {
 
 /**
  * Hidrata el state inicial desde localStorage.
- * Si no hay nada guardado o el JSON está corrupto, vuelve al inicial.
  */
 function lazyInit(initial) {
   if (typeof window === "undefined") return initial;
@@ -43,11 +68,6 @@ function lazyInit(initial) {
   }
 }
 
-/**
- * Provider del flujo de reserva. Envuelve toda la ruta /reservar.
- * Persiste el state en localStorage en cada cambio para no perder
- * progreso si el usuario refresca o cierra accidentalmente.
- */
 export function ReservaProvider({ children }) {
   const [state, dispatch] = useReducer(
     reservaReducer,
@@ -59,7 +79,7 @@ export function ReservaProvider({ children }) {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch {
-      // localStorage puede no estar disponible (modo incógnito en algunos navegadores)
+      // localStorage puede no estar disponible (modo incógnito)
     }
   }, [state]);
 
@@ -70,10 +90,6 @@ export function ReservaProvider({ children }) {
   );
 }
 
-/**
- * Hook para consumir el state del wizard desde cualquier paso.
- * Lanza error si se usa fuera del Provider (catch temprano de bugs).
- */
 export function useReserva() {
   const ctx = useContext(ReservaContext);
   if (!ctx) {
