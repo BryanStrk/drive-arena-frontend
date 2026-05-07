@@ -79,8 +79,12 @@ export const LODGES_PUBLIC = [
 ];
 
 // === ESTADO INICIAL DEL WIZARD ===
+// `esPack` y `packId` se rellenan cuando el usuario selecciona un pack premium
+// en el Step 1, lo que activa el salto automático del Step 2 (Lodge incluido).
 export const RESERVA_INITIAL_STATE = {
-  pase: null, // { atraccion, tarifa, fecha }
-  lodge: null, // { lodge, fechaEntrada, fechaSalida, noches, regimen }
+  pase: null, // { atraccion, tarifa }
+  lodge: null, // { lodge, fechaEntrada, fechaSalida, regimen }
   cliente: null, // { nombre, apellidos, email, telefono, dni }
+  esPack: false,
+  packId: null,
 };
