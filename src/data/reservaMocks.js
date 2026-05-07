@@ -2,11 +2,10 @@ import { ASSETS_EXPERIENCES } from "./cloudinaryAssets";
 
 /**
  * Mock data del flujo de reserva pública.
- * Estructura espejo de los DTOs del backend (`/atracciones`, `/tarifas`, `/hotels`)
- * para que la migración a endpoints reales sea un swap directo.
+ * Estructura espejo de los DTOs del backend (`/atracciones`, `/tarifas`, `/hotels`).
  */
 
-// === ATRACCIONES CON SUS TARIFAS ANIDADAS ===
+// === ATRACCIONES CON SUS TARIFAS ===
 export const ATRACCIONES_PUBLIC = [
   {
     id: 1,
@@ -78,13 +77,16 @@ export const LODGES_PUBLIC = [
   },
 ];
 
+// === LÍMITES DE NEGOCIO ===
+export const PERSONAS_MIN = 1;
+export const PERSONAS_MAX = 10;
+
 // === ESTADO INICIAL DEL WIZARD ===
-// `esPack` y `packId` se rellenan cuando el usuario selecciona un pack premium
-// en el Step 1, lo que activa el salto automático del Step 2 (Lodge incluido).
 export const RESERVA_INITIAL_STATE = {
   pase: null, // { atraccion, tarifa }
   lodge: null, // { lodge, fechaEntrada, fechaSalida, regimen }
   cliente: null, // { nombre, apellidos, email, telefono, dni }
+  personas: 1, // 1 (titular) hasta 10 (titular + 9 acompañantes)
   esPack: false,
   packId: null,
 };
