@@ -4,14 +4,19 @@ import { useReserva } from "@/context/ReservaContext";
 import {
   TOTAL_STEPS,
   getCurrentStep,
+  getNextStepNumber,
+  getPrevStepNumber,
   isStepComplete,
 } from "./wizardConfig";
 
 /**
  * Navegación entre pasos del wizard.
+ *
  * - "Atrás" → paso anterior (deshabilitado en paso 1)
  * - "Siguiente" → paso siguiente, deshabilitado si el paso actual no está
- *   completo según `isStepComplete()` del wizardConfig
+ *   completo según `isStepComplete()`
+ * - Si el usuario seleccionó un pack premium en paso 1, el paso 2 (Lodge)
+ *   se salta automáticamente porque el alojamiento viene incluido
  * - En el último paso, "Siguiente" se transforma en "Confirmar Reserva"
  *   y dispara el callback `onSubmit` si está definido (Bloque C)
  *
@@ -29,7 +34,8 @@ function WizardNav({ onSubmit }) {
 
   const handlePrev = () => {
     if (isFirstStep) return;
-    navigate(`/reservar/paso-${currentStep - 1}`);
+    const prevStep = getPrevStepNumber(currentStep, state);
+    navigate(`/reservar/paso-${prevStep}`);
   };
 
   const handleNext = () => {
@@ -40,7 +46,8 @@ function WizardNav({ onSubmit }) {
       return;
     }
 
-    navigate(`/reservar/paso-${currentStep + 1}`);
+    const nextStep = getNextStepNumber(currentStep, state);
+    navigate(`/reservar/paso-${nextStep}`);
   };
 
   return (
