@@ -3,9 +3,8 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 /**
- * URL del estilo dark de CartoDB. Gratis, sin API key, con licencia
- * permisiva para proyectos académicos y comerciales pequeños.
- * Más estilos disponibles: https://github.com/CartoDB/basemap-styles
+ * URL del estilo dark de CartoDB. Gratis, sin API key.
+ * Más estilos: https://github.com/CartoDB/basemap-styles
  */
 const CARTO_DARK_STYLE =
   "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
@@ -13,26 +12,29 @@ const CARTO_DARK_STYLE =
 /**
  * Mapa interactivo dark-themed para destacar la ubicación de un circuito.
  *
- * Características:
- * - Tema oscuro alineado al brand de Drive Arena
- * - Marker custom con halo pulsante en color `primary`
- * - Cooperative gestures (ctrl+scroll) para no atrapar el scroll de la página
- * - Controles de navegación opcionales
- * - Sin atribución intrusiva (se respeta la licencia con un footer aparte)
- *
  * @param {number} lat - Latitud del punto a destacar
  * @param {number} lng - Longitud del punto a destacar
  * @param {number} zoom - Nivel de zoom inicial (default 13)
  * @param {boolean} showControls - Mostrar controles de zoom/rotación
+ * @param {Function} [onMarkerClick] - Callback opcional al hacer click en el marker
  */
 function CircuitMap({
   lat = 41.5705,
   lng = 2.2611,
   zoom = 13,
   showControls = false,
+  onMarkerClick,
 }) {
   const mapContainer = useRef(null);
   const mapInstance = useRef(null);
+
+  // Ref para acceder al callback más reciente desde el listener.
+  // El listener se registra una sola vez en el setup; sin este ref
+  // quedaría capturando una closure obsoleta de `onMarkerClick`.
+  const onMarkerClickRef = useRef(onMarkerClick);
+  useEffect(() => {
+    onMarkerClickRef.current = onMarkerClick;
+  });
 
   useEffect(() => {
     if (mapInstance.current) return;
@@ -53,13 +55,27 @@ function CircuitMap({
       );
     }
 
-    // Marker custom con halo pulsante (estética Drive Arena)
+    // Marker custom: contenedor 48x48 (área de click cómoda) con el dot
+    // visual de 16px centrado. El halo `animate-ping` añade el efecto pulsante.
     const markerEl = document.createElement("div");
-    markerEl.className = "relative w-4 h-4";
+    markerEl.className =
+      "relative w-12 h-12 flex items-center justify-center";
     markerEl.innerHTML = `
-      <span class="absolute inset-[-8px] rounded-full bg-primary/40 animate-ping"></span>
-      <span class="relative block w-4 h-4 rounded-full bg-primary border-2 border-white shadow-lg shadow-primary/50"></span>
+      <div class="relative w-4 h-4">
+        <span class="absolute inset-[-8px] rounded-full bg-primary/40 animate-ping"></span>
+        <span class="relative block w-4 h-4 rounded-full bg-primary border-2 border-white shadow-lg shadow-primary/50"></span>
+      </div>
     `;
+
+    // Click handler opcional sobre el marker
+    if (onMarkerClickRef.current) {
+      markerEl.style.cursor = "pointer";
+      markerEl.setAttribute("role", "button");
+      markerEl.setAttribute("aria-label", "Cómo llegar al circuito");
+      markerEl.addEventListener("click", () => {
+        onMarkerClickRef.current?.();
+      });
+    }
 
     new maplibregl.Marker({ element: markerEl })
       .setLngLat([lng, lat])
