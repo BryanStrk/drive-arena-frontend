@@ -92,6 +92,10 @@ export const MONTHLY_RANKINGS = [
 ]
 
 // === PACKS EN OFERTA ===
+// Cada pack incluye metadata (lodgeId, atraccionId, tarifaId, regimen) que
+// el wizard de reserva usa para auto-rellenar el state cuando el usuario
+// selecciona un pack. Los IDs referencian a LODGES_PUBLIC y ATRACCIONES_PUBLIC
+// definidos en reservaMocks.js
 export const OFFER_PACKS = [
   {
     id: 1,
@@ -103,6 +107,11 @@ export const OFFER_PACKS = [
     discountPercentage: 30,
     availability: '1 Jun - 31 Ago',
     image: ASSETS_PACKS.gpChampionship,
+    // Metadata para wizard
+    lodgeId: 1, // Apex Lodge (VIP Paddock)
+    atraccionId: 1, // Phantom GT
+    tarifaId: 13, // Premium Pack (5 sesiones)
+    regimen: 'completa',
   },
   {
     id: 2,
@@ -114,6 +123,11 @@ export const OFFER_PACKS = [
     discountPercentage: 25,
     availability: 'Todo el año',
     image: ASSETS_PACKS.pilotoPrivado,
+    // Metadata para wizard
+    lodgeId: 2, // Pit Stop Lodge (Familiar)
+    atraccionId: 1, // Phantom GT
+    tarifaId: 12, // Triple Lap (3 sesiones)
+    regimen: 'media',
   },
 ]
 
