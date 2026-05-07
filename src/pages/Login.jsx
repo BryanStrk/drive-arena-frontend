@@ -7,7 +7,7 @@ import toast from 'react-hot-toast'
 import Button from '@/components/Button'
 import Input from '@/components/Input'
 import Badge from '@/components/Badge'
-import { ASSETS_HERO } from '@/data/cloudinaryAssets'
+import { ASSETS_BRAND, ASSETS_HERO } from '@/data/cloudinaryAssets'
 import { loginSchema } from '@/lib/validators'
 import { useAuth } from '@/context/useAuth'
 
@@ -96,10 +96,14 @@ function Login() {
 
       {/* Contenido principal */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center max-w-md mx-auto w-full">
-        {/* Logo principal */}
-        <h1 className="font-display font-extrabold text-7xl tracking-tight text-text drop-shadow-[0_0_30px_rgba(0,0,0,0.8)]">
-          DRIVE ARENA
-        </h1>
+        {/* Logo principal (PNG con fondo negro -> mix-blend-mode: lighten para fundirse).
+            Cuando se suba versión transparente, eliminar el style del mixBlendMode. */}
+        <img
+          src={ASSETS_BRAND.logo}
+          alt="Drive Arena"
+          className="h-24 w-auto drop-shadow-[0_0_30px_rgba(0,0,0,0.8)]"
+          style={{ mixBlendMode: 'lighten' }}
+        />
 
         {/* Tagline con líneas rojas */}
         <div className="mt-4 flex items-center gap-3">
