@@ -1,18 +1,21 @@
 import { useLocation } from "react-router";
+import { useReserva } from "@/context/ReservaContext";
 import { WIZARD_STEPS, getCurrentStep } from "./wizardConfig";
 
 /**
  * Stepper visual del wizard de reserva.
- * Muestra 4 círculos numerados conectados por líneas. Cada círculo
- * refleja uno de tres estados:
- * - completed: paso anterior al actual → check + color primary
- * - current: paso visible → número + ring brillante
- * - pending: paso futuro → número en gris + borde sutil
+ * Cada círculo refleja uno de tres estados:
+ * - completed: paso anterior al actual (✓ rojo)
+ * - current: paso visible (rojo + ring brillante)
+ * - pending: paso futuro (gris + borde sutil)
  *
- * El paso actual se infiere de la URL para que el componente sea autónomo.
+ * Caso especial: si el usuario seleccionó un pack premium, el paso 2
+ * (Lodge) se marca automáticamente como completed porque el alojamiento
+ * ya viene incluido en el pack.
  */
 function WizardStepper() {
   const { pathname } = useLocation();
+  const { state } = useReserva();
   const currentStep = getCurrentStep(pathname);
 
   return (
@@ -22,16 +25,23 @@ function WizardStepper() {
     >
       <ol className="flex items-start justify-between">
         {WIZARD_STEPS.map((step, idx) => {
-          const isCompleted = step.number < currentStep;
+          // Paso 2 se considera "auto-completado" cuando es un pack
+          const autoCompleted = state.esPack && step.number === 2;
+          const isCompleted = step.number < currentStep || autoCompleted;
           const isCurrent = step.number === currentStep;
           const isLast = idx === WIZARD_STEPS.length - 1;
+
+          // La línea hacia el siguiente paso está coloreada si el paso
+          // actual está completed, O si es pack y estamos en paso 1
+          // (visualmente "salta" hacia el paso 3)
+          const lineCompleted =
+            isCompleted || (state.esPack && step.number === 1);
 
           return (
             <li
               key={step.number}
               className={`flex items-start ${isLast ? "" : "flex-1"}`}
             >
-              {/* Step indicator (círculo + label) */}
               <div className="flex flex-col items-center">
                 <div
                   className={`
@@ -46,6 +56,11 @@ function WizardStepper() {
                     }
                   `}
                   aria-current={isCurrent ? "step" : undefined}
+                  aria-label={
+                    autoCompleted
+                      ? `${step.label} - Incluido en el pack`
+                      : undefined
+                  }
                 >
                   {isCompleted ? "✓" : step.number}
                 </div>
@@ -60,12 +75,11 @@ function WizardStepper() {
                 </span>
               </div>
 
-              {/* Línea conectora hacia el siguiente step */}
               {!isLast && (
                 <div
                   className={`
                     flex-1 h-[2px] mt-5 mx-2 transition-colors duration-300
-                    ${isCompleted ? "bg-primary" : "bg-border-strong"}
+                    ${lineCompleted ? "bg-primary" : "bg-border-strong"}
                   `}
                   aria-hidden="true"
                 />
