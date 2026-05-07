@@ -1,5 +1,9 @@
 import { createContext, useContext, useReducer, useEffect } from "react";
-import { RESERVA_INITIAL_STATE } from "@/data/reservaMocks";
+import {
+  RESERVA_INITIAL_STATE,
+  PERSONAS_MIN,
+  PERSONAS_MAX,
+} from "@/data/reservaMocks";
 
 const STORAGE_KEY = "drive-arena:reserva";
 
@@ -9,6 +13,7 @@ export const RESERVA_ACTIONS = {
   SET_PASE: "SET_PASE",
   SET_LODGE: "SET_LODGE",
   SET_CLIENTE: "SET_CLIENTE",
+  SET_PERSONAS: "SET_PERSONAS",
   SET_PACK: "SET_PACK",
   CLEAR_PACK: "CLEAR_PACK",
   RESET: "RESET",
@@ -17,9 +22,6 @@ export const RESERVA_ACTIONS = {
 function reservaReducer(state, action) {
   switch (action.type) {
     case RESERVA_ACTIONS.SET_PASE: {
-      // Selección manual deshace el pack. Si venía de pack mode,
-      // limpiar también el lodge (que era el del pack) para no
-      // dejar state inconsistente.
       const wasPackMode = state.esPack;
       return {
         ...state,
@@ -33,6 +35,17 @@ function reservaReducer(state, action) {
       return { ...state, lodge: action.payload };
     case RESERVA_ACTIONS.SET_CLIENTE:
       return { ...state, cliente: action.payload };
+    case RESERVA_ACTIONS.SET_PERSONAS: {
+      // Garantizamos que el valor está dentro del rango permitido.
+      // Si el payload es inválido, no actualizamos el state.
+      const value = Number(action.payload);
+      if (Number.isNaN(value)) return state;
+      const clamped = Math.min(
+        Math.max(value, PERSONAS_MIN),
+        PERSONAS_MAX,
+      );
+      return { ...state, personas: clamped };
+    }
     case RESERVA_ACTIONS.SET_PACK:
       return {
         ...state,
