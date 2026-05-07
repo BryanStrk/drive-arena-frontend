@@ -5,7 +5,6 @@ const STORAGE_KEY = "drive-arena:reserva";
 
 const ReservaContext = createContext(null);
 
-// === ACCIONES ===
 export const RESERVA_ACTIONS = {
   SET_PASE: "SET_PASE",
   SET_LODGE: "SET_LODGE",
@@ -15,23 +14,26 @@ export const RESERVA_ACTIONS = {
   RESET: "RESET",
 };
 
-// === REDUCER ===
 function reservaReducer(state, action) {
   switch (action.type) {
-    case RESERVA_ACTIONS.SET_PASE:
-      // Selección manual de pase → desactiva el modo pack
+    case RESERVA_ACTIONS.SET_PASE: {
+      // Selección manual deshace el pack. Si venía de pack mode,
+      // limpiar también el lodge (que era el del pack) para no
+      // dejar state inconsistente.
+      const wasPackMode = state.esPack;
       return {
         ...state,
         pase: action.payload,
         esPack: false,
         packId: null,
+        lodge: wasPackMode ? null : state.lodge,
       };
+    }
     case RESERVA_ACTIONS.SET_LODGE:
       return { ...state, lodge: action.payload };
     case RESERVA_ACTIONS.SET_CLIENTE:
       return { ...state, cliente: action.payload };
     case RESERVA_ACTIONS.SET_PACK:
-      // Rellena pase + lodge + flag de pack en un solo dispatch
       return {
         ...state,
         pase: action.payload.pase,
@@ -40,7 +42,6 @@ function reservaReducer(state, action) {
         packId: action.payload.packId,
       };
     case RESERVA_ACTIONS.CLEAR_PACK:
-      // Quita el pack y limpia las selecciones asociadas
       return {
         ...state,
         pase: null,
@@ -55,9 +56,6 @@ function reservaReducer(state, action) {
   }
 }
 
-/**
- * Hidrata el state inicial desde localStorage.
- */
 function lazyInit(initial) {
   if (typeof window === "undefined") return initial;
   try {
@@ -79,7 +77,7 @@ export function ReservaProvider({ children }) {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch {
-      // localStorage puede no estar disponible (modo incógnito)
+      // localStorage puede no estar disponible
     }
   }, [state]);
 
