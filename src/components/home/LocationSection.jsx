@@ -2,21 +2,37 @@ import SectionHeader from "@/components/SectionHeader";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import CircuitMap from "@/components/CircuitMap";
+import {
+  getViewMapsUrl,
+  getDirectionsUrl,
+  openMapsUrl,
+} from "@/utils/mapsUrls";
 
 /**
  * Sección "CÓMO LLEGAR" del Home público.
- * Mapa interactivo (CartoDB Dark Matter + maplibre-gl) + card de info.
+ * Mapa interactivo + card de info + integración con apps de mapas externas.
+ *
+ * Acciones disponibles:
+ * - Botón "Abrir en Maps" → abre Google Maps centrado en el lugar (modo VER)
+ * - Botón "Cómo Llegar" → abre Maps con direcciones desde la ubicación del usuario
+ *   (Apple Maps en iOS, Google Maps en lo demás)
+ * - Click en el marker del mapa → atajo a "Cómo Llegar"
  *
  * @param {Object} props
- * @param {Object} props.location - Datos de la ubicación del resort
- * @param {number} props.location.lat - Latitud
- * @param {number} props.location.lng - Longitud
- * @param {string} props.location.name - Nombre del circuito
- * @param {string} props.location.coords - Coordenadas formateadas para mostrar
- * @param {string} props.location.address - Dirección multi-línea
- * @param {string[]} props.location.transport - Lista de medios de transporte
+ * @param {Object} props.location - Datos de la ubicación
  */
 function LocationSection({ location }) {
+  const lat = location.lat ?? 41.5705;
+  const lng = location.lng ?? 2.2611;
+
+  const handleViewInMaps = () => {
+    openMapsUrl(getViewMapsUrl(lat, lng));
+  };
+
+  const handleGetDirections = () => {
+    openMapsUrl(getDirectionsUrl(lat, lng));
+  };
+
   return (
     <section
       id="ubicacion"
@@ -27,7 +43,11 @@ function LocationSection({ location }) {
         <SectionHeader
           eyebrow="Sección 05 · Ubicación"
           title="Cómo Llegar"
-          action={<Button variant="ghost">Abrir en Maps ▶</Button>}
+          action={
+            <Button variant="ghost" onClick={handleViewInMaps}>
+              Abrir en Maps ▶
+            </Button>
+          }
         />
 
         <div className="mt-10 grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -37,9 +57,10 @@ function LocationSection({ location }) {
             className="lg:col-span-3 relative h-80 lg:h-auto min-h-[400px] overflow-hidden"
           >
             <CircuitMap
-              lat={location.lat ?? 41.5705}
-              lng={location.lng ?? 2.2611}
+              lat={lat}
+              lng={lng}
               zoom={13}
+              onMarkerClick={handleGetDirections}
             />
 
             {/* Label flotante glassmorphism con coordenadas - bottom left */}
@@ -89,7 +110,11 @@ function LocationSection({ location }) {
 
             {/* CTA */}
             <div className="mt-auto pt-6">
-              <Button variant="primary" fullWidth>
+              <Button
+                variant="primary"
+                fullWidth
+                onClick={handleGetDirections}
+              >
                 Cómo Llegar ▶▶
               </Button>
             </div>
