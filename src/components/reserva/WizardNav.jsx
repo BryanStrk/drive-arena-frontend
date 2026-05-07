@@ -12,17 +12,10 @@ import {
 /**
  * Navegación entre pasos del wizard.
  *
- * - "Atrás" → paso anterior (deshabilitado en paso 1)
- * - "Siguiente" → paso siguiente, deshabilitado si el paso actual no está
- *   completo según `isStepComplete()`
- * - Si el usuario seleccionó un pack premium en paso 1, el paso 2 (Lodge)
- *   se salta automáticamente porque el alojamiento viene incluido
- * - En el último paso, "Siguiente" se transforma en "Confirmar Reserva"
- *   y dispara el callback `onSubmit` si está definido (Bloque C)
- *
- * @param {Function} [onSubmit] - Callback opcional disparado en paso 4
+ * @param {Function} [onSubmit] - Callback disparado en paso 4 al confirmar
+ * @param {boolean} [isSubmitting] - Si true, muestra estado loading en el botón
  */
-function WizardNav({ onSubmit }) {
+function WizardNav({ onSubmit, isSubmitting = false }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { state } = useReserva();
@@ -33,13 +26,13 @@ function WizardNav({ onSubmit }) {
   const canAdvance = isStepComplete(currentStep, state);
 
   const handlePrev = () => {
-    if (isFirstStep) return;
+    if (isFirstStep || isSubmitting) return;
     const prevStep = getPrevStepNumber(currentStep, state);
     navigate(`/reservar/paso-${prevStep}`);
   };
 
   const handleNext = () => {
-    if (!canAdvance) return;
+    if (!canAdvance || isSubmitting) return;
 
     if (isLastStep) {
       onSubmit?.();
@@ -50,21 +43,32 @@ function WizardNav({ onSubmit }) {
     navigate(`/reservar/paso-${nextStep}`);
   };
 
+  // Texto del botón principal según contexto
+  const nextButtonLabel = (() => {
+    if (isSubmitting) return "Procesando...";
+    if (isLastStep) return "Confirmar Reserva ▶▶";
+    return "Siguiente ▶";
+  })();
+
   return (
     <nav
       aria-label="Navegación entre pasos"
       className="flex items-center justify-between mt-12 pt-6 border-t border-border-strong"
     >
-      <Button variant="ghost" onClick={handlePrev} disabled={isFirstStep}>
+      <Button
+        variant="ghost"
+        onClick={handlePrev}
+        disabled={isFirstStep || isSubmitting}
+      >
         ◀ Atrás
       </Button>
 
       <Button
         variant="primary"
         onClick={handleNext}
-        disabled={!canAdvance}
+        disabled={!canAdvance || isSubmitting}
       >
-        {isLastStep ? "Confirmar Reserva ▶▶" : "Siguiente ▶"}
+        {nextButtonLabel}
       </Button>
     </nav>
   );
