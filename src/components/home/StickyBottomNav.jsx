@@ -1,9 +1,13 @@
 import { Link } from 'react-router'
+
 import { cn } from '@/lib/cn'
 
 /**
  * Barra de navegación pegada al fondo de la pantalla.
  * Siempre visible mientras el usuario hace scroll por el Home público.
+ *
+ * Decisión de diseño: layout limpio sin elementos decorativos a la izquierda.
+ * Los nav links principales se alinean al inicio y el CTA de Login al final.
  */
 function StickyBottomNav() {
   const navLinks = [
@@ -24,27 +28,19 @@ function StickyBottomNav() {
       )}
     >
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
-        <a
-          href="#"
-          className="font-display font-extrabold text-base tracking-tight uppercase shrink-0 hover:text-primary transition-colors"
-          aria-label="Drive Arena - Inicio"
-        >
-          Drive Arena
-        </a>
-
         <ul
           role="list"
-          className="hidden md:flex items-center gap-6 flex-1 justify-center"
+          className="hidden md:flex items-center gap-8"
         >
           {navLinks.map((link) => (
             <li key={link.href}>
               <a
                 href={link.href}
-                className="font-mono text-[10px] tracking-[0.25em] uppercase text-text-muted hover:text-primary transition-colors flex items-center gap-1.5"
+                className="font-mono text-xs tracking-[0.25em] uppercase text-text-muted hover:text-primary transition-colors flex items-center gap-1.5"
               >
                 <span>{link.label}</span>
                 {link.badge && (
-                  <span className="font-mono text-[9px] text-primary">
+                  <span className="font-mono text-[10px] text-primary">
                     {link.badge}
                   </span>
                 )}
@@ -56,8 +52,8 @@ function StickyBottomNav() {
         <Link
           to="/login"
           className={cn(
-            'shrink-0',
-            'font-mono text-[10px] tracking-[0.25em] uppercase font-medium',
+            'shrink-0 ml-auto',
+            'font-mono text-xs tracking-[0.25em] uppercase font-medium',
             'px-5 py-2',
             'border border-border-strong rounded-inner',
             'text-text hover:bg-primary hover:border-primary hover:text-text',
