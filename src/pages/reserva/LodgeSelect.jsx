@@ -2,33 +2,33 @@ import { useReserva, RESERVA_ACTIONS } from "@/context/ReservaContext";
 import { LODGES_PUBLIC } from "@/data/reservaMocks";
 
 const REGIMENES = [
-  { id: "sin", label: "Solo alojamiento", description: "Sin servicio de comidas" },
-  { id: "media", label: "Media pensión", description: "Desayuno + cena incluidos" },
-  { id: "completa", label: "Pensión completa", description: "Todas las comidas" },
+  {
+    id: "sin",
+    label: "Solo alojamiento",
+    description: "Sin servicio de comidas",
+  },
+  {
+    id: "media",
+    label: "Media pensión",
+    description: "Desayuno + cena incluidos",
+  },
+  {
+    id: "completa",
+    label: "Pensión completa",
+    description: "Todas las comidas",
+  },
 ];
 
-/**
- * Devuelve la fecha de hoy en formato YYYY-MM-DD para usar como `min`
- * en los inputs type="date".
- */
 function getToday() {
   return new Date().toISOString().split("T")[0];
 }
 
-/**
- * Calcula las noches entre dos fechas YYYY-MM-DD.
- */
 function calcularNoches(entrada, salida) {
   if (!entrada || !salida) return 0;
   const ms = new Date(salida) - new Date(entrada);
   return Math.max(0, Math.ceil(ms / (1000 * 60 * 60 * 24)));
 }
 
-/**
- * PASO 2 — Selección de Lodge.
- * Lee y escribe directamente en el ReservaContext (sin state local).
- * Cualquier cambio actualiza el state, que se persiste en localStorage.
- */
 function LodgeSelect() {
   const { state, dispatch } = useReserva();
 
@@ -37,11 +37,15 @@ function LodgeSelect() {
   const fechaEntrada = lodgeData.fechaEntrada ?? "";
   const fechaSalida = lodgeData.fechaSalida ?? "";
   const regimen = lodgeData.regimen ?? null;
+  const personas = state.personas ?? 1;
 
   const today = getToday();
   const noches = calcularNoches(fechaEntrada, fechaSalida);
 
-  // Helper para actualizar el state preservando los demás campos
+  // Aviso si el lodge seleccionado no tiene capacidad para todas las personas
+  const lodgeOvercapacity =
+    selectedLodge && personas > selectedLodge.capacidad;
+
   const updateLodge = (changes) => {
     dispatch({
       type: RESERVA_ACTIONS.SET_LODGE,
@@ -59,7 +63,6 @@ function LodgeSelect() {
 
   const handleFechaEntradaChange = (e) => {
     const newEntrada = e.target.value;
-    // Si la nueva entrada es posterior o igual a la salida actual, limpiar salida
     const shouldClearSalida = fechaSalida && newEntrada >= fechaSalida;
     updateLodge({
       fechaEntrada: newEntrada,
@@ -71,7 +74,8 @@ function LodgeSelect() {
     updateLodge({ fechaSalida: e.target.value });
   };
 
-  const handleSelectRegimen = (regimenId) => updateLodge({ regimen: regimenId });
+  const handleSelectRegimen = (regimenId) =>
+    updateLodge({ regimen: regimenId });
 
   return (
     <section aria-label="Paso 2: Selección de lodge">
@@ -82,6 +86,14 @@ function LodgeSelect() {
         Selecciona alojamiento, fechas de estancia y régimen de pensión.
       </p>
 
+      {/* Reminder de personas (informativo) */}
+      <p className="mt-4 font-mono text-xs tracking-wider text-text-muted">
+        ▶ Reserva para{" "}
+        <span className="text-primary font-bold">
+          {personas} {personas === 1 ? "persona" : "personas"}
+        </span>
+      </p>
+
       {/* === LODGES === */}
       <div className="mt-12">
         <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-primary">
@@ -90,6 +102,7 @@ function LodgeSelect() {
         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
           {LODGES_PUBLIC.map((lodge) => {
             const isSelected = selectedLodge?.id === lodge.id;
+            const insufficientCapacity = personas > lodge.capacidad;
             return (
               <button
                 key={lodge.id}
@@ -97,7 +110,7 @@ function LodgeSelect() {
                 onClick={() => handleSelectLodge(lodge)}
                 aria-pressed={isSelected}
                 className={`
-                  text-left p-4 rounded-2xl border-2 transition-all
+                  text-left p-4 rounded-2xl border-2 transition-all relative
                   ${
                     isSelected
                       ? "border-primary bg-primary/5 shadow-lg shadow-primary/20"
@@ -112,8 +125,15 @@ function LodgeSelect() {
                   {lodge.descripcion}
                 </p>
                 <div className="flex items-baseline justify-between mt-4">
-                  <p className="font-mono text-[10px] tracking-wider uppercase text-text-muted">
+                  <p
+                    className={`font-mono text-[10px] tracking-wider uppercase ${
+                      insufficientCapacity
+                        ? "text-primary font-bold"
+                        : "text-text-muted"
+                    }`}
+                  >
                     Hasta {lodge.capacidad} pers.
+                    {insufficientCapacity && " ⚠"}
                   </p>
                   <p className="font-display text-2xl font-extrabold text-primary">
                     {lodge.priceFull}€
@@ -126,6 +146,22 @@ function LodgeSelect() {
             );
           })}
         </div>
+
+        {/* Aviso de capacidad insuficiente */}
+        {lodgeOvercapacity && (
+          <div className="mt-4 p-4 rounded-lg border-2 border-primary/30 bg-primary/5">
+            <p className="font-mono text-xs tracking-wider text-primary">
+              ⚠ AVISO DE CAPACIDAD
+            </p>
+            <p className="text-sm text-text mt-2">
+              <strong>{selectedLodge.nombre}</strong> tiene capacidad para{" "}
+              <strong>{selectedLodge.capacidad} personas</strong>, pero tu
+              reserva es para <strong>{personas}</strong>. Algunos
+              acompañantes podrán necesitar alojamiento alternativo. Te
+              contactaremos para confirmar opciones.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* === FECHAS === */}
