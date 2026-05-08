@@ -1,15 +1,11 @@
 import { useReserva, RESERVA_ACTIONS } from "@/context/ReservaContext";
-import {
-  ATRACCIONES_PUBLIC,
-  LODGES_PUBLIC,
-  PERSONAS_MIN,
-  PERSONAS_MAX,
-} from "@/data/reservaMocks";
+import { PERSONAS_MIN, PERSONAS_MAX } from "@/data/reservaMocks";
 import { OFFER_PACKS } from "@/data/homeMocks";
+import { useReservaCatalogo } from "@/hooks/useReservaCatalogo";
+import { ASSETS_EXPERIENCES } from "@/data/cloudinaryAssets";
 
 /**
  * Selector de cantidad de personas (1-10).
- * Sub-componente local con botones [-] [valor] [+] estilizado al brand.
  */
 function PersonasSelector({ value, onChange }) {
   const canDecrement = value > PERSONAS_MIN;
@@ -66,10 +62,50 @@ function PersonasSelector({ value, onChange }) {
 }
 
 /**
+ * Resuelve la imagen de la atracción.
+ * Prioriza imagenUrl del backend, con fallback a assets locales por id.
+ * Esto permite que el wizard funcione aunque el backend aún no
+ * devuelva URLs de Cloudinary, y migra de forma transparente cuando lo haga.
+ */
+function getAtraccionImage(atraccion) {
+  if (atraccion.imagenUrl) return atraccion.imagenUrl;
+  const fallbackById = {
+    1: ASSETS_EXPERIENCES.phantomGt,
+    2: ASSETS_EXPERIENCES.apexSimulator,
+    3: ASSETS_EXPERIENCES.driftKing,
+    4: ASSETS_EXPERIENCES.neonKarting,
+  };
+    return (
+    fallbackById[atraccion.id] ??
+    atraccion.imagenUrl ??
+    atraccion.imagen_url ??
+    ""
+  );
+}
+
+/**
+ * Etiqueta legible para mostrar el tipo de tarifa al usuario.
+ */
+function tarifaLabel(tipo) {
+  const map = {
+    NINO: "Niño",
+    ADULTO: "Adulto",
+    PENSIONISTA: "Pensionista",
+  };
+  return map[tipo] ?? tipo;
+}
+
+/**
  * PASO 1 — Selección de Pack o Pase a medida + número de personas.
+ *
+ * IMPORTANTE: el modelo de tarifas es ahora GLOBAL (NINO/ADULTO/PENSIONISTA)
+ * en lugar de específico por atracción. Las tarifas se cargan del backend
+ * y se aplican a cualquier atracción seleccionada.
  */
 function PassSelect() {
   const { state, dispatch } = useReserva();
+  const { atracciones, tarifas, hoteles, isLoading, error } =
+    useReservaCatalogo();
 
   const selectedPackId = state.packId ?? null;
   const selectedAtraccion = state.pase?.atraccion ?? null;
@@ -77,12 +113,32 @@ function PassSelect() {
   const isPackMode = state.esPack;
   const personas = state.personas ?? 1;
 
-  const handleSelectPack = (pack) => {
-    const atraccion = ATRACCIONES_PUBLIC.find(
-      (a) => a.id === pack.atraccionId,
+  // === Loading & error states ===
+  if (isLoading) {
+    return (
+      <section className="py-20 text-center" aria-busy="true">
+        <p className="font-mono text-sm tracking-[0.2em] uppercase text-text-muted">
+          Cargando catálogo...
+        </p>
+      </section>
     );
-    const tarifa = atraccion?.tarifas.find((t) => t.id === pack.tarifaId);
-    const lodge = LODGES_PUBLIC.find((l) => l.id === pack.lodgeId);
+  }
+
+  if (error) {
+    return (
+      <section className="py-20 text-center" role="alert">
+        <p className="font-mono text-sm tracking-wider uppercase text-red-500">
+          {error}
+        </p>
+      </section>
+    );
+  }
+
+  // === Handlers ===
+  const handleSelectPack = (pack) => {
+    const atraccion = atracciones.find((a) => a.id === pack.atraccionId);
+    const tarifa = tarifas.find((t) => t.id === pack.tarifaId);
+    const lodge = hoteles.find((h) => h.id === pack.lodgeId);
 
     if (!atraccion || !tarifa || !lodge) {
       console.error("Pack mal configurado, IDs no encontrados:", pack);
@@ -126,8 +182,6 @@ function PassSelect() {
     });
   };
 
-  // El selector de personas se muestra cuando ya hay algo seleccionado
-  // (pack completo o atracción + tarifa)
   const showPersonas =
     isPackMode || (selectedAtraccion && selectedTarifa);
 
@@ -216,7 +270,7 @@ function PassSelect() {
           ▌ Atracción
         </p>
         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-          {ATRACCIONES_PUBLIC.map((atraccion) => {
+          {atracciones.map((atraccion) => {
             const isSelected =
               !isPackMode && selectedAtraccion?.id === atraccion.id;
             return (
@@ -238,7 +292,7 @@ function PassSelect() {
               >
                 <div className="flex gap-4">
                   <img
-                    src={atraccion.image}
+                    src={getAtraccionImage(atraccion)}
                     alt={atraccion.nombre}
                     className="w-20 h-20 object-cover rounded-lg shrink-0"
                   />
@@ -250,8 +304,7 @@ function PassSelect() {
                       {atraccion.descripcion}
                     </p>
                     <p className="font-mono text-[10px] tracking-wider uppercase text-primary mt-2">
-                      {atraccion.duracionMinutos}min ·{" "}
-                      {atraccion.tarifas.length} tarifas
+                      {atraccion.tamano}
                     </p>
                   </div>
                 </div>
@@ -261,14 +314,17 @@ function PassSelect() {
         </div>
       </div>
 
-      {/* === TARIFAS === */}
+      {/* === TARIFAS GLOBALES === */}
       {!isPackMode && selectedAtraccion && (
         <div className="mt-12">
           <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-primary">
-            ▌ Tarifa para {selectedAtraccion.nombre}
+            ▌ Tipo de Pase
+          </p>
+          <p className="text-sm text-text-muted mt-2">
+            Elige tu tarifa para acceder a {selectedAtraccion.nombre}.
           </p>
           <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-            {selectedAtraccion.tarifas.map((tarifa) => {
+            {tarifas.map((tarifa) => {
               const isSelected = selectedTarifa?.id === tarifa.id;
               return (
                 <button
@@ -286,12 +342,14 @@ function PassSelect() {
                   `}
                 >
                   <p className="font-mono text-[10px] tracking-wider uppercase text-text-muted">
-                    {tarifa.sesiones}{" "}
-                    {tarifa.sesiones > 1 ? "sesiones" : "sesión"}
+                    {tarifa.tipo}
                   </p>
                   <h4 className="font-display font-bold text-xl tracking-tight uppercase mt-2">
-                    {tarifa.nombre}
+                    {tarifaLabel(tarifa.tipo)}
                   </h4>
+                  <p className="text-xs text-text-muted mt-1 line-clamp-2 min-h-[32px]">
+                    {tarifa.descripcion}
+                  </p>
                   <p className="font-display text-3xl font-extrabold text-primary mt-3">
                     {tarifa.precio}€
                     <span className="font-mono text-[10px] text-text-muted ml-1">

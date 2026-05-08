@@ -110,7 +110,7 @@ export const OFFER_PACKS = [
     // Metadata para wizard
     lodgeId: 1, // Apex Lodge (VIP Paddock)
     atraccionId: 1, // Phantom GT
-    tarifaId: 13, // Premium Pack (5 sesiones)
+    tarifaId: 2, // ADULTO (catálogo BD)
     regimen: 'completa',
   },
   {
@@ -126,7 +126,7 @@ export const OFFER_PACKS = [
     // Metadata para wizard
     lodgeId: 2, // Pit Stop Lodge (Familiar)
     atraccionId: 1, // Phantom GT
-    tarifaId: 12, // Triple Lap (3 sesiones)
+    tarifaId: 2, // ADULTO (catálogo BD)
     regimen: 'media',
   },
 ]
