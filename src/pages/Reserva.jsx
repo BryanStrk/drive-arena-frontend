@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Outlet, Link, useNavigate } from "react-router";
+import toast from "react-hot-toast";
 import {
   ReservaProvider,
   useReserva,
@@ -8,10 +9,37 @@ import {
 import { ASSETS_BRAND } from "@/data/cloudinaryAssets";
 import WizardStepper from "@/components/reserva/WizardStepper";
 import WizardNav from "@/components/reserva/WizardNav";
-import {
-  calcularTotalReserva,
-  generarCodigoReserva,
-} from "@/utils/reservaCalc";
+import { crearReservaPublica } from "@/api/reservaApi";
+import { extractApiError } from "@/utils/extractApiError";
+
+/**
+ * Transforma el state del wizard al payload que espera el backend.
+ *
+ * El state guarda OBJETOS completos (atraccion, tarifa, lodge) por comodidad
+ * de la UI. El backend solo necesita los IDs.
+ *
+ * IMPORTANTE: el backend valida @NotNull en estos campos. Si alguno falla
+ * la validación de step en el wizard, el submit no debería ejecutarse — pero
+ * por defensa, los optional chaining devuelven null y el backend dará un 400
+ * legible vía extractApiError.
+ */
+function buildPayloadFromState(state) {
+  return {
+    cliente: state.cliente,
+    personas: state.personas,
+    pase: {
+      atraccionId: state.pase?.atraccion?.id ?? null,
+      tarifaId: state.pase?.tarifa?.id ?? null,
+    },
+    lodge: {
+      hotelId: state.lodge?.lodge?.id ?? null,
+      fechaEntrada: state.lodge?.fechaEntrada ?? null,
+      fechaSalida: state.lodge?.fechaSalida ?? null,
+      regimen: state.lodge?.regimen ?? null,
+    },
+    packId: state.packId ?? null,
+  };
+}
 
 /**
  * Layout interno del wizard. Se separa del componente Reserva para poder
@@ -25,38 +53,46 @@ function ReservaContent() {
   /**
    * Handler de confirmación de reserva (paso 4).
    *
-   * MOCK: simula un envío al backend con 1.5s de delay.
-   * En producción, reemplazar por una llamada axios:
-   *   await reservaApi.crear(payload)
-   * El backend devolvería el código y enviaría el email vía JavaMailSender.
+   * Llama al endpoint POST /api/reservas del backend que:
+   * 1. Hace UPSERT del cliente por email/DNI
+   * 2. Crea la Compra con código único DA-YYYY-XXXX
+   * 3. Dispara email de confirmación (async, best-effort)
+   * 4. Devuelve { codigoReserva, total, mensaje }
+   *
+   * El backend es AUTORITATIVO: el código y el total que mostramos en la
+   * página de confirmación vienen de su response, no del cálculo local.
+   *
+   * En caso de error muestra toast y mantiene los datos del wizard para
+   * que el usuario pueda corregir y reintentar (no reseteamos state).
    */
   const handleSubmit = async () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
 
-    // Generar código y calcular total ANTES del reset del state
-    const codigoReserva = generarCodigoReserva();
-    const { total } = calcularTotalReserva(state);
-    const navData = {
-      codigoReserva,
-      email: state.cliente?.email,
-      nombre: state.cliente?.nombre,
-      total,
-    };
+    const payload = buildPayloadFromState(state);
 
-    // Simular envío al backend
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      const response = await crearReservaPublica(payload);
 
-    // Logs de debug (eliminar al integrar backend real)
-    console.log("📧 [MOCK] Email enviado a:", state.cliente?.email);
-    console.log("📋 [MOCK] Código de reserva:", codigoReserva);
-    console.log("📦 [MOCK] Payload enviado:", state);
+      // El backend es autoritativo: usa SU código y total (no los del frontend)
+      const navData = {
+        codigoReserva: response.codigoReserva,
+        total: response.total,
+        nombre: state.cliente?.nombre,
+        email: state.cliente?.email,
+      };
 
-    // Reset del wizard ANTES de navegar (Confirmation está fuera del Provider)
-    dispatch({ type: RESERVA_ACTIONS.RESET });
+      // Reset del wizard ANTES de navegar (Confirmation está fuera del Provider)
+      dispatch({ type: RESERVA_ACTIONS.RESET });
 
-    // Navegar a la página de éxito pasando los datos vía state
-    navigate("/reserva-confirmada", { state: navData });
+      // Navegar a la página de éxito pasando los datos vía state
+      navigate("/reserva-confirmada", { state: navData });
+    } catch (error) {
+      const mensaje = extractApiError(error);
+      // id fijo evita que se apilen toasts si el usuario reintenta varias veces.
+      toast.error(mensaje, { id: "reserva-error", duration: 5000 });
+      setIsSubmitting(false); // permitir reintentar
+    }
   };
 
   return (
