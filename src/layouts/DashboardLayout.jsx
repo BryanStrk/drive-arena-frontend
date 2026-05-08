@@ -45,6 +45,7 @@ const NAV_SECTIONS = [
   {
     label: 'Operativa',
     items: [
+      { label: 'Mantenimiento', to: '/dashboard/mantenimiento' },
       { label: 'Ranking', to: '/dashboard/ranking' },
     ],
   },
@@ -55,6 +56,7 @@ const BREADCRUMB_MAP = {
   '/dashboard/lodges': ['Inicio', 'Panel', 'Gestión', 'Lodges'],
   '/dashboard/compras': ['Inicio', 'Panel', 'Ventas', 'Compras'], 
   '/dashboard/ranking': ['Inicio', 'Panel', 'Operativa', 'Ranking'],
+  '/dashboard/mantenimiento': ['Inicio', 'Panel', 'Operativa', 'Mantenimiento'],
 }
 
 function DashboardLayout() {
