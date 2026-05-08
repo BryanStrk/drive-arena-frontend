@@ -13,6 +13,7 @@ import Home from '@/pages/Home'
 import Login from '@/pages/Login'
 import Dashboard from '@/pages/Dashboard'
 import LodgesPage from '@/pages/LodgesPage'
+import ComprasPage from '@/pages/ComprasPage'
 import NotFound from '@/pages/NotFound'
 
 // Reserva wizard (standalone)
@@ -84,6 +85,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Dashboard /> },
       { path: 'lodges', element: <LodgesPage /> },
+      { path: 'compras', element: <ComprasPage /> },   
       // Próximos módulos:
       // { path: 'circuitos', element: <CircuitosPage /> },
       // { path: 'clientes', element: <ClientesPage /> },
