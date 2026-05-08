@@ -15,6 +15,7 @@ import Dashboard from '@/pages/Dashboard'
 import LodgesPage from '@/pages/LodgesPage'
 import ComprasPage from '@/pages/ComprasPage'
 import RankingPage from '@/pages/RankingPage'
+import MantenimientoPage from '@/pages/MantenimientoPage'
 import NotFound from '@/pages/NotFound'
 
 
@@ -89,6 +90,7 @@ export const router = createBrowserRouter([
       { path: 'lodges', element: <LodgesPage /> },
       { path: 'compras', element: <ComprasPage /> },
       { path: 'ranking', element: <RankingPage /> },
+      { path: 'mantenimiento', element: <MantenimientoPage /> },
       // Próximos módulos:
       // { path: 'circuitos', element: <CircuitosPage /> },
       // { path: 'clientes', element: <ClientesPage /> },
