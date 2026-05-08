@@ -42,12 +42,19 @@ const NAV_SECTIONS = [
       { label: 'Lodges', to: '/dashboard/lodges' },
     ],
   },
+  {
+    label: 'Operativa',
+    items: [
+      { label: 'Ranking', to: '/dashboard/ranking' },
+    ],
+  },
 ]
 
 const BREADCRUMB_MAP = {
   '/dashboard': ['Inicio', 'Panel', 'Dashboard'],
   '/dashboard/lodges': ['Inicio', 'Panel', 'Gestión', 'Lodges'],
   '/dashboard/compras': ['Inicio', 'Panel', 'Ventas', 'Compras'], 
+  '/dashboard/ranking': ['Inicio', 'Panel', 'Operativa', 'Ranking'],
 }
 
 function DashboardLayout() {
