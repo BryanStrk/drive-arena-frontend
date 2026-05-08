@@ -1,37 +1,65 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router'
+import toast from 'react-hot-toast'
 
 import Badge from '@/components/Badge'
+import MantenimientoFormModal from '@/components/mantenimiento/MantenimientoFormModal'
+import { mantenimientosApi } from '@/api/mantenimientos'
 import { useMantenimientosPendientes } from '@/hooks/useMantenimientosPendientes'
 
 /**
  * Widget "Mantenimientos pendientes".
  *
- * Tabla con los mantenimientos pendientes del resort (atracciones que
- * requieren atención técnica). Cada fila muestra ID, circuito, técnico
- * asignado, urgencia calculada según fecha, y un botón de acción que
- * navega a la página completa de Mantenimiento.
+ * Tabla con los mantenimientos pendientes del resort. Cada fila muestra
+ * ID, circuito, técnico asignado, urgencia calculada según fecha, y un
+ * botón de acción rápida que abre el modal de edición.
+ *
+ * INTERACCIONES:
+ *   - Click "Ver todos" → navega a la página completa de Mantenimiento
+ *   - Click llave en fila → abre modal de edición (reutiliza MantenimientoFormModal)
+ *   - Tras guardar cambios:
+ *       - Si el estado se cambia a EN_CURSO/COMPLETADO/CANCELADO → desaparece
+ *         de la lista (porque deja de ser PENDIENTE), gracias al refetch
+ *       - Si se cambian fecha o técnico → la lista se refresca con el nuevo dato
  *
  * URGENCIA AUTOMÁTICA (calculada client-side desde fechaProgramada):
  *   - VENCIDO    → fecha ya pasó                    → badge rojo
  *   - CRÍTICO    → próximos 3 días                  → badge rojo
  *   - REVISIÓN   → próxima semana (4-7 días)        → badge amarillo
  *   - PROGRAMADO → más de 7 días                    → badge gris
- *
- * Este cálculo se hace en frontend para no acoplar el backend a la
- * lógica de presentación. En producción se movería a un campo
- * computed del DTO de respuesta.
  */
 function PendingMaintenanceWidget() {
   const navigate = useNavigate()
   const { mantenimientos, isLoading, error, refetch } =
     useMantenimientosPendientes(4)
 
-  const handleAction = () => {
-    navigate('/dashboard/mantenimiento')
+  // Estado del modal de edición. null = cerrado, objeto = abierto editando.
+  const [editingMantenimiento, setEditingMantenimiento] = useState(null)
+
+  const handleAction = (mantenimiento) => {
+    setEditingMantenimiento(mantenimiento)
+  }
+
+  const handleCloseModal = () => {
+    setEditingMantenimiento(null)
   }
 
   const handleViewAll = () => {
     navigate('/dashboard/mantenimiento')
+  }
+
+  /**
+   * Wrapper de updateMantenimiento para el modal.
+   *
+   * El modal espera una función con la misma firma que el hook
+   * useMantenimientos.updateMantenimiento. Aquí la implementamos
+   * directamente contra la API y refrescamos el widget al final.
+   */
+  const handleUpdate = async (id, payload) => {
+    const updated = await mantenimientosApi.update(id, payload)
+    toast.success('Mantenimiento actualizado correctamente')
+    await refetch()
+    return updated
   }
 
   return (
@@ -89,6 +117,17 @@ function PendingMaintenanceWidget() {
           </tbody>
         </table>
       </div>
+
+      {/* Modal de edición (reutilizado desde el módulo de Mantenimiento) */}
+      <MantenimientoFormModal
+        isOpen={Boolean(editingMantenimiento)}
+        onClose={handleCloseModal}
+        mantenimiento={editingMantenimiento}
+        updateMantenimiento={handleUpdate}
+        // createMantenimiento no se usa aquí: el widget es solo para editar
+        // los pendientes existentes. Pasamos un noop para satisfacer la prop.
+        createMantenimiento={async () => {}}
+      />
     </article>
   )
 }
@@ -145,14 +184,14 @@ function MaintenanceRow({ maintenance, onAction }) {
         </div>
       </td>
 
-      {/* Botón acción */}
+      {/* Botón acción (abre modal de edición) */}
       <td className="px-3 py-3 text-right">
         <button
           type="button"
-          onClick={() => onAction(id)}
+          onClick={() => onAction(maintenance)}
           className="w-8 h-8 inline-flex items-center justify-center rounded-inner border border-border-strong bg-surface-2 text-text-muted hover:text-primary hover:border-primary transition-colors"
-          aria-label={`Ver mantenimiento ${id} en página completa`}
-          title="Ver en mantenimiento"
+          aria-label={`Editar mantenimiento ${id}`}
+          title="Editar mantenimiento"
         >
           <span aria-hidden="true">🔧</span>
         </button>
