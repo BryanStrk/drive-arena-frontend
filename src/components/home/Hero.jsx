@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { useNavigate } from "react-router";
 import Button from "@/components/Button";
 import Badge from "@/components/Badge";
 
@@ -15,8 +15,25 @@ const HERO_VIDEO =
 /**
  * Hero principal del Home público.
  * Video cinematográfico de fondo (con poster fallback) + tagline + CTAs.
+ *
+ * Los CTAs navegan a:
+ *  - "Reservar Pase" → /reservar (wizard público de reserva)
+ *  - "Ver Circuitos" → ancla #experiencias dentro del mismo home
  */
 function Hero() {
+  const navigate = useNavigate();
+
+  const handleReservar = () => navigate("/reservar");
+
+  const handleVerCircuitos = () => {
+    // Scroll suave a la sección de experiencias (ExperiencesSection debe
+    // tener id="experiencias"). Si el id es diferente, ajustar aquí.
+    const target = document.getElementById("experiencias");
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   return (
     <section
       className="relative h-screen min-h-[700px] w-full overflow-hidden"
@@ -61,12 +78,14 @@ function Hero() {
 
         {/* CTAs */}
         <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
-          <Link to="/login">
-            <Button variant="primary" size="lg">
-              Reservar Pase
-            </Button>
-          </Link>
-          <Button variant="secondary" size="lg">
+          <Button variant="primary" size="lg" onClick={handleReservar}>
+            Reservar Pase
+          </Button>
+          <Button
+            variant="secondary"
+            size="lg"
+            onClick={handleVerCircuitos}
+          >
             Ver Circuitos
           </Button>
         </div>

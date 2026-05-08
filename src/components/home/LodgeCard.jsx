@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router'
 import Card from '@/components/Card'
 import Badge from '@/components/Badge'
 import Button from '@/components/Button'
@@ -6,6 +7,10 @@ import { cn } from '@/lib/cn'
 /**
  * Card de lodge/alojamiento para el Home público.
  * Replica las cards de la sección "LODGES DEL RESORT" del mockup.
+ *
+ * El botón "Reservar" navega a /reservar (wizard público).
+ * El botón "Detalles" es TODO post-defensa: abrirá un modal con galería
+ * y descripción extendida del lodge.
  *
  * @param {Object} props
  * @param {string} props.name - Nombre del lodge (ej. "Apex Lodge")
@@ -27,6 +32,16 @@ function LodgeCard({
   image,
   className,
 }) {
+  const navigate = useNavigate()
+
+  const handleReservar = () => navigate('/reservar')
+
+  const handleDetalles = () => {
+    // TODO post-defensa: abrir modal con galería + descripción extendida
+    // del lodge. Por ahora navegamos al wizard como fallback razonable.
+    navigate('/reservar')
+  }
+
   return (
     <Card
       variant="default"
@@ -105,10 +120,10 @@ function LodgeCard({
 
         {/* Footer: dos botones */}
         <div className="grid grid-cols-2 gap-3 mt-5">
-          <Button variant="primary" size="sm">
+          <Button variant="primary" size="sm" onClick={handleReservar}>
             Reservar ▶
           </Button>
-          <Button variant="secondary" size="sm">
+          <Button variant="secondary" size="sm" onClick={handleDetalles}>
             Detalles
           </Button>
         </div>
