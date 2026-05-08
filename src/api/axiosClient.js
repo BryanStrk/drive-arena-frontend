@@ -14,6 +14,9 @@ import axios from 'axios';
  */
 const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
+// Key del JWT en localStorage. Debe coincidir con la usada en src/lib/storage.js
+const TOKEN_STORAGE_KEY = 'drive_arena_token';
+
 const axiosClient = axios.create({
   baseURL,
   headers: {
@@ -25,8 +28,11 @@ const axiosClient = axios.create({
 // Interceptor de request: inyecta JWT en todas las peticiones autenticadas.
 axiosClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
+    const raw = localStorage.getItem(TOKEN_STORAGE_KEY);
+    if (raw) {
+      // Soporta tanto valor en plano como JSON-stringified (por si storage.js
+      // serializa con JSON.stringify al guardar).
+      const token = raw.startsWith('"') ? JSON.parse(raw) : raw;
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
