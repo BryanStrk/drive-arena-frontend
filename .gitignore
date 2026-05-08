@@ -36,3 +36,7 @@ dist-ssr
 !.vscode/extensions.json
 .idea/
 .DS_Store
+.env.local
+
+# Backup files locales
+*.bak
