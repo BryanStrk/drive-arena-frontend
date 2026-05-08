@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import { Trophy, Medal, Flag } from 'lucide-react'
+
 import { obtenerAtracciones } from '@/api/atracciones'
 import { useRanking } from '@/hooks/useRanking'
 
@@ -14,20 +16,15 @@ import { useRanking } from '@/hooks/useRanking'
  * Estructura visual (de arriba a abajo):
  *   - Header con título y subtítulo
  *   - Selector de circuito (chips horizontales)
- *   - Banner del récord histórico (rojo destacado)
- *   - Podio con top 3 (cards de altura escalonada)
+ *   - Banner del récord histórico (rojo destacado, con icono Trophy)
+ *   - Podio top 3 con pedestales escalonados (1º más alto, en el centro)
  *   - Tabla del 4º al 20º
- *
- * Si la atracción seleccionada no tiene tiempos registrados:
- *   - Banner muestra "Sin récord registrado"
- *   - Podio se reemplaza por empty state
  */
 export default function RankingPage() {
   const [atracciones, setAtracciones] = useState([])
   const [selectedId, setSelectedId] = useState(null)
   const [isLoadingAtracciones, setIsLoadingAtracciones] = useState(true)
 
-  // Carga inicial de atracciones
   useEffect(() => {
     let cancelled = false
     obtenerAtracciones()
@@ -125,7 +122,7 @@ export default function RankingPage() {
 }
 
 // =====================================================
-// Sub-componentes
+// Selector de circuito
 // =====================================================
 
 function CircuitoSelector({ atracciones, selectedId, onSelect }) {
@@ -138,12 +135,13 @@ function CircuitoSelector({ atracciones, selectedId, onSelect }) {
             key={a.id}
             onClick={() => onSelect(a.id)}
             className={
-              'px-4 py-2 text-xs uppercase tracking-wider font-mono border transition-colors ' +
+              'inline-flex items-center gap-2 px-4 py-2 text-xs uppercase tracking-wider font-mono border transition-colors ' +
               (active
                 ? 'bg-[#E0162B]/15 text-[#E0162B] border-[#E0162B]/50'
                 : 'bg-white/[0.02] text-gray-400 border-white/10 hover:text-white hover:border-white/30')
             }
           >
+            <Flag className="w-3.5 h-3.5" strokeWidth={2} />
             {a.nombre}
           </button>
         )
@@ -152,14 +150,19 @@ function CircuitoSelector({ atracciones, selectedId, onSelect }) {
   )
 }
 
+// =====================================================
+// Banner del récord histórico
+// =====================================================
+
 function RecordBanner({ record }) {
   const hasRecord = record && record.tiempoRecord != null
 
   return (
-    <div className="mb-8 border border-[#E0162B]/40 bg-gradient-to-r from-[#E0162B]/10 via-[#E0162B]/5 to-transparent p-6">
-      <div className="flex items-center gap-2 mb-2">
+    <div className="mb-10 border border-[#E0162B]/40 bg-gradient-to-r from-[#E0162B]/10 via-[#E0162B]/5 to-transparent p-6">
+      <div className="flex items-center gap-2 mb-3">
+        <Trophy className="w-4 h-4 text-[#E0162B]" strokeWidth={2} />
         <span className="text-xs uppercase tracking-widest font-mono text-[#E0162B]">
-          ◉ Récord histórico
+          Récord histórico
         </span>
         {record?.atraccionNombre && (
           <span className="text-xs text-gray-500 font-mono">
@@ -184,25 +187,50 @@ function RecordBanner({ record }) {
   )
 }
 
+// =====================================================
+// Podio top 3 con pedestales escalonados
+// =====================================================
+
+const PODIUM_STYLES = {
+  1: {
+    Icon: Trophy,
+    iconColor: 'text-yellow-400',
+    borderColor: 'border-yellow-400/50',
+    pedestalBg: 'bg-yellow-400/[0.08]',
+    pedestalHeight: 'h-20',
+    cardHeight: 'h-56',
+  },
+  2: {
+    Icon: Medal,
+    iconColor: 'text-gray-300',
+    borderColor: 'border-gray-300/40',
+    pedestalBg: 'bg-gray-300/[0.06]',
+    pedestalHeight: 'h-14',
+    cardHeight: 'h-52',
+  },
+  3: {
+    Icon: Medal,
+    iconColor: 'text-amber-600',
+    borderColor: 'border-amber-600/50',
+    pedestalBg: 'bg-amber-600/[0.06]',
+    pedestalHeight: 'h-10',
+    cardHeight: 'h-48',
+  },
+}
+
 function Podium({ entries }) {
-  // Disposición visual: 2º a la izquierda, 1º en el centro (más alto), 3º a la derecha
-  const positions = [
-    { entry: entries[1], rank: 2, height: 'h-44', medal: '🥈', borderClass: 'border-gray-400/50' },
-    { entry: entries[0], rank: 1, height: 'h-56', medal: '🥇', borderClass: 'border-yellow-400/60' },
-    { entry: entries[2], rank: 3, height: 'h-36', medal: '🥉', borderClass: 'border-amber-700/60' },
+  // Disposición visual: 2º a la izquierda, 1º en el centro, 3º a la derecha
+  const layout = [
+    { rank: 2, entry: entries[1] },
+    { rank: 1, entry: entries[0] },
+    { rank: 3, entry: entries[2] },
   ]
+
   return (
-    <div className="grid grid-cols-3 gap-4 items-end mb-8">
-      {positions.map((p, idx) =>
-        p.entry ? (
-          <PodiumCard
-            key={`${p.rank}-${p.entry.posicion}`}
-            entry={p.entry}
-            rank={p.rank}
-            medal={p.medal}
-            borderClass={p.borderClass}
-            height={p.height}
-          />
+    <div className="grid grid-cols-3 gap-4 items-end mb-10">
+      {layout.map(({ rank, entry }, idx) =>
+        entry ? (
+          <PodiumColumn key={`${rank}-${entry.posicion}`} rank={rank} entry={entry} />
         ) : (
           <div key={`empty-${idx}`} />
         )
@@ -211,25 +239,46 @@ function Podium({ entries }) {
   )
 }
 
-function PodiumCard({ entry, rank, medal, borderClass, height }) {
+function PodiumColumn({ rank, entry }) {
+  const s = PODIUM_STYLES[rank]
+  const { Icon } = s
+
   return (
-    <div className={`border ${borderClass} bg-white/[0.02] p-4 ${height} flex flex-col justify-end`}>
-      <div className="text-center">
-        <div className="text-4xl mb-2" aria-hidden="true">{medal}</div>
-        <p className="text-xs uppercase tracking-widest text-gray-500 font-mono mb-1">
+    <div className="flex flex-col">
+      {/* Card principal */}
+      <div
+        className={`border ${s.borderColor} bg-white/[0.02] ${s.cardHeight} flex flex-col items-center justify-center px-4 text-center`}
+      >
+        <Icon className={`w-10 h-10 mb-3 ${s.iconColor}`} strokeWidth={1.5} />
+        <p className="text-[10px] uppercase tracking-widest text-gray-500 font-mono mb-1">
           Posición {rank}
         </p>
-        <p className="text-white font-bold mb-2 truncate">{entry.nombrePiloto}</p>
+        <p className="text-white font-bold mb-3 truncate w-full text-sm">
+          {entry.nombrePiloto}
+        </p>
         <p className="text-2xl font-mono font-bold text-[#E0162B]">
           {formatTiempo(entry.tiempoSegundos)}
         </p>
-        <p className="text-xs text-gray-500 mt-1 font-mono">
+        <p className="text-[10px] text-gray-500 mt-1 font-mono">
           {formatFecha(entry.fechaRegistro)}
         </p>
+      </div>
+
+      {/* Pedestal */}
+      <div
+        className={`${s.pedestalBg} ${s.pedestalHeight} border-x border-b ${s.borderColor} flex items-center justify-center`}
+      >
+        <span className={`text-3xl font-mono font-bold ${s.iconColor}`}>
+          {rank}
+        </span>
       </div>
     </div>
   )
 }
+
+// =====================================================
+// Tabla 4º+
+// =====================================================
 
 function RankingTable({ entries }) {
   return (
@@ -268,12 +317,12 @@ function RankingTable({ entries }) {
               </Td>
               <Td>
                 {e.clienteId != null ? (
-                  <span className="inline-block px-2 py-0.5 text-xs font-mono uppercase tracking-wider bg-[#E0162B]/10 text-[#E0162B] border border-[#E0162B]/30">
-                    REGISTRADO
+                  <span className="inline-block px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider bg-[#E0162B]/10 text-[#E0162B] border border-[#E0162B]/30">
+                    Registrado
                   </span>
                 ) : (
-                  <span className="inline-block px-2 py-0.5 text-xs font-mono uppercase tracking-wider bg-white/5 text-gray-500 border border-white/10">
-                    VISITANTE
+                  <span className="inline-block px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider bg-white/5 text-gray-500 border border-white/10">
+                    Visitante
                   </span>
                 )}
               </Td>
