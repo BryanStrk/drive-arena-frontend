@@ -1,66 +1,40 @@
-import axios from 'axios'
+import axios from 'axios';
 
 /**
- * Cliente Axios pre-configurado para hablar con el backend Drive Arena.
+ * Cliente HTTP global de la app.
  *
- * - Base URL desde variable de entorno (VITE_API_URL).
- * - Content-Type JSON por defecto.
- * - Timeout 10s para evitar requests colgadas.
- * - Interceptor de request: añade el JWT automáticamente desde localStorage.
- * - Interceptor de response: detecta 401 y limpia la sesión local.
+ * baseURL se lee de VITE_API_URL en .env (con fallback a localhost para dev).
+ * Vite expone variables que empiezan por VITE_ al cliente vía import.meta.env.
  *
- * Todos los servicios que hablen con el backend deben importar
- * esta instancia (no usar axios directo) para garantizar que
- * todas las requests pasan por estos interceptors.
- *
- * Backend: http://localhost:8080/api (configurable vía .env)
+ * En el futuro, este cliente se puede extender con:
+ * - Interceptor de request para inyectar JWT (cuando se use auth en frontend)
+ * - Refresh de tokens
+ * - Cancelación de requests en navigate
  */
+const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-  timeout: 10000,
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
   },
-})
+  timeout: 15000, // 15s — más que suficiente para reserva con email async
+});
 
-/**
- * Request interceptor.
- * Inyecta el JWT en el header Authorization si existe en localStorage.
- *
- * Formato esperado: "Bearer <token>" según el contrato del backend.
- */
-axiosClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('drive_arena_token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
-  },
-  (error) => Promise.reject(error)
-)
-
-/**
- * Response interceptor.
- * Maneja errores globales:
- * - 401 Unauthorized: token expirado o inválido → limpia la sesión local.
- *
- * El AuthContext escuchará el evento de localStorage para reaccionar
- * (logout automático y redirect al login). Lo implementamos en el
- * commit del AuthContext.
- *
- * Otros errores (4xx, 5xx, network) se devuelven al caller para que
- * cada servicio los maneje según su contexto (ej. toast.error).
- */
+// Interceptor de respuesta: log estructurado en dev, transparente en prod
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('drive_arena_token')
-      localStorage.removeItem('drive_arena_user')
+    if (import.meta.env.DEV) {
+      console.error(
+        '[API Error]',
+        error.response?.status || 'NETWORK',
+        error.config?.url,
+        error.response?.data || error.message
+      );
     }
-    return Promise.reject(error)
+    return Promise.reject(error);
   }
-)
+);
 
-export default axiosClient
+export default axiosClient;
