@@ -17,6 +17,7 @@ import ComprasPage from '@/pages/ComprasPage'
 import RankingPage from '@/pages/RankingPage'
 import MantenimientoPage from '@/pages/MantenimientoPage'
 import Clientes from '@/pages/ClientesPage'
+import CircuitosPage from '@/pages/CircuitosPage'
 import NotFound from '@/pages/NotFound'
 
 
@@ -93,6 +94,7 @@ export const router = createBrowserRouter([
       { path: 'ranking', element: <RankingPage /> },
       { path: 'mantenimiento', element: <MantenimientoPage /> },
       { path: 'clientes', element: <Clientes /> },
+      { path: 'circuitos', element: <CircuitosPage /> },
       // Próximos módulos:
       // { path: 'circuitos', element: <CircuitosPage /> },
       // { path: 'clientes', element: <ClientesPage /> },

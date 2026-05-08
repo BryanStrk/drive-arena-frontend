@@ -12,10 +12,14 @@ import PendingMaintenanceWidget from '@/components/dashboard/PendingMaintenanceW
  * 2. Fila de KPIs del día (4 widgets)
  * 3. Grid 2 cols: Ventas por edad + Top 3 Lodges
  * 4. Gráfico evolución mensual de ingresos
- * 5. Tabla mantenimientos pendientes
+ * 5. Tabla mantenimientos pendientes (datos REALES del backend)
  *
- * Los datos mock se reemplazarán por llamadas reales al backend
- * en una sesión posterior (sprint de integración).
+ * Estado de integración con backend:
+ *   ✅ Mantenimientos pendientes → conectado a GET /mantenimientos?estado=PENDIENTE
+ *   ⏳ KPIs del día (mock data, pendiente integración)
+ *   ⏳ Ventas por rango de edad (mock data, requiere fechaNacimiento en Cliente)
+ *   ⏳ Top 3 Lodges del mes (mock data, requiere agregación de Compras)
+ *   ⏳ Evolución mensual ingresos (mock data, requiere agregación de Compras)
  */
 
 // === KPIs DEL DÍA ===
@@ -99,38 +103,6 @@ const MONTHLY_REVENUE = {
   ],
 }
 
-// === MANTENIMIENTOS PENDIENTES ===
-const PENDING_MAINTENANCES = [
-  {
-    id: 'M-842',
-    vehicle: 'Phantom GT',
-    unit: 'U-04',
-    system: 'Frenos Hidráulicos',
-    status: 'CRITICO',
-  },
-  {
-    id: 'M-843',
-    vehicle: 'Phantom GT',
-    unit: 'U-12',
-    system: 'Telemetría Sensor A',
-    status: 'REVISION',
-  },
-  {
-    id: 'M-845',
-    vehicle: 'Apex RSR',
-    unit: 'U-02',
-    system: 'Neumáticos Traseros',
-    status: 'PROGRAMADO',
-  },
-  {
-    id: 'M-846',
-    vehicle: 'Vortex V8',
-    unit: 'U-09',
-    system: 'Alineación Aerodinámica',
-    status: 'PROGRAMADO',
-  },
-]
-
 function Dashboard() {
   return (
     <div className="min-h-full bg-bg p-8">
@@ -177,9 +149,9 @@ function Dashboard() {
         />
       </section>
 
-      {/* FILA 4 — Mantenimientos pendientes */}
+      {/* FILA 4 — Mantenimientos pendientes (datos reales del backend) */}
       <section aria-label="Mantenimientos pendientes" className="mb-8">
-        <PendingMaintenanceWidget maintenances={PENDING_MAINTENANCES} />
+        <PendingMaintenanceWidget />
       </section>
     </div>
   )
