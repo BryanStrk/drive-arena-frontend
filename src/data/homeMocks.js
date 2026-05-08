@@ -92,6 +92,10 @@ export const MONTHLY_RANKINGS = [
 ]
 
 // === PACKS EN OFERTA ===
+// Cada pack incluye metadata (lodgeId, atraccionId, tarifaId, regimen) que
+// el wizard de reserva usa para auto-rellenar el state cuando el usuario
+// selecciona un pack. Los IDs referencian a LODGES_PUBLIC y ATRACCIONES_PUBLIC
+// definidos en reservaMocks.js
 export const OFFER_PACKS = [
   {
     id: 1,
@@ -103,6 +107,11 @@ export const OFFER_PACKS = [
     discountPercentage: 30,
     availability: '1 Jun - 31 Ago',
     image: ASSETS_PACKS.gpChampionship,
+    // Metadata para wizard
+    lodgeId: 1, // Apex Lodge (VIP Paddock)
+    atraccionId: 1, // Phantom GT
+    tarifaId: 2, // ADULTO (catálogo BD)
+    regimen: 'completa',
   },
   {
     id: 2,
@@ -114,6 +123,11 @@ export const OFFER_PACKS = [
     discountPercentage: 25,
     availability: 'Todo el año',
     image: ASSETS_PACKS.pilotoPrivado,
+    // Metadata para wizard
+    lodgeId: 2, // Pit Stop Lodge (Familiar)
+    atraccionId: 1, // Phantom GT
+    tarifaId: 2, // ADULTO (catálogo BD)
+    regimen: 'media',
   },
 ]
 
@@ -145,14 +159,17 @@ export const RESORT_LODGES = [
 
 // === UBICACIÓN DEL RESORT ===
 export const RESORT_LOCATION = {
-  name: 'Drive Arena Resort',
-  coords: '40.4168° N, 3.7038° W',
+  name: 'Circuit de Barcelona-Catalunya',
+  coords: '41.5705° N, 2.2611° E',
+  lat: 41.5705,
+  lng: 2.2611,
   address:
-    'Autovía A-1, Km 45.\n' +
-    'Salida Parque Tecnológico del Motor.\n' +
-    '28750 San Agustín del Guadalix, Madrid.',
+    'Camí de Mas Moreneta, s/n.\n' +
+    'Circuit de Barcelona-Catalunya.\n' +
+    '08160 Montmeló, Barcelona.',
   transport: [
-    'A 30 min del Aeropuerto MAD',
+    'A 30 min del Aeropuerto BCN',
+    'Renfe R2 Nord · Estación Montmeló',
     'Parking gratuito clientes (1000 plazas)',
     'Cargadores EV disponibles (Tesla/Gen)',
   ],

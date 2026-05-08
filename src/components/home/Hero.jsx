@@ -1,26 +1,56 @@
-import { Link } from "react-router";
+import { useNavigate } from "react-router";
 import Button from "@/components/Button";
 import Badge from "@/components/Badge";
 
 const HERO_BG =
   "https://res.cloudinary.com/dutmn3xde/image/upload/v1777373699/hero-home_mvb26r.jpg";
 
+// Video cinematográfico con crop aplicado vía Cloudinary URL transformations.
+// Los parámetros `c_crop,w_0.92,h_0.92,g_north_west` recortan un 8% de los
+// bordes derecho e inferior, eliminando la marca de agua de KlingAI sin
+// necesidad de zoom forzado en CSS.
+const HERO_VIDEO =
+  "https://res.cloudinary.com/dutmn3xde/video/upload/c_crop,w_0.92,h_0.92,g_north_west/v1778182159/kling_20260508_%E4%BD%9C%E5%93%81_Cinematic__861_0_yisumh.mp4";
+
 /**
  * Hero principal del Home público.
- * Imagen cinematográfica de fondo + tagline + CTAs.
+ * Video cinematográfico de fondo (con poster fallback) + tagline + CTAs.
+ *
+ * Los CTAs navegan a:
+ *  - "Reservar Pase" → /reservar (wizard público de reserva)
+ *  - "Ver Circuitos" → ancla #experiencias dentro del mismo home
  */
 function Hero() {
+  const navigate = useNavigate();
+
+  const handleReservar = () => navigate("/reservar");
+
+  const handleVerCircuitos = () => {
+    // Scroll suave a la sección de experiencias (ExperiencesSection debe
+    // tener id="experiencias"). Si el id es diferente, ajustar aquí.
+    const target = document.getElementById("experiencias");
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   return (
     <section
       className="relative h-screen min-h-[700px] w-full overflow-hidden"
       aria-label="Drive Arena · Hero"
     >
-      {/* Imagen de fondo */}
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${HERO_BG})` }}
+      {/* Video de fondo cinematográfico */}
+      <video
+        className="absolute inset-0 w-full h-full object-cover"
+        autoPlay
+        muted
+        loop
+        playsInline
+        poster={HERO_BG}
         aria-hidden="true"
-      />
+      >
+        <source src={HERO_VIDEO} type="video/mp4" />
+      </video>
 
       {/* Overlay para legibilidad del texto */}
       <div
@@ -48,12 +78,14 @@ function Hero() {
 
         {/* CTAs */}
         <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
-          <Link to="/login">
-            <Button variant="primary" size="lg">
-              Reservar Pase
-            </Button>
-          </Link>
-          <Button variant="secondary" size="lg">
+          <Button variant="primary" size="lg" onClick={handleReservar}>
+            Reservar Pase
+          </Button>
+          <Button
+            variant="secondary"
+            size="lg"
+            onClick={handleVerCircuitos}
+          >
             Ver Circuitos
           </Button>
         </div>

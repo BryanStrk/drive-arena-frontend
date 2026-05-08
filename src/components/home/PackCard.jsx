@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router'
 import Card from '@/components/Card'
 import Badge from '@/components/Badge'
 import Button from '@/components/Button'
@@ -6,6 +7,11 @@ import { cn } from '@/lib/cn'
 /**
  * Card de pack/oferta para el Home público.
  * Replica las cards de la sección "PACKS EN OFERTA" del mockup.
+ *
+ * El botón "Reservar" navega a /reservar (wizard público). En una v2,
+ * pasar el packId via location state para preseleccionar el pack al
+ * entrar al wizard:
+ *   navigate('/reservar', { state: { packId } })
  *
  * @param {Object} props
  * @param {string} props.title - Nombre del pack (ej. "Pack GP Championship")
@@ -27,6 +33,10 @@ function PackCard({
   image,
   className,
 }) {
+  const navigate = useNavigate()
+
+  const handleReservar = () => navigate('/reservar')
+
   return (
     <Card
       variant="default"
@@ -82,7 +92,7 @@ function PackCard({
           <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-text-muted">
             {availability}
           </span>
-          <Button variant="primary" size="sm">
+          <Button variant="primary" size="sm" onClick={handleReservar}>
             Reservar ▶
           </Button>
         </div>

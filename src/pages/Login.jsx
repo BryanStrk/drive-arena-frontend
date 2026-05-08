@@ -7,7 +7,7 @@ import toast from 'react-hot-toast'
 import Button from '@/components/Button'
 import Input from '@/components/Input'
 import Badge from '@/components/Badge'
-import { ASSETS_HERO } from '@/data/cloudinaryAssets'
+import { ASSETS_BRAND, ASSETS_HERO } from '@/data/cloudinaryAssets'
 import { loginSchema } from '@/lib/validators'
 import { useAuth } from '@/context/useAuth'
 
@@ -73,7 +73,7 @@ function Login() {
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col px-6 py-12 overflow-hidden">
+    <div className="relative min-h-screen flex flex-col px-6 py-6 overflow-hidden">
       {/* Background con imagen Cloudinary nítida */}
       <div
         className="absolute inset-0 bg-cover bg-center opacity-60"
@@ -96,15 +96,19 @@ function Login() {
 
       {/* Contenido principal */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center max-w-md mx-auto w-full">
-        {/* Logo principal */}
-        <h1 className="font-display font-extrabold text-7xl tracking-tight text-text drop-shadow-[0_0_30px_rgba(0,0,0,0.8)]">
-          DRIVE ARENA
-        </h1>
+        {/* Logo principal (PNG con fondo negro -> mix-blend-mode: lighten para fundirse).
+            Cuando se suba versión transparente, eliminar el style del mixBlendMode. */}
+        <img
+          src={ASSETS_BRAND.logo}
+          alt="Drive Arena"
+          className="h-64 w-auto drop-shadow-[0_0_30px_rgba(0,0,0,0.8)]"
+          style={{ mixBlendMode: 'lighten' }}
+        />
 
         {/* Tagline con líneas rojas */}
-        <div className="mt-4 flex items-center gap-3">
+        <div className="-mt-12 flex items-center gap-3">
           <span className="block h-[2px] w-10 bg-primary" aria-hidden="true" />
-          <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-text-muted">
+          <p className="font-mono text-xs tracking-[0.3em] uppercase text-text-muted">
             Conduce · Compite · Domina
           </p>
           <span className="block h-[2px] w-10 bg-primary" aria-hidden="true" />
@@ -113,7 +117,7 @@ function Login() {
         {/* Card del formulario */}
         <section
           aria-labelledby="login-heading"
-          className="mt-12 w-full bg-surface-1/90 backdrop-blur-md border border-border-strong rounded-card p-8 shadow-2xl shadow-bg/70"
+          className="mt-4 w-full bg-surface-1/90 backdrop-blur-md border border-border-strong rounded-card p-8 shadow-2xl shadow-bg/70"
         >
           {/* Eyebrow + heading */}
           <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-primary">
@@ -182,14 +186,14 @@ function Login() {
         {/* Link de vuelta al Home */}
         <Link
           to="/"
-          className="mt-8 font-mono text-[10px] tracking-[0.25em] uppercase text-text-muted hover:text-primary transition-colors"
+          className="mt-4 font-mono text-[10px] tracking-[0.25em] uppercase text-text-muted hover:text-primary transition-colors"
         >
           ← Volver al inicio
         </Link>
       </div>
 
       {/* Footer minimal de página */}
-      <footer className="relative z-10 mt-12 flex items-center justify-between font-mono text-[10px] tracking-widest uppercase text-text-dim">
+      <footer className="relative z-10 mt-4 flex items-center justify-between font-mono text-[10px] tracking-widest uppercase text-text-dim">
         <span>© 2026 Drive Arena Resort · All Rights Reserved</span>
         <div className="flex gap-4">
           <a href="#" className="hover:text-text transition-colors">Privacidad</a>
