@@ -11,24 +11,42 @@ const REGIMEN_LABELS = {
   completa: "Pensión completa",
 };
 
+const TARIFA_LABELS = {
+  NINO: "Niño",
+  ADULTO: "Adulto",
+  PENSIONISTA: "Pensionista",
+};
+
+function tarifaLabel(tipo) {
+  return TARIFA_LABELS[tipo] ?? tipo;
+}
+
 /**
  * PASO 4 — Resumen y Confirmación.
  *
  * Muestra el detalle completo de la reserva en dos columnas:
  * - Izquierda: bloques de pase, alojamiento y titular
- * - Derecha: desglose de precio, total y aviso de pago al llegar
+ * - Derecha: desglose de precio (con subtotal y descuento si pack), total
+ *   y aviso de pago al llegar
  *
- * El botón de confirmar está en el WizardNav del padre, que dispara
- * `handleSubmit` definido en Reserva.jsx (mock submit + navegación).
+ * El total mostrado replica la fórmula de ReservaPublicaService.calcularTotal
+ * del backend. El backend es autoritativo y devuelve el código y total reales
+ * al confirmar — la página de Confirmation muestra esos valores definitivos.
  */
 function Summary() {
   const { state } = useReserva();
-  const { total, desglose } = calcularTotalReserva(state);
+  const { total, subtotal, descuentoPct, descuentoImporte, desglose } =
+    calcularTotalReserva(state);
   const personas = state.personas ?? 1;
   const noches = calcularNoches(
     state.lodge?.fechaEntrada,
-    state.lodge?.fechaSalida,
+    state.lodge?.fechaSalida
   );
+
+  const tarifa = state.pase?.tarifa;
+  const atraccion = state.pase?.atraccion;
+  const lodge = state.lodge?.lodge;
+  const regimen = state.lodge?.regimen;
 
   return (
     <section aria-label="Paso 4: Resumen y confirmación">
@@ -44,36 +62,35 @@ function Summary() {
         {/* === COLUMNA IZQUIERDA: detalles de la reserva === */}
         <div className="md:col-span-2 space-y-6">
           {/* Bloque pase */}
-          {state.pase && (
+          {tarifa && atraccion && (
             <div className="p-6 rounded-2xl border-2 border-border-strong bg-surface-1/50">
               <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-primary">
                 ▌ {state.esPack ? "Pack incluido" : "Pase"}
               </p>
               <h3 className="font-display font-bold text-2xl tracking-tight uppercase mt-2">
-                {state.pase.atraccion.nombre}
+                {atraccion.nombre}
               </h3>
               <p className="text-sm text-text-muted mt-1">
-                {state.pase.tarifa.nombre} · {state.pase.tarifa.sesiones}{" "}
-                {state.pase.tarifa.sesiones === 1 ? "sesión" : "sesiones"} ·{" "}
-                {state.pase.atraccion.duracionMinutos} min cada una
+                Pase {tarifaLabel(tarifa.tipo)}
+                {tarifa.descripcion ? ` · ${tarifa.descripcion}` : ""}
               </p>
             </div>
           )}
 
           {/* Bloque lodge */}
-          {state.lodge?.lodge && (
+          {lodge && (
             <div className="p-6 rounded-2xl border-2 border-border-strong bg-surface-1/50">
               <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-primary">
                 ▌ Alojamiento
               </p>
               <h3 className="font-display font-bold text-2xl tracking-tight uppercase mt-2">
-                {state.lodge.lodge.nombre}
+                {lodge.nombre}
               </h3>
               <p className="text-sm text-text-muted mt-1">
-                {REGIMEN_LABELS[state.lodge.regimen] ?? state.lodge.regimen}
+                {REGIMEN_LABELS[regimen] ?? regimen ?? "—"}
               </p>
 
-              {state.lodge.fechaEntrada && state.lodge.fechaSalida ? (
+              {state.lodge?.fechaEntrada && state.lodge?.fechaSalida ? (
                 <div className="mt-4 flex flex-wrap items-end gap-x-8 gap-y-3 font-mono text-xs">
                   <div>
                     <span className="text-text-muted uppercase tracking-wider text-[10px] block">
@@ -83,9 +100,7 @@ function Summary() {
                       {formatearFecha(state.lodge.fechaEntrada)}
                     </span>
                   </div>
-                  <div className="text-primary text-lg leading-none pb-1">
-                    →
-                  </div>
+                  <div className="text-primary text-lg leading-none pb-1">→</div>
                   <div>
                     <span className="text-text-muted uppercase tracking-wider text-[10px] block">
                       Salida
@@ -154,12 +169,34 @@ function Summary() {
                   <div className="flex items-baseline justify-between mt-1">
                     <p className="text-text-muted">{item.detalle}</p>
                     <p className="font-mono font-bold text-text shrink-0 ml-2">
-                      {item.importe}€
+                      {item.importe.toFixed(2)}€
                     </p>
                   </div>
                 </div>
               ))}
             </div>
+
+            {/* Subtotal y descuento (solo si hay pack) */}
+            {descuentoPct > 0 && (
+              <div className="mt-4 pt-3 border-t border-border-strong space-y-2">
+                <div className="flex items-baseline justify-between text-xs">
+                  <p className="text-text-muted uppercase tracking-wider">
+                    Subtotal
+                  </p>
+                  <p className="font-mono text-text-muted">
+                    {subtotal.toFixed(2)}€
+                  </p>
+                </div>
+                <div className="flex items-baseline justify-between text-xs">
+                  <p className="text-primary uppercase tracking-wider font-bold">
+                    Descuento Pack {(descuentoPct * 100).toFixed(0)}%
+                  </p>
+                  <p className="font-mono text-primary font-bold">
+                    -{descuentoImporte.toFixed(2)}€
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Total */}
             <div className="mt-6 pt-4 border-t border-primary/30">
@@ -168,7 +205,7 @@ function Summary() {
                   Total
                 </p>
                 <p className="font-display font-extrabold text-4xl text-primary">
-                  {total}€
+                  {total.toFixed(2)}€
                 </p>
               </div>
             </div>

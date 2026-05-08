@@ -2,42 +2,6 @@ import { useReserva, RESERVA_ACTIONS } from "@/context/ReservaContext";
 import DateRangeField from "@/components/reserva/DateRangeField";
 import { useReservaCatalogo } from "@/hooks/useReservaCatalogo";
 
-/**
- * Precios fallback de lodges (por ID) hasta que el backend los exponga.
- *
- * En la BD actual la tabla `hotel` no tiene columnas de precio
- * (solo id, nombre, descripcion, direccion, capacidad_total).
- * Se hardcodean aquí mientras se decide si añadir columnas
- * (precio_media / precio_completa) o calcularlos en backend.
- *
- * Si el backend añade `precioMedia` / `precioCompleta` al DTO en el futuro,
- * `enriquecerHotel` los usará automáticamente y este mapa queda como
- * mero fallback defensivo.
- */
-const LODGE_PRICES_FALLBACK = {
-  1: { priceMedia: 180, priceFull: 240 },
-  2: { priceMedia: 140, priceFull: 190 },
-};
-
-/**
- * Normaliza un hotel del backend al shape que la UI consume.
- *
- * Hace `??` chain para soportar:
- *  - camelCase (capacidadTotal, precioMedia, precioCompleta) — Spring por defecto
- *  - snake_case crudo si Jackson no transforma (capacidad_total, etc.)
- *  - fallback a constantes locales si el backend aún no expone precios
- */
-function enriquecerHotel(h) {
-  return {
-    ...h,
-    capacidad: h.capacidadTotal ?? h.capacidad_total ?? 0,
-    priceMedia:
-      h.precioMedia ?? LODGE_PRICES_FALLBACK[h.id]?.priceMedia ?? 0,
-    priceFull:
-      h.precioCompleta ?? LODGE_PRICES_FALLBACK[h.id]?.priceFull ?? 0,
-  };
-}
-
 const REGIMENES = [
   {
     id: "sin",
@@ -55,6 +19,24 @@ const REGIMENES = [
     description: "Todas las comidas",
   },
 ];
+
+/**
+ * Resuelve el precio por noche del lodge según régimen.
+ * Espejo de ReservaPublicaService.calcularTotal en backend.
+ */
+function precioPorRegimen(lodge, regimen) {
+  if (!lodge) return 0;
+  switch (regimen) {
+    case "sin":
+      return 0;
+    case "media":
+      return Number(lodge.precioMediaPension ?? 0);
+    case "completa":
+      return Number(lodge.precioPensionCompleta ?? 0);
+    default:
+      return 0;
+  }
+}
 
 function calcularNoches(entrada, salida) {
   if (!entrada || !salida) return 0;
@@ -97,11 +79,8 @@ function LodgeSelect() {
     );
   }
 
-  const lodgesEnriquecidos = hoteles.map(enriquecerHotel);
-
-  // Aviso si el lodge seleccionado no tiene capacidad para todas las personas
   const lodgeOvercapacity =
-    selectedLodge && personas > selectedLodge.capacidad;
+    selectedLodge && personas > (selectedLodge.capacidadTotal ?? 0);
 
   const updateLodge = (changes) => {
     dispatch({
@@ -162,16 +141,19 @@ function LodgeSelect() {
               {selectedLodge.descripcion}
             </p>
             <p className="font-mono text-[10px] tracking-wider uppercase text-text-muted mt-3">
-              Hasta {selectedLodge.capacidad} pers. · {selectedLodge.priceFull}€
-              / noche
+              Hasta {selectedLodge.capacidadTotal} pers. ·{" "}
+              {precioPorRegimen(selectedLodge, regimen)}€ / noche
             </p>
           </div>
         ) : (
           // Selector normal
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {lodgesEnriquecidos.map((lodge) => {
+            {hoteles.map((lodge) => {
               const isSelected = selectedLodge?.id === lodge.id;
-              const insufficientCapacity = personas > lodge.capacidad;
+              const insufficientCapacity =
+                personas > (lodge.capacidadTotal ?? 0);
+              const desdePrecio = Number(lodge.precioMediaPension ?? 0);
+
               return (
                 <button
                   key={lodge.id}
@@ -201,11 +183,14 @@ function LodgeSelect() {
                           : "text-text-muted"
                       }`}
                     >
-                      Hasta {lodge.capacidad} pers.
+                      Hasta {lodge.capacidadTotal ?? 0} pers.
                       {insufficientCapacity && " ⚠"}
                     </p>
                     <p className="font-display text-2xl font-extrabold text-primary">
-                      {lodge.priceFull}€
+                      <span className="font-mono text-[10px] text-text-muted mr-1">
+                        desde
+                      </span>
+                      {desdePrecio}€
                       <span className="font-mono text-[10px] text-text-muted ml-1">
                         / noche
                       </span>
@@ -225,7 +210,7 @@ function LodgeSelect() {
             </p>
             <p className="text-sm text-text mt-2">
               <strong>{selectedLodge.nombre}</strong> tiene capacidad para{" "}
-              <strong>{selectedLodge.capacidad} personas</strong>, pero tu
+              <strong>{selectedLodge.capacidadTotal} personas</strong>, pero tu
               reserva es para <strong>{personas}</strong>. Algunos
               acompañantes podrán necesitar alojamiento alternativo. Te
               contactaremos para confirmar opciones.
@@ -274,6 +259,10 @@ function LodgeSelect() {
           <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
             {REGIMENES.map((reg) => {
               const isSelected = regimen === reg.id;
+              const precioReg = selectedLodge
+                ? precioPorRegimen(selectedLodge, reg.id)
+                : 0;
+
               return (
                 <button
                   key={reg.id}
@@ -295,6 +284,11 @@ function LodgeSelect() {
                   <p className="text-xs text-text-muted mt-1">
                     {reg.description}
                   </p>
+                  {selectedLodge && precioReg > 0 && (
+                    <p className="mt-3 font-mono text-xs text-primary font-bold">
+                      {precioReg}€ / noche
+                    </p>
+                  )}
                 </button>
               );
             })}
