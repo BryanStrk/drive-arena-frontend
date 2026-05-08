@@ -37,11 +37,13 @@ const NAV_SECTIONS = [
     ],
   },
   {
-    label: 'Gestión',
-    items: [
-      { label: 'Lodges', to: '/dashboard/lodges' },
-    ],
-  },
+  label: 'Gestión',
+  items: [
+    { label: 'Clientes', to: '/dashboard/clientes' },   // ← NUEVO
+    { label: 'Lodges', to: '/dashboard/lodges' },
+    { label: 'Circuitos', to: '/dashboard/circuitos' },
+  ],
+},
   {
     label: 'Operativa',
     items: [
@@ -57,6 +59,7 @@ const BREADCRUMB_MAP = {
   '/dashboard/compras': ['Inicio', 'Panel', 'Ventas', 'Compras'], 
   '/dashboard/ranking': ['Inicio', 'Panel', 'Operativa', 'Ranking'],
   '/dashboard/mantenimiento': ['Inicio', 'Panel', 'Operativa', 'Mantenimiento'],
+  '/dashboard/clientes': ['Inicio', 'Panel', 'Gestión', 'Clientes'], 
 }
 
 function DashboardLayout() {
