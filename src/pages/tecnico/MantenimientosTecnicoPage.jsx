@@ -78,11 +78,19 @@ function KanbanCard({ m, me, onClick }) {
   )
 }
 
+const TABS = [
+  { id: 'TODOS',      label: 'Todos' },
+  { id: 'MIS_TAREAS', label: 'Mis tareas' },
+  { id: 'POOL',       label: 'Pool' },
+  { id: 'OTROS',      label: 'Otros' },
+]
+
 export default function MantenimientosTecnicoPage() {
   const { user } = useAuth()
   const me = user?.username
   const [todos, setTodos] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState('TODOS')
   const [selected, setSelected] = useState(null)
   const [reportarOpen, setReportarOpen] = useState(false)
   const timerRef = useRef(null)
@@ -102,7 +110,14 @@ export default function MantenimientosTecnicoPage() {
     return () => clearInterval(timerRef.current)
   }, [doFetch])
 
-  const byEstado = (estado) => todos.filter((m) => m.estado === estado)
+  const filtered = todos.filter((m) => {
+    if (activeTab === 'MIS_TAREAS') return m.tecnicoAsignadoUsername === me
+    if (activeTab === 'POOL')       return !m.tecnicoAsignadoUsername
+    if (activeTab === 'OTROS')      return Boolean(m.tecnicoAsignadoUsername) && m.tecnicoAsignadoUsername !== me
+    return true
+  })
+
+  const byEstado = (estado) => filtered.filter((m) => m.estado === estado)
 
   const handleUpdated = () => {
     setSelected(null)
@@ -112,7 +127,7 @@ export default function MantenimientosTecnicoPage() {
   return (
     <div className="min-h-full bg-bg p-4 md:p-6">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between gap-4">
+      <div className="mb-4 flex items-center justify-between gap-4">
         <div>
           <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-orange-400">▌ Técnico</p>
           <h1 className="mt-1 font-display font-extrabold text-3xl tracking-tight text-text">
@@ -128,6 +143,40 @@ export default function MantenimientosTecnicoPage() {
         >
           <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
         </button>
+      </div>
+
+      {/* Filter tabs */}
+      <div className="mb-5 flex flex-wrap gap-2">
+        {TABS.map(({ id, label }) => {
+          const isActive = activeTab === id
+          const count = id === 'TODOS'      ? todos.length
+                      : id === 'MIS_TAREAS' ? todos.filter((m) => m.tecnicoAsignadoUsername === me).length
+                      : id === 'POOL'       ? todos.filter((m) => !m.tecnicoAsignadoUsername).length
+                      : todos.filter((m) => Boolean(m.tecnicoAsignadoUsername) && m.tecnicoAsignadoUsername !== me).length
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setActiveTab(id)}
+              className={cn(
+                'inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 font-mono text-[10px] tracking-widest uppercase transition-all',
+                isActive
+                  ? 'border-primary bg-primary/15 text-primary'
+                  : 'border-border-strong bg-surface-1 text-text-muted hover:border-white/30 hover:text-text',
+              )}
+            >
+              {label}
+              {!isLoading && (
+                <span className={cn(
+                  'rounded-full px-1.5 py-0.5 font-mono text-[9px]',
+                  isActive ? 'bg-primary/20 text-primary' : 'bg-surface-2 text-text-dim',
+                )}>
+                  {count}
+                </span>
+              )}
+            </button>
+          )
+        })}
       </div>
 
       {/* Kanban */}
