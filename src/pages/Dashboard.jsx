@@ -1,152 +1,186 @@
+import { useEffect } from 'react'
+import toast from 'react-hot-toast'
+import { RefreshCw, AlertCircle } from 'lucide-react'
+
+import { useDashboard } from '@/hooks/useDashboard'
 import KpiCard from '@/components/KpiCard'
 import AgeRangeSalesWidget from '@/components/dashboard/AgeRangeSalesWidget'
 import TopLodgesWidget from '@/components/dashboard/TopLodgesWidget'
 import MonthlyRevenueWidget from '@/components/dashboard/MonthlyRevenueWidget'
 import PendingMaintenanceWidget from '@/components/dashboard/PendingMaintenanceWidget'
+import Button from '@/components/Button'
 
-/**
- * Dashboard de zona privada — vista principal de control.
- *
- * Estructura:
- * 1. Header con título + descripción
- * 2. Fila de KPIs del día (4 widgets)
- * 3. Grid 2 cols: Ventas por edad + Top 3 Lodges
- * 4. Gráfico evolución mensual de ingresos
- * 5. Tabla mantenimientos pendientes (datos REALES del backend)
- *
- * Estado de integración con backend:
- *   ✅ Mantenimientos pendientes → conectado a GET /mantenimientos?estado=PENDIENTE
- *   ⏳ KPIs del día (mock data, pendiente integración)
- *   ⏳ Ventas por rango de edad (mock data, requiere fechaNacimiento en Cliente)
- *   ⏳ Top 3 Lodges del mes (mock data, requiere agregación de Compras)
- *   ⏳ Evolución mensual ingresos (mock data, requiere agregación de Compras)
- */
+// ── Constantes de fecha ────────────────────────────────────────────────────
+const MONTH_LABELS = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC']
+const CURRENT_MONTH = MONTH_LABELS[new Date().getMonth()]
+const CURRENT_YEAR = new Date().getFullYear()
 
-// === KPIs DEL DÍA ===
-const TODAY_KPIS = [
-  {
-    label: 'Ventas hoy',
-    value: '€ 4.250',
-    delta: '+12.5% vs ayer',
-    deltaType: 'positive',
-    icon: '€',
-  },
-  {
-    label: 'Reservas activas',
-    value: '24',
-    delta: 'Estable',
-    deltaType: 'neutral',
-    icon: '◆',
-  },
-  {
-    label: 'Tiempo en pista',
-    value: '142',
-    suffix: 'h',
-    delta: '-3.2% vs sem. ant.',
-    deltaType: 'negative',
-    icon: '⏱',
-  },
-  {
-    label: 'Nuevos clientes',
-    value: '18',
-    delta: '+5 esta semana',
-    deltaType: 'positive',
-    icon: '+',
-  },
-]
+// ── Normalización — mapea el DTO del back a las props de cada widget ────────
 
-// === VENTAS POR RANGO DE EDAD ===
-const AGE_RANGE_SALES = {
-  total: 1284,
-  ranges: [
-    { label: 'Junior (16-24)', value: 282, percentage: 22 },
-    { label: 'Pro (25-45)', value: 835, percentage: 65 },
-    { label: 'Veterano (46+)', value: 167, percentage: 13 },
-  ],
+function buildKpis(data) {
+  const fmt = (n) =>
+    n != null
+      ? Number(n).toLocaleString('es-ES', { minimumFractionDigits: 0 })
+      : '—'
+
+  return [
+    {
+      label: 'Ventas hoy',
+      value: data.ventasHoy != null ? `€ ${fmt(data.ventasHoy)}` : '—',
+      deltaType: 'neutral',
+      icon: '€',
+    },
+    {
+      label: 'Reservas activas',
+      value: fmt(data.reservasActivas),
+      deltaType: 'neutral',
+      icon: '◆',
+    },
+    {
+      label: 'Tiempo en pista',
+      value: fmt(data.tiempoEnPista),
+      suffix: 'h',
+      deltaType: 'neutral',
+      icon: '⏱',
+    },
+    {
+      label: 'Nuevos clientes',
+      value: fmt(data.nuevosClientes),
+      deltaType: 'neutral',
+      icon: '+',
+    },
+  ]
 }
 
-// === TOP 3 LODGES DEL MES ===
-const TOP_LODGES = [
-  {
-    position: 1,
-    name: 'Apex Lodge',
-    zone: 'Zona Norte · VIP Paddock',
-    category: 'VIP',
-    revenue: 52300,
-  },
-  {
-    position: 2,
-    name: 'Pit Stop Lodge',
-    zone: 'Zona Este · Familiar',
-    category: 'Familiar',
-    revenue: 35100,
-  },
-]
-
-// === EVOLUCIÓN MENSUAL DE INGRESOS (2026) ===
-const MONTHLY_REVENUE = {
-  year: 2026,
-  currentMonth: 'MAY',
-  data: [
-    { month: 'ENE', revenue: 12400 },
-    { month: 'FEB', revenue: 14800 },
-    { month: 'MAR', revenue: 18200 },
-    { month: 'ABR', revenue: 22100 },
-    { month: 'MAY', revenue: 19850 },
-    { month: 'JUN', revenue: null },
-    { month: 'JUL', revenue: null },
-    { month: 'AGO', revenue: null },
-    { month: 'SEP', revenue: null },
-    { month: 'OCT', revenue: null },
-    { month: 'NOV', revenue: null },
-    { month: 'DIC', revenue: null },
-  ],
+function buildTopLodges(topHoteles = []) {
+  return topHoteles.map((h, idx) => ({
+    position: h.position ?? idx + 1,
+    name: h.nombre ?? '—',
+    zone: h.zona ?? '—',
+    category: h.esVip ? 'VIP' : 'Estándar',
+    revenue: Number(h.ingresos ?? 0),
+  }))
 }
+
+function buildMonthlyRevenue(ingresosMensuales = []) {
+  const byMonth = Object.fromEntries(
+    ingresosMensuales.map((m) => [m.mes ?? m.month, m.ingresos ?? m.revenue])
+  )
+  return MONTH_LABELS.map((month) => ({
+    month,
+    revenue: byMonth[month] != null ? Number(byMonth[month]) : null,
+  }))
+}
+
+// ── Skeletons ──────────────────────────────────────────────────────────────
+
+function KpiSkeleton() {
+  return <div className="bg-surface-2 animate-pulse rounded-card h-28" />
+}
+
+function WidgetSkeleton({ className = 'h-64' }) {
+  return <div className={`bg-surface-2 animate-pulse rounded-card ${className}`} />
+}
+
+// ── Componente principal ───────────────────────────────────────────────────
 
 function Dashboard() {
+  const { data, isLoading, error, refetch } = useDashboard()
+
+  useEffect(() => {
+    if (error) {
+      toast.error('No se pudieron cargar los datos del dashboard')
+    }
+  }, [error])
+
+  // Normalización solo cuando hay datos
+  const kpis = data ? buildKpis(data) : []
+  const ageRanges = data?.ventasPorEdad ?? []
+  const ageTotal = data?.totalVentasEdad ?? ageRanges.reduce((s, r) => s + (r.value ?? 0), 0)
+  const topLodges = data ? buildTopLodges(data.topHoteles ?? data.topLodges ?? []) : []
+  const monthlyData = data ? buildMonthlyRevenue(data.ingresosMensuales ?? data.monthlyRevenue ?? []) : []
+
   return (
     <div className="min-h-full bg-bg p-8">
       {/* HEADER */}
-      <div className="mb-8">
-        <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-primary">
-          ▌ Resumen General · Sesión Activa
-        </p>
-        <h1 className="mt-2 font-display font-extrabold text-4xl tracking-tight text-text">
-          Panel de Control
-        </h1>
-        <p className="mt-2 font-sans text-sm text-text-muted max-w-2xl">
-          Estado operativo en tiempo real del resort. Métricas del día,
-          actividad reciente y acciones pendientes.
-        </p>
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-primary">
+            ▌ Resumen General · Sesión Activa
+          </p>
+          <h1 className="mt-2 font-display font-extrabold text-4xl tracking-tight text-text">
+            Panel de Control
+          </h1>
+          <p className="mt-2 font-sans text-sm text-text-muted max-w-2xl">
+            Estado operativo en tiempo real del resort. Métricas del día,
+            actividad reciente y acciones pendientes.
+          </p>
+        </div>
+
+        {(error || isLoading) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={refetch}
+            disabled={isLoading}
+          >
+            <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
+            {isLoading ? 'Cargando...' : 'Reintentar'}
+          </Button>
+        )}
       </div>
+
+      {/* Error global */}
+      {error && !isLoading && (
+        <div className="mb-8 flex items-center gap-3 p-4 bg-danger/10 border border-danger/30 rounded-card">
+          <AlertCircle size={18} className="text-danger shrink-0" />
+          <p className="font-sans text-sm text-text-muted">
+            Error al cargar los datos. Los widgets pueden mostrar información incompleta.
+          </p>
+        </div>
+      )}
 
       {/* FILA 1 — KPIs del día */}
       <section aria-label="Indicadores del día" className="mb-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {TODAY_KPIS.map((kpi) => (
-            <KpiCard key={kpi.label} {...kpi} />
-          ))}
+          {isLoading
+            ? Array.from({ length: 4 }).map((_, i) => <KpiSkeleton key={i} />)
+            : kpis.map((kpi) => <KpiCard key={kpi.label} {...kpi} />)
+          }
         </div>
       </section>
 
       {/* FILA 2 — Analítica: Edad + Top Lodges */}
       <section aria-label="Analítica" className="mb-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <AgeRangeSalesWidget
-            ranges={AGE_RANGE_SALES.ranges}
-            total={AGE_RANGE_SALES.total}
-          />
-          <TopLodgesWidget lodges={TOP_LODGES} />
+          {isLoading ? (
+            <>
+              <WidgetSkeleton className="h-64" />
+              <WidgetSkeleton className="h-64" />
+            </>
+          ) : (
+            <>
+              <AgeRangeSalesWidget
+                ranges={ageRanges.length > 0 ? ageRanges : [{ label: 'Sin datos', value: 0, percentage: 0 }]}
+                total={ageTotal}
+              />
+              <TopLodgesWidget lodges={topLodges} />
+            </>
+          )}
         </div>
       </section>
 
-      {/* FILA 3 — Gráfico evolución mensual */}
+      {/* FILA 3 — Gráfico evolución mensual (SVG nativo — no cambiar a librería) */}
       <section aria-label="Evolución mensual" className="mb-8">
-        <MonthlyRevenueWidget
-          data={MONTHLY_REVENUE.data}
-          currentMonth={MONTHLY_REVENUE.currentMonth}
-          year={MONTHLY_REVENUE.year}
-        />
+        {isLoading ? (
+          <WidgetSkeleton className="h-80" />
+        ) : (
+          <MonthlyRevenueWidget
+            data={monthlyData.length > 0 ? monthlyData : MONTH_LABELS.map((m) => ({ month: m, revenue: null }))}
+            currentMonth={CURRENT_MONTH}
+            year={CURRENT_YEAR}
+          />
+        )}
       </section>
 
       {/* FILA 4 — Mantenimientos pendientes (datos reales del backend) */}
