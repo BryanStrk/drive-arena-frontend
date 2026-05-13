@@ -198,7 +198,7 @@ export default function NuevaCompraPage() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
-        <div className="max-w-4xl space-y-6">
+        <div className="max-w-5xl w-full space-y-6">
 
           {/* ── CLIENTE ── */}
           <section className="bg-surface-1 border border-border-strong rounded-card p-6">
@@ -391,7 +391,7 @@ export default function NuevaCompraPage() {
             <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-text-muted mb-4">
               ▌ Detalles
             </p>
-            <div className="grid gap-6 sm:grid-cols-2">
+            <div className="grid gap-6 grid-cols-2">
               {/* Tipo pensión */}
               <div>
                 <p className="font-sans text-sm font-medium text-text mb-3">
@@ -445,7 +445,7 @@ export default function NuevaCompraPage() {
                 ▶ {errors.fechaEntrada?.message || errors.fechaSalida?.message}
               </p>
             )}
-            <div className="overflow-x-auto">
+            <div className="w-full overflow-x-auto">
               <DayPicker
                 mode="range"
                 selected={{ from: parsedFrom, to: parsedTo }}
