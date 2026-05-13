@@ -33,9 +33,10 @@ function fmtFecha(s) {
 }
 
 function KanbanCard({ m, me, onClick }) {
-  const isAssignedToMe = m.tecnicoAsignadoUsername === me
-  const isPool = !m.tecnicoAsignadoUsername
-  const isOther = Boolean(m.tecnicoAsignadoUsername) && m.tecnicoAsignadoUsername !== me
+  const assigned = m.tecnicosAsignados ?? []
+  const isPool = assigned.length === 0
+  const isAssignedToMe = assigned.some((t) => t.username === me)
+  const isOther = assigned.length > 0 && !isAssignedToMe
 
   return (
     <button
@@ -64,8 +65,8 @@ function KanbanCard({ m, me, onClick }) {
           </span>
         )}
         {isOther && (
-          <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2 py-0.5 font-mono text-[9px] tracking-widest uppercase text-white/30 line-clamp-1 max-w-full">
-            {m.tecnicoAsignadoUsername}
+          <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2 py-0.5 font-mono text-[9px] tracking-widest uppercase text-white/30">
+            Asignado a otros
           </span>
         )}
       </div>
@@ -111,9 +112,10 @@ export default function MantenimientosTecnicoPage() {
   }, [doFetch])
 
   const filtered = todos.filter((m) => {
-    if (activeTab === 'MIS_TAREAS') return m.tecnicoAsignadoUsername === me
-    if (activeTab === 'POOL')       return !m.tecnicoAsignadoUsername
-    if (activeTab === 'OTROS')      return Boolean(m.tecnicoAsignadoUsername) && m.tecnicoAsignadoUsername !== me
+    const assigned = m.tecnicosAsignados ?? []
+    if (activeTab === 'MIS_TAREAS') return assigned.some((t) => t.username === me)
+    if (activeTab === 'POOL')       return assigned.length === 0
+    if (activeTab === 'OTROS')      return assigned.length > 0 && !assigned.some((t) => t.username === me)
     return true
   })
 
@@ -150,9 +152,9 @@ export default function MantenimientosTecnicoPage() {
         {TABS.map(({ id, label }) => {
           const isActive = activeTab === id
           const count = id === 'TODOS'      ? todos.length
-                      : id === 'MIS_TAREAS' ? todos.filter((m) => m.tecnicoAsignadoUsername === me).length
-                      : id === 'POOL'       ? todos.filter((m) => !m.tecnicoAsignadoUsername).length
-                      : todos.filter((m) => Boolean(m.tecnicoAsignadoUsername) && m.tecnicoAsignadoUsername !== me).length
+                      : id === 'MIS_TAREAS' ? todos.filter((m) => (m.tecnicosAsignados ?? []).some((t) => t.username === me)).length
+                      : id === 'POOL'       ? todos.filter((m) => (m.tecnicosAsignados ?? []).length === 0).length
+                      : todos.filter((m) => { const a = m.tecnicosAsignados ?? []; return a.length > 0 && !a.some((t) => t.username === me) }).length
           return (
             <button
               key={id}

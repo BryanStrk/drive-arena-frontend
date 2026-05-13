@@ -27,15 +27,17 @@ function fmtFecha(s) {
 export default function MantenimientoDetailModal({ mantenimiento, onClose, onUpdated }) {
   const { user } = useAuth()
   const [loading, setLoading] = useState(false)
+
   const config = ESTADO_CONFIG[mantenimiento.estado] ?? ESTADO_CONFIG.PENDIENTE
   const transition = TRANSITIONS[mantenimiento.estado]
-  const isPool = !mantenimiento.tecnicoAsignadoUsername
+  const tecnicosAsignados = mantenimiento.tecnicosAsignados ?? []
+  const isPool = tecnicosAsignados.length === 0
   const canTomar = isPool && mantenimiento.estado !== 'COMPLETADO' && mantenimiento.estado !== 'CANCELADO'
 
   const handleTomar = async () => {
     setLoading(true)
     try {
-      await mantenimientosApi.asignarTecnico(mantenimiento.id, user.userId)
+      await mantenimientosApi.asignarTecnicos(mantenimiento.id, [user.userId])
       toast.success('Tarea tomada correctamente')
       onUpdated()
     } catch (err) {
@@ -100,7 +102,7 @@ export default function MantenimientoDetailModal({ mantenimiento, onClose, onUpd
           </header>
 
           {/* Body */}
-          <div className="p-6 space-y-4">
+          <div className="space-y-4 p-6">
             <div className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 ${config.badgeClass}`}>
               <span className="font-mono text-[10px] font-semibold uppercase tracking-wider">
                 {config.label}
@@ -108,28 +110,37 @@ export default function MantenimientoDetailModal({ mantenimiento, onClose, onUpd
             </div>
 
             <dl className="grid grid-cols-2 gap-4">
-              <div>
-                <dt className="flex items-center gap-1.5 font-sans text-[10px] uppercase tracking-[0.15em] text-text-muted mb-1">
-                  <User size={11} /> Técnico
+              <div className="col-span-2">
+                <dt className="mb-1 flex items-center gap-1.5 font-sans text-[10px] uppercase tracking-[0.15em] text-text-muted">
+                  <User size={11} /> Técnicos
                 </dt>
-                {mantenimiento.tecnicoAsignadoUsername ? (
-                  <dd className="font-sans text-sm text-text">{mantenimiento.tecnicoAsignadoUsername}</dd>
+                {tecnicosAsignados.length === 0 ? (
+                  <dd className="font-sans text-sm italic text-white/30">Pool compartido</dd>
                 ) : (
-                  <dd className="font-sans text-sm text-white/30 italic">Pool compartido</dd>
+                  <dd className="flex flex-wrap gap-1.5">
+                    {tecnicosAsignados.map((t) => (
+                      <span
+                        key={t.id}
+                        className="inline-flex items-center rounded-full border border-white/15 bg-white/8 px-2.5 py-0.5 font-mono text-[10px] text-white/70"
+                      >
+                        {t.username}
+                      </span>
+                    ))}
+                  </dd>
                 )}
               </div>
               <div>
-                <dt className="flex items-center gap-1.5 font-sans text-[10px] uppercase tracking-[0.15em] text-text-muted mb-1">
+                <dt className="mb-1 flex items-center gap-1.5 font-sans text-[10px] uppercase tracking-[0.15em] text-text-muted">
                   <Calendar size={11} /> Programado
                 </dt>
                 <dd className="font-mono text-sm text-text">{fmtFecha(mantenimiento.fechaProgramada)}</dd>
               </div>
               {mantenimiento.descripcion && (
                 <div className="col-span-2">
-                  <dt className="flex items-center gap-1.5 font-sans text-[10px] uppercase tracking-[0.15em] text-text-muted mb-1">
+                  <dt className="mb-1 flex items-center gap-1.5 font-sans text-[10px] uppercase tracking-[0.15em] text-text-muted">
                     <Wrench size={11} /> Descripción
                   </dt>
-                  <dd className="font-sans text-sm text-text-muted leading-relaxed">
+                  <dd className="font-sans text-sm leading-relaxed text-text-muted">
                     {mantenimiento.descripcion}
                   </dd>
                 </div>
