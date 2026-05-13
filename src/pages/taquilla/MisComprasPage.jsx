@@ -1,8 +1,7 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { RefreshCw, AlertCircle, ShoppingBag } from 'lucide-react'
 
 import { useCompras } from '@/hooks/useCompras'
-import { useAuth } from '@/context/useAuth'
 import VentaDetailModal from '@/components/taquilla/VentaDetailModal'
 import Button from '@/components/Button'
 
@@ -29,14 +28,8 @@ function SkeletonRow() {
 }
 
 export default function MisVentasPage() {
-  const { user } = useAuth()
-  const { compras, isLoading, error, refetch } = useCompras()
+  const { compras, totalElements, isLoading, error, refetch } = useCompras({ soloMias: true })
   const [selectedId, setSelectedId] = useState(null)
-
-  const misVentas = useMemo(
-    () => compras.filter((c) => c.usuarioSistemaUsername === user?.username),
-    [compras, user?.username]
-  )
 
   return (
     <div className="min-h-full bg-bg p-8">
@@ -50,7 +43,7 @@ export default function MisVentasPage() {
           </h1>
           {!isLoading && !error && (
             <p className="mt-1 font-mono text-xs text-text-muted">
-              {misVentas.length} registro{misVentas.length !== 1 ? 's' : ''} en este turno
+              {totalElements} registro{totalElements !== 1 ? 's' : ''} en este turno
             </p>
           )}
         </div>
@@ -84,7 +77,7 @@ export default function MisVentasPage() {
               <tbody className="divide-y divide-border-strong">
                 {isLoading
                   ? Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
-                  : misVentas.length === 0
+                  : compras.length === 0
                     ? (
                       <tr>
                         <td colSpan={COLS.length} className="px-4 py-16 text-center">
@@ -97,7 +90,7 @@ export default function MisVentasPage() {
                         </td>
                       </tr>
                     )
-                    : misVentas.map((v) => (
+                    : compras.map((v) => (
                       <tr
                         key={v.id}
                         onClick={() => setSelectedId(v.id)}

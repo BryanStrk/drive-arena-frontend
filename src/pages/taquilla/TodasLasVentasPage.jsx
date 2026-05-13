@@ -18,6 +18,8 @@ const COLS = [
   { label: 'Total',     key: 'total' },
 ]
 
+const EMPTY_PAGE_INFO = { totalPages: 1, totalElements: 0, number: 0, first: true, last: true }
+
 function SkeletonRow() {
   return (
     <tr>
@@ -32,34 +34,57 @@ function SkeletonRow() {
 
 export default function TodasLasVentasPage() {
   const [ventas, setVentas] = useState([])
+  const [pageInfo, setPageInfo] = useState(EMPTY_PAGE_INFO)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [q, setQ] = useState('')
   const [page, setPage] = useState(0)
   const [selectedId, setSelectedId] = useState(null)
 
-  const doFetch = useCallback((searchQ) => {
+  // doFetch is called either from setTimeout (q changes) or event handlers (page buttons)
+  // — setIsLoading(true) is always inside this function, never directly in an effect body
+  const doFetch = useCallback((searchQ, pageNum) => {
     setIsLoading(true)
     setError(null)
-    obtenerCompras({ q: searchQ || undefined })
-      .then((data) => { setVentas(data); setError(null) })
+    obtenerCompras({ q: searchQ || undefined, page: pageNum, size: PAGE_SIZE })
+      .then((data) => {
+        const content = data?.content
+        setVentas(Array.isArray(content) ? content : (Array.isArray(data) ? data : []))
+        setPageInfo({
+          totalPages:    data.totalPages    ?? 1,
+          totalElements: data.totalElements ?? 0,
+          number:        data.number        ?? pageNum,
+          first:         data.first         ?? (pageNum === 0),
+          last:          data.last          ?? true,
+        })
+        setError(null)
+      })
       .catch((err) => setError(err))
       .finally(() => setIsLoading(false))
   }, [])
 
-  // Initial load + debounced refetch on q change
+  // Debounced search — resets to page 0. doFetch is called inside setTimeout
+  // so setIsLoading(true) is async, not synchronous in the effect body.
   useEffect(() => {
     const delay = q ? 300 : 0
     const t = setTimeout(() => {
       setPage(0)
-      doFetch(q)
+      doFetch(q, 0)
     }, delay)
     return () => clearTimeout(t)
   }, [q, doFetch])
 
-  // Pagination
-  const totalPages = Math.max(1, Math.ceil(ventas.length / PAGE_SIZE))
-  const paginated = ventas.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
+  // Pagination handlers call doFetch directly (no effect needed)
+  const handlePrev = () => {
+    const prev = Math.max(0, page - 1)
+    setPage(prev)
+    doFetch(q, prev)
+  }
+  const handleNext = () => {
+    const next = Math.min(pageInfo.totalPages - 1, page + 1)
+    setPage(next)
+    doFetch(q, next)
+  }
 
   return (
     <div className="min-h-full bg-bg p-8">
@@ -74,11 +99,11 @@ export default function TodasLasVentasPage() {
           </h1>
           {!isLoading && !error && (
             <p className="mt-1 font-mono text-xs text-text-muted">
-              {ventas.length} registro{ventas.length !== 1 ? 's' : ''} totales
+              {pageInfo.totalElements} registro{pageInfo.totalElements !== 1 ? 's' : ''} totales
             </p>
           )}
         </div>
-        <Button variant="ghost" size="sm" onClick={() => doFetch(q)} disabled={isLoading}>
+        <Button variant="ghost" size="sm" onClick={() => doFetch(q, page)} disabled={isLoading}>
           <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
           Actualizar
         </Button>
@@ -101,7 +126,7 @@ export default function TodasLasVentasPage() {
         <div className="flex flex-col items-center gap-4 py-16 text-center">
           <AlertCircle size={32} className="text-danger" />
           <p className="font-sans text-sm text-text-muted">No se pudieron cargar las ventas</p>
-          <Button variant="secondary" size="sm" onClick={() => doFetch(q)}>Reintentar</Button>
+          <Button variant="secondary" size="sm" onClick={() => doFetch(q, page)}>Reintentar</Button>
         </div>
       )}
 
@@ -122,7 +147,7 @@ export default function TodasLasVentasPage() {
               <tbody className="divide-y divide-border-strong">
                 {isLoading
                   ? Array.from({ length: 8 }).map((_, i) => <SkeletonRow key={i} />)
-                  : paginated.length === 0
+                  : ventas.length === 0
                     ? (
                       <tr>
                         <td colSpan={COLS.length} className="px-4 py-16 text-center">
@@ -135,7 +160,7 @@ export default function TodasLasVentasPage() {
                         </td>
                       </tr>
                     )
-                    : paginated.map((v) => (
+                    : ventas.map((v) => (
                       <tr
                         key={v.id}
                         onClick={() => setSelectedId(v.id)}
@@ -164,28 +189,27 @@ export default function TodasLasVentasPage() {
           </div>
 
           {/* Pagination */}
-          {!isLoading && ventas.length > PAGE_SIZE && (
+          {!isLoading && pageInfo.totalPages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t border-border-strong bg-surface-2">
               <p className="font-mono text-[11px] text-text-muted">
-                {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, ventas.length)} de {ventas.length}
+                Página {pageInfo.number + 1} de {pageInfo.totalPages}
+                {' · '}
+                {pageInfo.totalElements} total
               </p>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setPage((p) => Math.max(0, p - 1))}
-                  disabled={page === 0}
+                  onClick={handlePrev}
+                  disabled={pageInfo.first}
                   className="p-1.5 rounded border border-border-strong text-text-muted hover:text-text hover:border-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                   aria-label="Página anterior"
                 >
                   <ChevronLeft size={14} />
                 </button>
-                <span className="font-mono text-[11px] text-text-muted">
-                  {page + 1} / {totalPages}
-                </span>
                 <button
                   type="button"
-                  onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                  disabled={page >= totalPages - 1}
+                  onClick={handleNext}
+                  disabled={pageInfo.last}
                   className="p-1.5 rounded border border-border-strong text-text-muted hover:text-text hover:border-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                   aria-label="Página siguiente"
                 >
