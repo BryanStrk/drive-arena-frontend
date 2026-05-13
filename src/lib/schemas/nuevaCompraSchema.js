@@ -30,4 +30,12 @@ export const nuevaCompraSchema = z.object({
   fechaSalida: z.string().default(''),
 
   lineas: z.array(lineaSchema).min(1, 'Añade al menos una entrada'),
+}).superRefine((data, ctx) => {
+  if (data.hotelId != null && data.tipoPension === 'SIN') {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Con alojamiento selecciona Media o Completa pensión',
+      path: ['tipoPension'],
+    })
+  }
 })

@@ -17,7 +17,6 @@ import { crearCompra } from '@/api/compras'
 import { extractApiError } from '@/utils/extractApiError'
 import ClienteFormModal from '@/components/clientes/ClienteFormModal'
 import TicketModal from '@/components/taquilla/TicketModal'
-import Input from '@/components/Input'
 import Button from '@/components/Button'
 import { cn } from '@/lib/cn'
 
@@ -37,7 +36,7 @@ const fmtPrice = (v) =>
     : null
 
 const EMPTY_LINEA = { circuitoId: '', tarifaId: '', cantidad: 1 }
-const EMPTY_META  = { circuitoId: '', tarifas: [] }
+const EMPTY_META  = { circuitoId: '', tarifas: [], tarifaIdSelected: '', cantidadLocal: 1 }
 
 const DEFAULT_VALUES = {
   clienteId:    0,
@@ -145,7 +144,7 @@ export default function NuevaCompraPage() {
     setValue(`lineas.${index}.tarifaId`, '')
     setLineasMeta((prev) => {
       const next = [...prev]
-      next[index] = { circuitoId, tarifas: [] }
+      next[index] = { ...next[index], circuitoId, tarifas: [], tarifaIdSelected: '' }
       return next
     })
     if (!circuitoId) return
@@ -153,7 +152,7 @@ export default function NuevaCompraPage() {
       .then((tarifas) =>
         setLineasMeta((prev) => {
           const next = [...prev]
-          next[index] = { circuitoId, tarifas }
+          next[index] = { ...next[index], circuitoId, tarifas }
           return next
         })
       )
@@ -316,7 +315,13 @@ export default function NuevaCompraPage() {
                 onChange={(e) => {
                   setValue('hotelId', e.target.value, { shouldValidate: true, shouldDirty: true })
                   setHotelIdLocal(e.target.value)
-                  if (!e.target.value) setPensionLocal('SIN')
+                  if (e.target.value) {
+                    setValue('tipoPension', 'MEDIA')
+                    setPensionLocal('MEDIA')
+                  } else {
+                    setValue('tipoPension', 'SIN')
+                    setPensionLocal('SIN')
+                  }
                 }}
                 className="w-full sm:w-72 px-4 py-3 bg-surface-2 text-text border border-border-strong rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
               >
@@ -384,6 +389,14 @@ export default function NuevaCompraPage() {
                         <select
                           {...register(`lineas.${index}.tarifaId`)}
                           disabled={!meta.circuitoId}
+                          onChange={(e) => {
+                            setValue(`lineas.${index}.tarifaId`, e.target.value, { shouldValidate: true })
+                            setLineasMeta((prev) => {
+                              const next = [...prev]
+                              next[index] = { ...next[index], tarifaIdSelected: e.target.value }
+                              return next
+                            })
+                          }}
                           className={cn(
                             'w-full px-3 py-2.5 bg-surface-1 text-text border rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary disabled:opacity-40 disabled:cursor-not-allowed',
                             lineaErrors?.tarifaId ? 'border-danger' : 'border-border-strong'
@@ -403,15 +416,30 @@ export default function NuevaCompraPage() {
 
                       {/* Cantidad */}
                       <div>
-                        <Input
-                          label="Cantidad"
-                          required
+                        <label className="block font-sans text-xs font-medium text-text mb-1.5">
+                          Cantidad <span className="text-primary">*</span>
+                        </label>
+                        <input
                           type="number"
                           min={1}
                           max={20}
-                          error={lineaErrors?.cantidad?.message}
                           {...register(`lineas.${index}.cantidad`)}
+                          onChange={(e) => {
+                            setValue(`lineas.${index}.cantidad`, e.target.value, { shouldValidate: true })
+                            setLineasMeta((prev) => {
+                              const next = [...prev]
+                              next[index] = { ...next[index], cantidadLocal: parseInt(e.target.value, 10) || 0 }
+                              return next
+                            })
+                          }}
+                          className={cn(
+                            'w-full px-3 py-2.5 bg-surface-1 text-text border rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary',
+                            lineaErrors?.cantidad ? 'border-danger' : 'border-border-strong'
+                          )}
                         />
+                        {lineaErrors?.cantidad && (
+                          <p className="mt-1 font-mono text-[10px] text-danger">▶ {lineaErrors.cantidad.message}</p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -441,7 +469,7 @@ export default function NuevaCompraPage() {
                   Tipo de pensión <span className="text-primary">*</span>
                 </p>
                 <div className="flex flex-col gap-2">
-                  {PENSION_OPTS.map(({ value, label }) => (
+                  {PENSION_OPTS.filter((o) => o.value !== 'SIN').map(({ value, label }) => (
                     <label key={value} className="flex items-center gap-3 cursor-pointer group">
                       <input
                         type="radio"
@@ -493,28 +521,53 @@ export default function NuevaCompraPage() {
                   {fechaSalida && `Salida: ${fechaSalida}`}
                 </p>
               )}
-
-              {/* Estimación de coste de alojamiento */}
-              {(() => {
-                if (!fechaEntrada || !fechaSalida || pensionLocal === 'SIN') return null
-                const hotel = hoteles.find((h) => h.id === Number(hotelIdLocal))
-                if (!hotel) return null
-                const noches = differenceInDays(parseISO(fechaSalida), parseISO(fechaEntrada))
-                if (noches <= 0) return null
-                const pxn = pensionLocal === 'MEDIA' ? hotel.precioMediaPension : hotel.precioPensionCompleta
-                if (pxn == null) return null
-                const total = Number(pxn) * noches
-                return (
-                  <p className="mt-3 font-mono text-[11px] text-text-muted">
-                    Alojamiento estimado: {noches} {noches === 1 ? 'noche' : 'noches'} × {fmtPrice(pxn)} ={' '}
-                    <span className="text-primary font-bold">{fmtPrice(total)}</span>
-                  </p>
-                )
-              })()}
             </section>
           )}
 
-          {/* ── 6. SUBMIT ── */}
+          {/* ── 6. RESUMEN DE PRECIO ── */}
+          {(() => {
+            const subtotalEntradas = lineasMeta.reduce((sum, meta) => {
+              if (!meta.tarifaIdSelected || !meta.tarifas.length) return sum
+              const tarifa = meta.tarifas.find((t) => t.id === Number(meta.tarifaIdSelected))
+              if (tarifa?.precio == null) return sum
+              return sum + Number(tarifa.precio) * (meta.cantidadLocal || 1)
+            }, 0)
+            if (subtotalEntradas === 0) return null
+
+            const hotelObj = hoteles.find((h) => h.id === Number(hotelIdLocal))
+            const pxn = hotelObj
+              ? (pensionLocal === 'MEDIA' ? hotelObj.precioMediaPension : hotelObj.precioPensionCompleta)
+              : null
+            const noches = (fechaEntrada && fechaSalida)
+              ? differenceInDays(parseISO(fechaSalida), parseISO(fechaEntrada))
+              : 0
+            const subtotalAloj = (pxn && noches > 0) ? Number(pxn) * noches : 0
+            const total = subtotalEntradas + subtotalAloj
+
+            return (
+              <section className="bg-surface-1 border border-border-strong rounded-card p-6">
+                <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-text-muted mb-4">▌ Resumen</p>
+                <div className="space-y-2">
+                  <div className="flex justify-between font-sans text-sm text-text-muted">
+                    <span>Subtotal entradas</span>
+                    <span className="font-mono">{fmtPrice(subtotalEntradas)}</span>
+                  </div>
+                  {subtotalAloj > 0 && (
+                    <div className="flex justify-between font-sans text-sm text-text-muted">
+                      <span>Alojamiento ({noches} {noches === 1 ? 'noche' : 'noches'} × {fmtPrice(pxn)})</span>
+                      <span className="font-mono">{fmtPrice(subtotalAloj)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between pt-3 mt-1 border-t border-border-strong">
+                    <span className="font-display font-bold text-base text-text">Total estimado</span>
+                    <span className="font-display font-bold text-base text-primary">{fmtPrice(total)}</span>
+                  </div>
+                </div>
+              </section>
+            )
+          })()}
+
+          {/* ── 7. SUBMIT ── */}
           <Button type="submit" variant="primary" size="lg" disabled={isSubmitting} className="w-full sm:w-auto">
             {isSubmitting ? 'Registrando...' : 'Registrar Compra'}
           </Button>
