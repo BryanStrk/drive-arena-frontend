@@ -1,16 +1,13 @@
 import axios from 'axios';
+import { clearSession } from '@/lib/storage';
 
 /**
  * Cliente HTTP global de la app.
  *
- * baseURL se lee de VITE_API_URL en .env (con fallback a localhost para dev).
- * Vite expone variables que empiezan por VITE_ al cliente vía import.meta.env.
- *
  * Interceptors:
- * - REQUEST: inyecta automáticamente el JWT desde localStorage en cada petición.
- *   Si no hay token (usuario no logueado o ruta pública), pasa la petición
- *   sin Authorization. El backend decide si permite o deniega según SecurityConfig.
- * - RESPONSE: log estructurado de errores en dev, transparente en prod.
+ * - REQUEST: inyecta JWT desde localStorage en cada petición autenticada.
+ * - RESPONSE: en 401 limpia la sesión y redirige a /login (excepto en el
+ *   propio endpoint de login para evitar bucle infinito).
  */
 const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
@@ -40,7 +37,7 @@ axiosClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Interceptor de respuesta: log estructurado en dev, transparente en prod
+// Interceptor de respuesta: 401 → logout forzado; log en dev
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -52,6 +49,15 @@ axiosClient.interceptors.response.use(
         error.response?.data || error.message
       );
     }
+
+    const is401 = error.response?.status === 401;
+    const isLoginRequest = error.config?.url?.includes('/auth/login');
+
+    if (is401 && !isLoginRequest) {
+      clearSession();
+      window.location.replace('/login');
+    }
+
     return Promise.reject(error);
   }
 );
