@@ -189,8 +189,10 @@ export default function ClienteFormModal({
                   label="DNI"
                   required
                   placeholder="12345678A"
-                  helperText="8 dígitos seguidos de una letra (formato español)"
+                  helperText={isEditMode ? 'El DNI no se puede modificar' : '8 dígitos seguidos de una letra (formato español)'}
                   error={errors.dni?.message}
+                  readOnly={isEditMode}
+                  inputClassName={isEditMode ? 'cursor-default opacity-60' : ''}
                   {...register('dni')}
                 />
               </div>
