@@ -42,6 +42,15 @@ export const clientesApi = {
     return data
   },
 
+  async listPaged({ q, page, size } = {}, signal) {
+    const params = {}
+    if (q)            params.q    = q
+    if (page != null) params.page = page
+    if (size != null) params.size = size
+    const { data } = await axiosClient.get(BASE_URL, { params, signal })
+    return data
+  },
+
   async buscar(q) {
     const { data } = await axiosClient.get(`${BASE_URL}/buscar`, { params: { q } })
     return data
