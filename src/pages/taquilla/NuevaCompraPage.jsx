@@ -308,11 +308,6 @@ export default function NuevaCompraPage() {
                   onChange={(e) => {
                     setValue('hotelId', e.target.value, { shouldValidate: true, shouldDirty: true })
                     setHotelIdLocal(e.target.value)
-                    if (!e.target.value) {
-                      setAtraccionId('')
-                      setTarifas([])
-                      setValue('tarifaId', '')
-                    }
                   }}
                   className="w-full px-4 py-3 bg-surface-2 text-text border border-border-strong rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                 >
@@ -323,27 +318,21 @@ export default function NuevaCompraPage() {
                 </select>
               </div>
 
-              {/* Circuito (UI filter, no enviado al back) — requiere lodge */}
+              {/* Circuito — independiente del lodge */}
               <div>
-                <label className={cn(
-                  'block font-sans text-sm font-medium mb-2',
-                  hotelIdLocal ? 'text-text' : 'text-text-dim'
-                )}>
+                <label className="block font-sans text-sm font-medium text-text mb-2">
                   Circuito
                 </label>
                 <select
                   value={atraccionId}
-                  disabled={!hotelIdLocal}
                   onChange={(e) => {
                     setAtraccionId(e.target.value)
                     setTarifas([])
                     setValue('tarifaId', '')
                   }}
-                  className="w-full px-4 py-3 bg-surface-2 text-text border border-border-strong rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-3 bg-surface-2 text-text border border-border-strong rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                 >
-                  <option value="">
-                    {hotelIdLocal ? 'Seleccionar...' : 'Elige un lodge primero'}
-                  </option>
+                  <option value="">Seleccionar...</option>
                   {atracciones.map((a) => (
                     <option key={a.id} value={a.id}>{a.nombre}</option>
                   ))}
@@ -354,24 +343,20 @@ export default function NuevaCompraPage() {
               <div>
                 <label className={cn(
                   'block font-sans text-sm font-medium mb-2',
-                  hotelIdLocal && atraccionId ? 'text-text' : 'text-text-dim'
+                  atraccionId ? 'text-text' : 'text-text-dim'
                 )}>
                   Tarifa <span className="text-primary">*</span>
                 </label>
                 <select
                   {...register('tarifaId')}
-                  disabled={!hotelIdLocal || !atraccionId}
+                  disabled={!atraccionId}
                   className={cn(
                     'w-full px-4 py-3 bg-surface-2 text-text border rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary disabled:opacity-40 disabled:cursor-not-allowed',
                     errors.tarifaId ? 'border-danger' : 'border-border-strong'
                   )}
                 >
                   <option value="">
-                    {!hotelIdLocal
-                      ? 'Elige un lodge primero'
-                      : atraccionId
-                        ? 'Seleccionar...'
-                        : 'Elige un circuito primero'}
+                    {atraccionId ? 'Seleccionar...' : 'Elige un circuito primero'}
                   </option>
                   {tarifas.map((t) => (
                     <option key={t.id} value={t.id}>
