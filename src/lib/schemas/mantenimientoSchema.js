@@ -1,50 +1,35 @@
 import { z } from 'zod'
 
 /**
- * Zod schema para validar el formulario de Mantenimiento (alta y edición).
+ * Zod schema para el formulario de Mantenimiento.
  *
- * Mapea con MantenimientoRequestDto del backend:
- *   - atraccionId (NotNull)
- *   - tecnicoId (NotNull)
- *   - fechaProgramada (NotNull, LocalDate)
- *   - estado (nullable, solo se respeta en PUT)
+ * Mapea con MantenimientoRequestDto del backend (modelo POOL):
+ *   - atraccionId  (NotNull)
+ *   - fechaProgramada (NotNull, FutureOrPresent, formato "YYYY-MM-DD")
+ *   - descripcion  (opcional, max 500 chars)
  *
- * Notas:
- *   - En modo CREATE, el estado se ignora y se fuerza a PENDIENTE en backend.
- *     El frontend lo oculta del form (solo aparece en EDIT).
- *   - El backend valida que tecnicoId pertenezca a un empleado con oficio TECNICO.
- *     Si no, devuelve 400 BusinessException → toast en el hook.
+ * Nota: tecnicoId y estado han sido eliminados del DTO.
+ * El estado se gestiona exclusivamente via PATCH /{id}/estado.
  */
+
 export const ESTADOS = ['PENDIENTE', 'EN_CURSO', 'COMPLETADO', 'CANCELADO']
 
 export const mantenimientoSchema = z.object({
   atraccionId: z.coerce
-    .number({
-      invalid_type_error: 'Selecciona un circuito',
-    })
+    .number({ invalid_type_error: 'Selecciona un circuito' })
     .int()
     .positive('Selecciona un circuito'),
-
-  tecnicoId: z.coerce
-    .number({
-      invalid_type_error: 'Selecciona un técnico',
-    })
-    .int()
-    .positive('Selecciona un técnico'),
 
   fechaProgramada: z
     .string()
     .min(1, 'La fecha programada es obligatoria')
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato inválido'),
 
-  estado: z.enum(ESTADOS, {
-    errorMap: () => ({ message: 'Estado inválido' }),
-  }),
+  descripcion: z.string().max(500, 'Máximo 500 caracteres').optional(),
 })
 
 export const mantenimientoFormDefaults = {
-  atraccionId: '',
-  tecnicoId: '',
+  atraccionId:     '',
   fechaProgramada: '',
-  estado: 'PENDIENTE',
+  descripcion:     '',
 }

@@ -8,23 +8,21 @@ import toast from 'react-hot-toast'
 
 import { mantenimientosApi } from '@/api/mantenimientos'
 import { atraccionesApi } from '@/api/atracciones'
-import { empleadosApi } from '@/api/empleados'
 import Button from '@/components/Button'
 
 const schema = z.object({
   atraccionId:     z.string().min(1, 'Selecciona un circuito'),
-  tecnicoId:       z.string().min(1, 'Selecciona un técnico'),
   fechaProgramada: z.string().min(1, 'Indica la fecha programada'),
+  descripcion:     z.string().max(500, 'Máximo 500 caracteres').optional(),
 })
 
-const DEFAULTS = { atraccionId: '', tecnicoId: '', fechaProgramada: '' }
+const DEFAULTS = { atraccionId: '', fechaProgramada: '', descripcion: '' }
 
 const fieldClass = 'w-full px-4 py-3 bg-surface-2 font-sans text-sm text-text rounded-inner border border-border-strong focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary'
 
 export default function ReportarMantenimientoModal({ onClose, onCreated }) {
   const [atracciones, setAtracciones] = useState([])
-  const [tecnicos, setTecnicos] = useState([])
-  const [loadingCatalogos, setLoadingCatalogos] = useState(true)
+  const [loadingCircuitos, setLoadingCircuitos] = useState(true)
 
   const {
     register,
@@ -34,26 +32,22 @@ export default function ReportarMantenimientoModal({ onClose, onCreated }) {
 
   useEffect(() => {
     let cancelled = false
-    Promise.all([
-      atraccionesApi.list(),
-      empleadosApi.list({ oficio: 'TECNICO', soloActivos: true }),
-    ])
-      .then(([atrs, tecs]) => {
+    atraccionesApi.list()
+      .then((data) => {
         if (cancelled) return
-        setAtracciones(Array.isArray(atrs) ? atrs : [])
-        setTecnicos(Array.isArray(tecs) ? tecs : [])
+        setAtracciones(Array.isArray(data) ? data : [])
       })
-      .catch(() => toast.error('Error al cargar circuitos y técnicos'))
-      .finally(() => { if (!cancelled) setLoadingCatalogos(false) })
+      .catch(() => toast.error('No se pudieron cargar los circuitos'))
+      .finally(() => { if (!cancelled) setLoadingCircuitos(false) })
     return () => { cancelled = true }
   }, [])
 
-  const onSubmit = async ({ atraccionId, tecnicoId, fechaProgramada }) => {
+  const onSubmit = async ({ atraccionId, fechaProgramada, descripcion }) => {
     try {
       await mantenimientosApi.create({
         atraccionId:     Number(atraccionId),
-        tecnicoId:       Number(tecnicoId),
         fechaProgramada,
+        descripcion:     descripcion || undefined,
       })
       toast.success('Mantenimiento reportado')
       onCreated()
@@ -103,10 +97,10 @@ export default function ReportarMantenimientoModal({ onClose, onCreated }) {
 
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="p-6 space-y-5">
-              {loadingCatalogos ? (
+              {loadingCircuitos ? (
                 <div className="flex items-center gap-2 text-text-muted py-4">
                   <Loader2 size={16} className="animate-spin" />
-                  <span className="font-sans text-sm">Cargando circuitos y técnicos...</span>
+                  <span className="font-sans text-sm">Cargando circuitos...</span>
                 </div>
               ) : (
                 <>
@@ -126,26 +120,6 @@ export default function ReportarMantenimientoModal({ onClose, onCreated }) {
                     )}
                   </div>
 
-                  {/* Técnico */}
-                  <div>
-                    <label className="block font-sans text-sm font-medium text-text mb-2">
-                      Técnico asignado <span className="text-primary ml-1">*</span>
-                    </label>
-                    <select {...register('tecnicoId')} className={fieldClass}>
-                      <option value="">
-                        {tecnicos.length === 0 ? 'No hay técnicos disponibles' : 'Selecciona un técnico'}
-                      </option>
-                      {tecnicos.map((t) => {
-                        const fullName = `${t.nombre ?? ''} ${t.apellidos ?? ''}`.trim()
-                        const label = t.dni ? `${fullName} · ${t.dni}` : fullName
-                        return <option key={t.id} value={String(t.id)}>{label}</option>
-                      })}
-                    </select>
-                    {errors.tecnicoId && (
-                      <p className="mt-1 font-mono text-[10px] text-danger">▶ {errors.tecnicoId.message}</p>
-                    )}
-                  </div>
-
                   {/* Fecha */}
                   <div>
                     <label className="block font-sans text-sm font-medium text-text mb-2">
@@ -160,6 +134,22 @@ export default function ReportarMantenimientoModal({ onClose, onCreated }) {
                       <p className="mt-1 font-mono text-[10px] text-danger">▶ {errors.fechaProgramada.message}</p>
                     )}
                   </div>
+
+                  {/* Descripción */}
+                  <div>
+                    <label className="block font-sans text-sm font-medium text-text mb-2">
+                      Descripción
+                    </label>
+                    <textarea
+                      {...register('descripcion')}
+                      rows={3}
+                      placeholder="Describe el problema o tarea..."
+                      className={`${fieldClass} resize-none`}
+                    />
+                    {errors.descripcion && (
+                      <p className="mt-1 font-mono text-[10px] text-danger">▶ {errors.descripcion.message}</p>
+                    )}
+                  </div>
                 </>
               )}
             </div>
@@ -172,7 +162,7 @@ export default function ReportarMantenimientoModal({ onClose, onCreated }) {
                 type="submit"
                 variant="primary"
                 size="md"
-                disabled={isSubmitting || loadingCatalogos}
+                disabled={isSubmitting || loadingCircuitos}
               >
                 {isSubmitting
                   ? <><Loader2 size={14} className="animate-spin" /> Reportando...</>
