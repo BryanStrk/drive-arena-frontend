@@ -59,6 +59,10 @@ export default function NuevaCompraPage() {
   const [ticket, setTicket] = useState(null)
   const [ticketMeta, setTicketMeta] = useState({ cliente: null, hotel: null, tarifa: null })
 
+  // Seguimiento local del lodge seleccionado para controlar el disabled
+  // de Circuito/Tarifa sin usar watch() (que el linter rechaza)
+  const [hotelIdLocal, setHotelIdLocal] = useState('')
+
   // ── Form ───────────────────────────────────────────────────
   const {
     register,
@@ -70,6 +74,7 @@ export default function NuevaCompraPage() {
     resolver: zodResolver(nuevaCompraSchema),
     defaultValues: DEFAULT_VALUES,
   })
+
 
   // ── Carga de catálogos ─────────────────────────────────────
   useEffect(() => {
@@ -156,7 +161,9 @@ export default function NuevaCompraPage() {
       // reset del form
       reset(DEFAULT_VALUES)
       setClienteSeleccionado(null)
+      setHotelIdLocal('')
       setAtraccionId('')
+      setTarifas([])
       setFechaEntrada('')
       setFechaSalida('')
     } catch (err) {
@@ -279,64 +286,80 @@ export default function NuevaCompraPage() {
               ▌ Producto
             </p>
             <div className="grid gap-4 sm:grid-cols-3">
-              {/* Lodge */}
+              {/* Lodge — opcional */}
               <div>
                 <label className="block font-sans text-sm font-medium text-text mb-2">
-                  Lodge <span className="text-primary">*</span>
+                  Lodge
                 </label>
                 <select
                   {...register('hotelId')}
-                  className={cn(
-                    'w-full px-4 py-3 bg-surface-2 text-text border rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary',
-                    errors.hotelId ? 'border-danger' : 'border-border-strong'
-                  )}
+                  onChange={(e) => {
+                    setValue('hotelId', e.target.value, { shouldValidate: true, shouldDirty: true })
+                    setHotelIdLocal(e.target.value)
+                    if (!e.target.value) {
+                      setAtraccionId('')
+                      setTarifas([])
+                      setValue('tarifaId', '')
+                    }
+                  }}
+                  className="w-full px-4 py-3 bg-surface-2 text-text border border-border-strong rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                 >
-                  <option value="">Seleccionar...</option>
+                  <option value="">Sin alojamiento</option>
                   {hoteles.map((h) => (
                     <option key={h.id} value={h.id}>{h.nombre}</option>
                   ))}
                 </select>
-                {errors.hotelId && (
-                  <p className="mt-2 font-mono text-[10px] text-danger">▶ {errors.hotelId.message}</p>
-                )}
               </div>
 
-              {/* Circuito (UI filter, no enviado al back) */}
+              {/* Circuito (UI filter, no enviado al back) — requiere lodge */}
               <div>
-                <label className="block font-sans text-sm font-medium text-text mb-2">
+                <label className={cn(
+                  'block font-sans text-sm font-medium mb-2',
+                  hotelIdLocal ? 'text-text' : 'text-text-dim'
+                )}>
                   Circuito
                 </label>
                 <select
                   value={atraccionId}
+                  disabled={!hotelIdLocal}
                   onChange={(e) => {
                     setAtraccionId(e.target.value)
                     setTarifas([])
                     setValue('tarifaId', '')
                   }}
-                  className="w-full px-4 py-3 bg-surface-2 text-text border border-border-strong rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                  className="w-full px-4 py-3 bg-surface-2 text-text border border-border-strong rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  <option value="">Seleccionar...</option>
+                  <option value="">
+                    {hotelIdLocal ? 'Seleccionar...' : 'Elige un lodge primero'}
+                  </option>
                   {atracciones.map((a) => (
                     <option key={a.id} value={a.id}>{a.nombre}</option>
                   ))}
                 </select>
               </div>
 
-              {/* Tarifa */}
+              {/* Tarifa — requiere circuito */}
               <div>
-                <label className="block font-sans text-sm font-medium text-text mb-2">
+                <label className={cn(
+                  'block font-sans text-sm font-medium mb-2',
+                  hotelIdLocal && atraccionId ? 'text-text' : 'text-text-dim'
+                )}>
                   Tarifa <span className="text-primary">*</span>
                 </label>
                 <select
                   {...register('tarifaId')}
-                  disabled={!atraccionId}
+                  disabled={!hotelIdLocal || !atraccionId}
                   className={cn(
-                    'w-full px-4 py-3 bg-surface-2 text-text border rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed',
+                    'w-full px-4 py-3 bg-surface-2 text-text border rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary disabled:opacity-40 disabled:cursor-not-allowed',
                     errors.tarifaId ? 'border-danger' : 'border-border-strong'
                   )}
                 >
                   <option value="">
-                    {atraccionId ? 'Seleccionar...' : 'Elige un circuito primero'}
+                    {!hotelIdLocal
+                      ? 'Elige un lodge primero'
+                      : atraccionId
+                        ? 'Seleccionar...'
+                        : 'Elige un circuito primero'}
                   </option>
                   {tarifas.map((t) => (
                     <option key={t.id} value={t.id}>

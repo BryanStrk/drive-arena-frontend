@@ -6,10 +6,10 @@ export const nuevaCompraSchema = z.object({
     .int()
     .positive('Selecciona un cliente'),
 
-  hotelId: z
-    .coerce.number({ required_error: 'Selecciona un lodge' })
-    .int()
-    .positive('Selecciona un lodge'),
+  hotelId: z.preprocess(
+    (v) => (v === '' || v == null ? null : Number(v)),
+    z.number().int().positive().nullable()
+  ),
 
   tarifaId: z
     .coerce.number({ required_error: 'Selecciona una tarifa' })
