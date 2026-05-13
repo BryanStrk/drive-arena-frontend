@@ -38,18 +38,35 @@ function buildKpis(data) {
     },
     {
       label: 'Tiempo en pista',
-      value: fmt(data.tiempoEnPista),
+      value: fmt(data.tiempoEnPistaHoras ?? data.tiempoEnPista),
       suffix: 'h',
       deltaType: 'neutral',
       icon: '⏱',
     },
     {
       label: 'Nuevos clientes',
-      value: fmt(data.nuevosClientes),
+      value: fmt(data.nuevosClientesSemana ?? data.nuevosClientes),
       deltaType: 'neutral',
       icon: '+',
     },
   ]
+}
+
+// ventasPorEdad comes as { junior: {porcentaje, total}, pro: {...}, veterano: {...} }
+function buildAgeRanges(ventasPorEdad) {
+  if (!ventasPorEdad) return []
+  const MAP = [
+    { key: 'junior',   label: 'JUNIOR (16-24)' },
+    { key: 'pro',      label: 'PRO (25-45)'    },
+    { key: 'veterano', label: 'VETERANO (46+)' },
+  ]
+  return MAP
+    .filter(({ key }) => ventasPorEdad[key] != null)
+    .map(({ key, label }) => ({
+      label,
+      percentage: ventasPorEdad[key].porcentaje ?? 0,
+      value:      ventasPorEdad[key].total ?? 0,
+    }))
 }
 
 function buildTopLodges(topHoteles = []) {
@@ -62,9 +79,16 @@ function buildTopLodges(topHoteles = []) {
   }))
 }
 
-function buildMonthlyRevenue(ingresosMensuales = []) {
+// evolucionMensual entries have mes as a 1-12 number; map to label before keying
+function buildMonthlyRevenue(source = []) {
   const byMonth = Object.fromEntries(
-    ingresosMensuales.map((m) => [m.mes ?? m.month, m.ingresos ?? m.revenue])
+    source.map((m) => {
+      const label =
+        typeof m.mes === 'number'
+          ? MONTH_LABELS[m.mes - 1]
+          : (m.mes ?? m.month)
+      return [label, m.ingresos ?? m.revenue]
+    })
   )
   return MONTH_LABELS.map((month) => ({
     month,
@@ -95,10 +119,10 @@ function Dashboard() {
 
   // Normalización solo cuando hay datos
   const kpis = data ? buildKpis(data) : []
-  const ageRanges = data?.ventasPorEdad ?? []
+  const ageRanges = data ? buildAgeRanges(data.ventasPorEdad) : []
   const ageTotal = data?.totalVentasEdad ?? ageRanges.reduce((s, r) => s + (r.value ?? 0), 0)
-  const topLodges = data ? buildTopLodges(data.topHoteles ?? data.topLodges ?? []) : []
-  const monthlyData = data ? buildMonthlyRevenue(data.ingresosMensuales ?? data.monthlyRevenue ?? []) : []
+  const topLodges = data ? buildTopLodges(data.top3Lodges ?? data.topHoteles ?? data.topLodges ?? []) : []
+  const monthlyData = data ? buildMonthlyRevenue(data.evolucionMensual ?? data.ingresosMensuales ?? data.monthlyRevenue ?? []) : []
 
   return (
     <div className="min-h-full bg-bg p-8">
