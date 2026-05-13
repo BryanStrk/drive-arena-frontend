@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router'
 // Layouts
 import PublicLayout from '@/layouts/PublicLayout'
 import DashboardLayout from '@/layouts/DashboardLayout'
+import TecnicoLayout from '@/layouts/TecnicoLayout'
 
 // Route guards
 import ProtectedRoute from '@/components/ProtectedRoute'
@@ -22,6 +23,9 @@ import MantenimientoPage from '@/pages/MantenimientoPage'
 import ClientesPage from '@/pages/ClientesPage'
 import CircuitosPage from '@/pages/CircuitosPage'
 import UsuariosPage from '@/pages/UsuariosPage'
+
+// Pages — TECNICO
+import MantenimientosTecnicoPage from '@/pages/tecnico/MantenimientosTecnicoPage'
 
 // Pages — TAQUILLA
 import NuevaCompraPage from '@/pages/taquilla/NuevaCompraPage'
@@ -102,6 +106,19 @@ export const router = createBrowserRouter([
       { path: 'mis-compras',      element: <MisComprasPage />       },
       { path: 'todas-las-ventas', element: <TodasLasVentasPage />   },
       { path: 'clientes',         element: <TaquillaClientesPage /> },
+    ],
+  },
+  {
+    // Rutas TECNICO
+    path: '/tecnico',
+    element: (
+      <ProtectedRoute allowedRoles={['TECNICO']}>
+        <TecnicoLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      { index: true, element: <Navigate to="mantenimientos" replace /> },
+      { path: 'mantenimientos', element: <MantenimientosTecnicoPage /> },
     ],
   },
   {
