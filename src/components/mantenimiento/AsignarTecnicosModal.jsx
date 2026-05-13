@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Loader2, UserCheck, X } from 'lucide-react'
+import { Loader2, Users, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 import Button from '@/components/Button'
 import { mantenimientosApi } from '@/api/mantenimientos'
 import { usuariosApi } from '@/api/usuarios'
 
-export default function AsignarTecnicoModal({ mantenimiento, onClose, onAsignado }) {
+export default function AsignarTecnicosModal({ mantenimiento, onClose, onAsignado }) {
   const [tecnicos, setTecnicos] = useState([])
   const [loadingTecnicos, setLoadingTecnicos] = useState(true)
-  const [selectedId, setSelectedId] = useState('')
+  const [selectedIds, setSelectedIds] = useState(new Set())
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const isCompletado = mantenimiento?.estado === 'COMPLETADO'
@@ -23,22 +23,31 @@ export default function AsignarTecnicoModal({ mantenimiento, onClose, onAsignado
       .then((data) => {
         if (cancelled) return
         setTecnicos(Array.isArray(data) ? data : [])
-        setSelectedId(mantenimiento.tecnicoAsignadoId ? String(mantenimiento.tecnicoAsignadoId) : '')
+        const preselected = new Set((mantenimiento.tecnicosAsignados ?? []).map((t) => t.id))
+        setSelectedIds(preselected)
       })
       .catch(() => toast.error('No se pudieron cargar los técnicos'))
       .finally(() => { if (!cancelled) setLoadingTecnicos(false) })
     return () => { cancelled = true }
   }, [mantenimiento])
 
+  const toggle = (id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
   const handleSubmit = async () => {
     setIsSubmitting(true)
     try {
-      const tecnicoId = selectedId ? Number(selectedId) : null
-      await mantenimientosApi.asignarTecnico(mantenimiento.id, tecnicoId)
-      toast.success(tecnicoId ? 'Técnico asignado correctamente' : 'Desasignado (pool compartido)')
+      await mantenimientosApi.asignarTecnicos(mantenimiento.id, [...selectedIds])
+      toast.success(selectedIds.size > 0 ? 'Técnicos actualizados' : 'Desasignado (pool compartido)')
       onAsignado()
     } catch (err) {
-      const msg = err.response?.data?.message ?? 'No se pudo asignar el técnico'
+      const msg = err.response?.data?.message ?? 'No se pudieron actualizar los técnicos'
       toast.error(msg)
     } finally {
       setIsSubmitting(false)
@@ -68,7 +77,7 @@ export default function AsignarTecnicoModal({ mantenimiento, onClose, onAsignado
           >
             <header className="flex items-center justify-between gap-4 border-b border-border-strong p-6">
               <div>
-                <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-primary">▌ Asignar técnico</p>
+                <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-primary">▌ Asignar técnicos</p>
                 <h2 className="mt-0.5 font-display text-xl uppercase tracking-wide text-white line-clamp-1">
                   {mantenimiento.atraccionNombre}
                 </h2>
@@ -93,42 +102,59 @@ export default function AsignarTecnicoModal({ mantenimiento, onClose, onAsignado
                   <Loader2 size={16} className="animate-spin" />
                   <span className="font-sans text-sm">Cargando técnicos...</span>
                 </div>
+              ) : tecnicos.length === 0 ? (
+                <p className="py-4 text-center font-sans text-sm text-white/50">
+                  No hay técnicos activos disponibles.
+                </p>
               ) : (
-                <div className="space-y-2">
-                  <label className="block font-sans text-sm font-medium text-text">
-                    Asignar a
-                  </label>
-                  <select
-                    value={selectedId}
-                    onChange={(e) => setSelectedId(e.target.value)}
-                    className="w-full rounded-inner border border-border-strong bg-surface-2 px-4 py-3 font-sans text-sm text-text focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
-                  >
-                    <option value="">Sin asignar (pool compartido)</option>
+                <div className="space-y-1">
+                  <p className="mb-3 font-sans text-xs text-text-muted">
+                    Selecciona uno o varios. Sin selección = pool compartido.
+                  </p>
+                  <div className="max-h-56 overflow-y-auto">
                     {tecnicos.map((t) => (
-                      <option key={t.id} value={String(t.id)}>{t.username}</option>
+                      <label
+                        key={t.id}
+                        className="flex cursor-pointer items-center gap-3 rounded-inner px-3 py-2.5 transition-colors hover:bg-surface-2"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(t.id)}
+                          onChange={() => toggle(t.id)}
+                          className="size-4 accent-primary"
+                        />
+                        <span className="font-sans text-sm text-text">{t.username}</span>
+                      </label>
                     ))}
-                  </select>
+                  </div>
                 </div>
               )}
             </div>
 
-            <footer className="flex items-center justify-end gap-3 border-t border-border-strong p-6">
-              <Button variant="secondary" size="md" onClick={onClose} disabled={isSubmitting}>
-                Cancelar
-              </Button>
-              {!isCompletado && (
-                <Button
-                  type="button"
-                  variant="primary"
-                  size="md"
-                  onClick={handleSubmit}
-                  disabled={isSubmitting || loadingTecnicos}
-                >
-                  {isSubmitting
-                    ? <><Loader2 size={14} className="animate-spin" /> Guardando...</>
-                    : <><UserCheck size={14} /> Asignar</>}
+            <footer className="flex items-center justify-between gap-3 border-t border-border-strong p-6">
+              <p className="font-mono text-[10px] text-text-muted">
+                {selectedIds.size === 0
+                  ? 'Sin asignar (pool)'
+                  : `${selectedIds.size} seleccionado${selectedIds.size > 1 ? 's' : ''}`}
+              </p>
+              <div className="flex gap-3">
+                <Button variant="secondary" size="md" onClick={onClose} disabled={isSubmitting}>
+                  Cancelar
                 </Button>
-              )}
+                {!isCompletado && (
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="md"
+                    onClick={handleSubmit}
+                    disabled={isSubmitting || loadingTecnicos}
+                  >
+                    {isSubmitting
+                      ? <><Loader2 size={14} className="animate-spin" /> Guardando...</>
+                      : <><Users size={14} /> Guardar</>}
+                  </Button>
+                )}
+              </div>
             </footer>
           </motion.div>
         </motion.div>

@@ -14,7 +14,7 @@ import {
 
 import MantenimientoCard from '@/components/mantenimiento/MantenimientoCard'
 import MantenimientoFormModal from '@/components/mantenimiento/MantenimientoFormModal'
-import AsignarTecnicoModal from '@/components/mantenimiento/AsignarTecnicoModal'
+import AsignarTecnicosModal from '@/components/mantenimiento/AsignarTecnicosModal'
 import { useMantenimientos } from '@/hooks/useMantenimientos'
 
 /**
@@ -168,7 +168,7 @@ export default function MantenimientoPage() {
         updateMantenimiento={updateMantenimiento}
       />
 
-      <AsignarTecnicoModal
+      <AsignarTecnicosModal
         mantenimiento={asignando}
         onClose={() => setAsignando(null)}
         onAsignado={() => { setAsignando(null); refetch() }}
