@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { DayPicker } from 'react-day-picker'
 import { format, parseISO, isValid } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Search, UserPlus, X } from 'lucide-react'
+import { Search, UserPlus, X, Plus, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import 'react-day-picker/style.css'
 
@@ -22,27 +22,33 @@ import Button from '@/components/Button'
 import { cn } from '@/lib/cn'
 
 const PENSION_OPTS = [
-  { value: 'SIN', label: 'Sin pensión' },
-  { value: 'MEDIA', label: 'Media pensión' },
-  { value: 'COMPLETA', label: 'Completa' },
+  { value: 'SIN',      label: 'Sin pensión'   },
+  { value: 'MEDIA',    label: 'Media pensión' },
+  { value: 'COMPLETA', label: 'Completa'      },
 ]
 
+const TIPO_LABELS = { ADULTO: 'Adulto', NINO: 'Niño', PENSIONISTA: 'Pensionista' }
+const formatTipo = (tipo) => TIPO_LABELS[tipo] ?? tipo
+
+const EMPTY_LINEA = { circuitoId: '', tarifaId: '', cantidad: 1 }
+const EMPTY_META  = { circuitoId: '', tarifas: [] }
+
 const DEFAULT_VALUES = {
-  clienteId: 0,
-  hotelId: '',
-  tarifaId: '',
-  tipoPension: 'SIN',
+  clienteId:    0,
+  hotelId:      '',
+  tipoPension:  'SIN',
   fechaEntrada: '',
-  fechaSalida: '',
-  numEntradas: 1,
+  fechaSalida:  '',
+  lineas:       [EMPTY_LINEA],
 }
 
 export default function NuevaCompraPage() {
   // ── Catálogos ──────────────────────────────────────────────
   const [atracciones, setAtracciones] = useState([])
-  const [tarifas, setTarifas] = useState([])
   const [hoteles, setHoteles] = useState([])
-  const [atraccionId, setAtraccionId] = useState('')
+
+  // per-line: circuitoId + tarifas loaded for that line
+  const [lineasMeta, setLineasMeta] = useState([EMPTY_META])
 
   // ── Buscador de clientes ───────────────────────────────────
   const [query, setQuery] = useState('')
@@ -57,10 +63,9 @@ export default function NuevaCompraPage() {
 
   // ── Éxito ──────────────────────────────────────────────────
   const [ticket, setTicket] = useState(null)
-  const [ticketMeta, setTicketMeta] = useState({ cliente: null, hotel: null, tarifa: null })
+  const [ticketMeta, setTicketMeta] = useState({ cliente: null, hotel: null })
 
-  // Seguimiento local del lodge seleccionado para controlar el disabled
-  // de Circuito/Tarifa sin usar watch() (que el linter rechaza)
+  // ── Lodge local — controla visibilidad de DETALLES/FECHAS ──
   const [hotelIdLocal, setHotelIdLocal] = useState('')
 
   // ── Form ───────────────────────────────────────────────────
@@ -69,25 +74,20 @@ export default function NuevaCompraPage() {
     handleSubmit,
     setValue,
     reset,
+    control,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(nuevaCompraSchema),
     defaultValues: DEFAULT_VALUES,
   })
 
+  const { fields, append, remove } = useFieldArray({ control, name: 'lineas' })
 
   // ── Carga de catálogos ─────────────────────────────────────
   useEffect(() => {
     atraccionesApi.list().then(setAtracciones).catch(() => toast.error('No se pudieron cargar los circuitos'))
     lodgesApi.list().then(setHoteles).catch(() => toast.error('No se pudieron cargar los lodges'))
   }, [])
-
-  useEffect(() => {
-    if (!atraccionId) return
-    tarifasApi.list(atraccionId)
-      .then(setTarifas)
-      .catch(() => toast.error('No se pudieron cargar las tarifas'))
-  }, [atraccionId])
 
   // ── Debounce buscador clientes (300ms) ─────────────────────
   useEffect(() => {
@@ -106,7 +106,7 @@ export default function NuevaCompraPage() {
     return () => clearTimeout(t)
   }, [query])
 
-  // ── Selección de cliente desde resultados ──────────────────
+  // ── Selección de cliente ───────────────────────────────────
   const seleccionarCliente = useCallback((c) => {
     setClienteSeleccionado(c)
     setValue('clienteId', c.id, { shouldValidate: true })
@@ -119,7 +119,6 @@ export default function NuevaCompraPage() {
     setValue('clienteId', 0)
   }
 
-  // ── Crear cliente desde el modal ───────────────────────────
   const handleCrearCliente = async (payload) => {
     try {
       const nuevo = await clientesApi.create(payload)
@@ -133,48 +132,85 @@ export default function NuevaCompraPage() {
     }
   }
 
+  // ── Circuito change per line ───────────────────────────────
+  const handleCircuitoChange = (index, circuitoId) => {
+    setValue(`lineas.${index}.circuitoId`, circuitoId)
+    setValue(`lineas.${index}.tarifaId`, '')
+    setLineasMeta((prev) => {
+      const next = [...prev]
+      next[index] = { circuitoId, tarifas: [] }
+      return next
+    })
+    if (!circuitoId) return
+    tarifasApi.list(circuitoId)
+      .then((tarifas) =>
+        setLineasMeta((prev) => {
+          const next = [...prev]
+          next[index] = { circuitoId, tarifas }
+          return next
+        })
+      )
+      .catch(() => toast.error('No se pudieron cargar las tarifas'))
+  }
+
+  const handleAddLinea = () => {
+    append(EMPTY_LINEA)
+    setLineasMeta((prev) => [...prev, EMPTY_META])
+  }
+
+  const handleRemoveLinea = (index) => {
+    remove(index)
+    setLineasMeta((prev) => prev.filter((_, i) => i !== index))
+  }
+
   // ── Date range ─────────────────────────────────────────────
   const today = new Date(); today.setHours(0, 0, 0, 0)
   const parsedFrom = fechaEntrada && isValid(parseISO(fechaEntrada)) ? parseISO(fechaEntrada) : undefined
-  const parsedTo = fechaSalida && isValid(parseISO(fechaSalida)) ? parseISO(fechaSalida) : undefined
+  const parsedTo   = fechaSalida  && isValid(parseISO(fechaSalida))  ? parseISO(fechaSalida)  : undefined
 
   const handleDateSelect = (range) => {
     const entrada = range?.from ? format(range.from, 'yyyy-MM-dd') : ''
-    const salida = range?.to ? format(range.to, 'yyyy-MM-dd') : ''
+    const salida  = range?.to   ? format(range.to,   'yyyy-MM-dd') : ''
     setFechaEntrada(entrada)
     setFechaSalida(salida)
     setValue('fechaEntrada', entrada, { shouldValidate: true })
-    setValue('fechaSalida', salida, { shouldValidate: true })
+    setValue('fechaSalida',  salida,  { shouldValidate: true })
   }
 
   // ── Submit ─────────────────────────────────────────────────
   const onSubmit = async (data) => {
+    const hasLodge = Boolean(data.hotelId)
+    if (hasLodge && (!data.fechaEntrada || !data.fechaSalida)) {
+      toast.error('Selecciona las fechas de estancia')
+      return
+    }
+    const todayStr = format(new Date(), 'yyyy-MM-dd')
     try {
       const payload = {
-        clienteId: data.clienteId,
-        hotelId: data.hotelId ? Number(data.hotelId) : null,
-        tipoPension: data.tipoPension,
-        fechaEntrada: data.fechaEntrada,
-        fechaSalida: data.fechaSalida,
-        entradas: Array.from({ length: data.numEntradas }, () => ({
-          tarifaId: Number(data.tarifaId),
-          nombreAcompanante: '',
-          apellidosAcompanante: '',
-        })),
+        clienteId:    data.clienteId,
+        hotelId:      data.hotelId ? Number(data.hotelId) : null,
+        tipoPension:  hasLodge ? data.tipoPension : 'SIN',
+        fechaEntrada: hasLodge ? data.fechaEntrada : todayStr,
+        fechaSalida:  hasLodge ? data.fechaSalida  : todayStr,
+        entradas: data.lineas.flatMap((l) =>
+          Array.from({ length: l.cantidad }, () => ({
+            tarifaId:            Number(l.tarifaId),
+            nombreAcompanante:   '',
+            apellidosAcompanante: '',
+          }))
+        ),
       }
       const compra = await crearCompra(payload)
       toast.success('Compra registrada correctamente')
 
       const hotelSeleccionado = hoteles.find((h) => h.id === Number(data.hotelId))
-      const tarifaSeleccionada = tarifas.find((t) => t.id === Number(data.tarifaId))
-      setTicketMeta({ cliente: clienteSeleccionado, hotel: hotelSeleccionado, tarifa: tarifaSeleccionada })
+      setTicketMeta({ cliente: clienteSeleccionado, hotel: hotelSeleccionado })
       setTicket(compra)
 
       reset(DEFAULT_VALUES)
       setClienteSeleccionado(null)
       setHotelIdLocal('')
-      setAtraccionId('')
-      setTarifas([])
+      setLineasMeta([EMPTY_META])
       setFechaEntrada('')
       setFechaSalida('')
     } catch (err) {
@@ -182,8 +218,6 @@ export default function NuevaCompraPage() {
       toast.error(err.response?.data?.message ?? JSON.stringify(err.response?.data) ?? extractApiError(err))
     }
   }
-
-  const handleCerrarTicket = () => setTicket(null)
 
   return (
     <div className="min-h-full bg-bg p-8">
@@ -200,11 +234,9 @@ export default function NuevaCompraPage() {
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="max-w-5xl w-full space-y-6">
 
-          {/* ── CLIENTE ── */}
+          {/* ── 1. CLIENTE ── */}
           <section className="bg-surface-1 border border-border-strong rounded-card p-6">
-            <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-text-muted mb-4">
-              ▌ Cliente
-            </p>
+            <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-text-muted mb-4">▌ Cliente</p>
 
             {clienteSeleccionado ? (
               <div className="flex items-center justify-between bg-surface-2 border border-border-strong rounded-lg px-4 py-3">
@@ -216,12 +248,7 @@ export default function NuevaCompraPage() {
                     {clienteSeleccionado.dni} · {clienteSeleccionado.email}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={limpiarCliente}
-                  className="text-text-muted hover:text-primary transition-colors"
-                  aria-label="Cambiar cliente"
-                >
+                <button type="button" onClick={limpiarCliente} className="text-text-muted hover:text-primary transition-colors" aria-label="Cambiar cliente">
                   <X size={16} />
                 </button>
               </div>
@@ -241,32 +268,19 @@ export default function NuevaCompraPage() {
                   />
                 </div>
 
-                {/* Resultados */}
                 {(resultados.length > 0 || buscando || (query.length >= 2 && !buscando)) && (
                   <div className="absolute z-10 mt-1 w-full bg-surface-1 border border-border-strong rounded-lg shadow-xl overflow-hidden">
-                    {buscando && (
-                      <p className="px-4 py-3 font-mono text-[11px] text-text-muted">Buscando...</p>
-                    )}
+                    {buscando && <p className="px-4 py-3 font-mono text-[11px] text-text-muted">Buscando...</p>}
                     {!buscando && resultados.length === 0 && query.length >= 2 && (
                       <div className="px-4 py-3">
                         <p className="font-sans text-sm text-text-muted mb-2">Sin resultados</p>
-                        <button
-                          type="button"
-                          onClick={() => setModalClienteOpen(true)}
-                          className="flex items-center gap-2 font-sans text-sm text-primary hover:underline"
-                        >
-                          <UserPlus size={14} />
-                          Registrar nuevo cliente
+                        <button type="button" onClick={() => setModalClienteOpen(true)} className="flex items-center gap-2 font-sans text-sm text-primary hover:underline">
+                          <UserPlus size={14} /> Registrar nuevo cliente
                         </button>
                       </div>
                     )}
                     {resultados.map((c) => (
-                      <button
-                        key={c.id}
-                        type="button"
-                        onClick={() => seleccionarCliente(c)}
-                        className="w-full text-left px-4 py-3 hover:bg-surface-2 transition-colors border-b border-border-strong last:border-0"
-                      >
+                      <button key={c.id} type="button" onClick={() => seleccionarCliente(c)} className="w-full text-left px-4 py-3 hover:bg-surface-2 transition-colors border-b border-border-strong last:border-0">
                         <p className="font-sans text-sm text-text">{c.nombre} {c.apellidos}</p>
                         <p className="font-mono text-[11px] text-text-muted">{c.dni} · {c.email}</p>
                       </button>
@@ -275,128 +289,146 @@ export default function NuevaCompraPage() {
                 )}
 
                 {errors.clienteId && (
-                  <p className="mt-2 font-mono text-[10px] text-danger flex items-center gap-1.5">
-                    <span>▶</span> {errors.clienteId.message}
-                  </p>
+                  <p className="mt-2 font-mono text-[10px] text-danger flex items-center gap-1.5"><span>▶</span> {errors.clienteId.message}</p>
                 )}
-
-                <button
-                  type="button"
-                  onClick={() => setModalClienteOpen(true)}
-                  className="mt-2 flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-text-muted hover:text-primary transition-colors"
-                >
-                  <UserPlus size={12} />
-                  Registrar nuevo cliente
+                <button type="button" onClick={() => setModalClienteOpen(true)} className="mt-2 flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-text-muted hover:text-primary transition-colors">
+                  <UserPlus size={12} /> Registrar nuevo cliente
                 </button>
               </div>
             )}
           </section>
 
-          {/* ── LODGE + CIRCUITO + TARIFA ── */}
+          {/* ── 2. ALOJAMIENTO (opcional) ── */}
           <section className="bg-surface-1 border border-border-strong rounded-card p-6">
-            <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-text-muted mb-4">
-              ▌ Producto
-            </p>
-            <div className="grid gap-4 sm:grid-cols-3">
-              {/* Lodge — opcional */}
-              <div>
-                <label className="block font-sans text-sm font-medium text-text mb-2">
-                  Lodge
-                </label>
-                <select
-                  {...register('hotelId')}
-                  onChange={(e) => {
-                    setValue('hotelId', e.target.value, { shouldValidate: true, shouldDirty: true })
-                    setHotelIdLocal(e.target.value)
-                  }}
-                  className="w-full px-4 py-3 bg-surface-2 text-text border border-border-strong rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                >
-                  <option value="">Sin alojamiento</option>
-                  {hoteles.map((h) => (
-                    <option key={h.id} value={h.id}>{h.nombre}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Circuito — independiente del lodge */}
-              <div>
-                <label className="block font-sans text-sm font-medium text-text mb-2">
-                  Circuito
-                </label>
-                <select
-                  value={atraccionId}
-                  onChange={(e) => {
-                    setAtraccionId(e.target.value)
-                    setTarifas([])
-                    setValue('tarifaId', '')
-                  }}
-                  className="w-full px-4 py-3 bg-surface-2 text-text border border-border-strong rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                >
-                  <option value="">Seleccionar...</option>
-                  {atracciones.map((a) => (
-                    <option key={a.id} value={a.id}>{a.nombre}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Tarifa — requiere circuito */}
-              <div>
-                <label className={cn(
-                  'block font-sans text-sm font-medium mb-2',
-                  atraccionId ? 'text-text' : 'text-text-dim'
-                )}>
-                  Tarifa <span className="text-primary">*</span>
-                </label>
-                <select
-                  {...register('tarifaId')}
-                  disabled={!atraccionId}
-                  className={cn(
-                    'w-full px-4 py-3 bg-surface-2 text-text border rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary disabled:opacity-40 disabled:cursor-not-allowed',
-                    errors.tarifaId ? 'border-danger' : 'border-border-strong'
-                  )}
-                >
-                  <option value="">
-                    {atraccionId ? 'Seleccionar...' : 'Elige un circuito primero'}
-                  </option>
-                  {tarifas.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.nombre} {t.precio != null ? `· € ${t.precio}` : ''}
-                    </option>
-                  ))}
-                </select>
-                {errors.tarifaId && (
-                  <p className="mt-2 font-mono text-[10px] text-danger">▶ {errors.tarifaId.message}</p>
-                )}
-              </div>
+            <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-text-muted mb-4">▌ Alojamiento</p>
+            <div>
+              <label className="block font-sans text-sm font-medium text-text mb-2">Lodge</label>
+              <select
+                {...register('hotelId')}
+                onChange={(e) => {
+                  setValue('hotelId', e.target.value, { shouldValidate: true, shouldDirty: true })
+                  setHotelIdLocal(e.target.value)
+                }}
+                className="w-full sm:w-72 px-4 py-3 bg-surface-2 text-text border border-border-strong rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+              >
+                <option value="">Sin alojamiento</option>
+                {hoteles.map((h) => (
+                  <option key={h.id} value={h.id}>{h.nombre}</option>
+                ))}
+              </select>
             </div>
           </section>
 
-          {/* ── PENSIÓN + ENTRADAS ── */}
+          {/* ── 3. ENTRADAS (lista dinámica) ── */}
           <section className="bg-surface-1 border border-border-strong rounded-card p-6">
-            <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-text-muted mb-4">
-              ▌ Detalles
-            </p>
-            <div className="grid gap-6 grid-cols-2">
-              {/* Tipo pensión */}
+            <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-text-muted mb-4">▌ Entradas</p>
+
+            <div className="space-y-3">
+              {fields.map((field, index) => {
+                const meta = lineasMeta[index] ?? EMPTY_META
+                const lineaErrors = errors.lineas?.[index]
+                return (
+                  <div key={field.id} className="bg-surface-2 border border-border-strong rounded-inner p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="font-mono text-[10px] tracking-widest uppercase text-text-muted">
+                        Entrada {index + 1}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveLinea(index)}
+                        disabled={fields.length === 1}
+                        className="text-text-muted hover:text-danger transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        aria-label="Eliminar entrada"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      {/* Circuito */}
+                      <div>
+                        <label className="block font-sans text-xs font-medium text-text mb-1.5">Circuito</label>
+                        <select
+                          value={meta.circuitoId}
+                          onChange={(e) => handleCircuitoChange(index, e.target.value)}
+                          className="w-full px-3 py-2.5 bg-surface-1 text-text border border-border-strong rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                        >
+                          <option value="">Seleccionar...</option>
+                          {atracciones.map((a) => (
+                            <option key={a.id} value={a.id}>{a.nombre}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Tarifa */}
+                      <div>
+                        <label className={cn('block font-sans text-xs font-medium mb-1.5', meta.circuitoId ? 'text-text' : 'text-text-dim')}>
+                          Tarifa <span className="text-primary">*</span>
+                        </label>
+                        <select
+                          {...register(`lineas.${index}.tarifaId`)}
+                          disabled={!meta.circuitoId}
+                          className={cn(
+                            'w-full px-3 py-2.5 bg-surface-1 text-text border rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary disabled:opacity-40 disabled:cursor-not-allowed',
+                            lineaErrors?.tarifaId ? 'border-danger' : 'border-border-strong'
+                          )}
+                        >
+                          <option value="">{meta.circuitoId ? 'Seleccionar...' : 'Elige un circuito primero'}</option>
+                          {meta.tarifas.map((t) => (
+                            <option key={t.id} value={t.id}>
+                              {formatTipo(t.tipo)} · {t.precio != null ? `${t.precio}€` : '—'}
+                            </option>
+                          ))}
+                        </select>
+                        {lineaErrors?.tarifaId && (
+                          <p className="mt-1 font-mono text-[10px] text-danger">▶ {lineaErrors.tarifaId.message}</p>
+                        )}
+                      </div>
+
+                      {/* Cantidad */}
+                      <div>
+                        <Input
+                          label="Cantidad"
+                          required
+                          type="number"
+                          min={1}
+                          max={20}
+                          error={lineaErrors?.cantidad?.message}
+                          {...register(`lineas.${index}.cantidad`)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {typeof errors.lineas?.message === 'string' && (
+              <p className="mt-3 font-mono text-[10px] text-danger">▶ {errors.lineas.message}</p>
+            )}
+
+            <button
+              type="button"
+              onClick={handleAddLinea}
+              className="mt-4 flex items-center gap-2 font-mono text-[11px] tracking-wider text-text-muted hover:text-primary transition-colors"
+            >
+              <Plus size={14} /> Añadir entrada
+            </button>
+          </section>
+
+          {/* ── 4. TIPO DE PENSIÓN (solo si hay lodge) ── */}
+          {hotelIdLocal && (
+            <section className="bg-surface-1 border border-border-strong rounded-card p-6">
+              <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-text-muted mb-4">▌ Detalles</p>
               <div>
                 <p className="font-sans text-sm font-medium text-text mb-3">
                   Tipo de pensión <span className="text-primary">*</span>
                 </p>
                 <div className="flex flex-col gap-2">
                   {PENSION_OPTS.map(({ value, label }) => (
-                    <label
-                      key={value}
-                      className="flex items-center gap-3 cursor-pointer group"
-                    >
-                      <input
-                        type="radio"
-                        value={value}
-                        {...register('tipoPension')}
-                        className="w-4 h-4 accent-primary"
-                      />
-                      <span className="font-sans text-sm text-text-muted group-hover:text-text transition-colors">
-                        {label}
-                      </span>
+                    <label key={value} className="flex items-center gap-3 cursor-pointer group">
+                      <input type="radio" value={value} {...register('tipoPension')} className="w-4 h-4 accent-primary" />
+                      <span className="font-sans text-sm text-text-muted group-hover:text-text transition-colors">{label}</span>
                     </label>
                   ))}
                 </div>
@@ -404,68 +436,48 @@ export default function NuevaCompraPage() {
                   <p className="mt-2 font-mono text-[10px] text-danger">▶ {errors.tipoPension.message}</p>
                 )}
               </div>
+            </section>
+          )}
 
-              {/* Num entradas */}
-              <div>
-                <Input
-                  label="Número de entradas"
-                  required
-                  type="number"
-                  min={1}
-                  max={20}
-                  error={errors.numEntradas?.message}
-                  {...register('numEntradas')}
+          {/* ── 5. FECHAS DE ESTANCIA (solo si hay lodge) ── */}
+          {hotelIdLocal && (
+            <section className="bg-surface-1 border border-border-strong rounded-card p-6">
+              <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-text-muted mb-1">▌ Fechas de estancia</p>
+              {(errors.fechaEntrada || errors.fechaSalida) && (
+                <p className="mb-3 font-mono text-[10px] text-danger">
+                  ▶ {errors.fechaEntrada?.message || errors.fechaSalida?.message}
+                </p>
+              )}
+              <div className="w-full overflow-x-auto">
+                <DayPicker
+                  mode="range"
+                  selected={{ from: parsedFrom, to: parsedTo }}
+                  onSelect={handleDateSelect}
+                  disabled={{ before: today }}
+                  locale={es}
+                  weekStartsOn={1}
+                  numberOfMonths={2}
+                  showOutsideDays
+                  captionLayout="label"
                 />
               </div>
-            </div>
-          </section>
+              {(fechaEntrada || fechaSalida) && (
+                <p className="mt-2 font-mono text-[11px] text-text-muted">
+                  {fechaEntrada && `Entrada: ${fechaEntrada}`}
+                  {fechaEntrada && fechaSalida && ' · '}
+                  {fechaSalida && `Salida: ${fechaSalida}`}
+                </p>
+              )}
+            </section>
+          )}
 
-          {/* ── FECHAS ── */}
-          <section className="bg-surface-1 border border-border-strong rounded-card p-6">
-            <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-text-muted mb-1">
-              ▌ Fechas de estancia
-            </p>
-            {(errors.fechaEntrada || errors.fechaSalida) && (
-              <p className="mb-3 font-mono text-[10px] text-danger">
-                ▶ {errors.fechaEntrada?.message || errors.fechaSalida?.message}
-              </p>
-            )}
-            <div className="w-full overflow-x-auto">
-              <DayPicker
-                mode="range"
-                selected={{ from: parsedFrom, to: parsedTo }}
-                onSelect={handleDateSelect}
-                disabled={{ before: today }}
-                locale={es}
-                weekStartsOn={1}
-                numberOfMonths={2}
-                showOutsideDays
-                captionLayout="label"
-              />
-            </div>
-            {(fechaEntrada || fechaSalida) && (
-              <p className="mt-2 font-mono text-[11px] text-text-muted">
-                {fechaEntrada && `Entrada: ${fechaEntrada}`}
-                {fechaEntrada && fechaSalida && ' · '}
-                {fechaSalida && `Salida: ${fechaSalida}`}
-              </p>
-            )}
-          </section>
-
-          {/* ── SUBMIT ── */}
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            disabled={isSubmitting}
-            className="w-full sm:w-auto"
-          >
+          {/* ── 6. SUBMIT ── */}
+          <Button type="submit" variant="primary" size="lg" disabled={isSubmitting} className="w-full sm:w-auto">
             {isSubmitting ? 'Registrando...' : 'Registrar Compra'}
           </Button>
         </div>
       </form>
 
-      {/* Modal nuevo cliente */}
       <ClienteFormModal
         isOpen={modalClienteOpen}
         onClose={() => setModalClienteOpen(false)}
@@ -474,13 +486,11 @@ export default function NuevaCompraPage() {
         updateCliente={() => {}}
       />
 
-      {/* Ticket de éxito */}
       <TicketModal
         compra={ticket}
         cliente={ticketMeta.cliente}
         hotel={ticketMeta.hotel}
-        tarifa={ticketMeta.tarifa}
-        onClose={handleCerrarTicket}
+        onClose={() => setTicket(null)}
       />
     </div>
   )

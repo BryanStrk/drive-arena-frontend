@@ -1,5 +1,18 @@
 import { z } from 'zod'
 
+const lineaSchema = z.object({
+  circuitoId: z.string().optional(),
+  tarifaId: z
+    .coerce.number({ required_error: 'Selecciona una tarifa' })
+    .int()
+    .positive('Selecciona una tarifa'),
+  cantidad: z
+    .coerce.number({ required_error: 'Indica la cantidad' })
+    .int()
+    .min(1, 'Mínimo 1')
+    .max(20, 'Máximo 20'),
+})
+
 export const nuevaCompraSchema = z.object({
   clienteId: z
     .number({ required_error: 'Selecciona un cliente' })
@@ -11,21 +24,10 @@ export const nuevaCompraSchema = z.object({
     z.number().int().positive().nullable()
   ),
 
-  tarifaId: z
-    .coerce.number({ required_error: 'Selecciona una tarifa' })
-    .int()
-    .positive('Selecciona una tarifa'),
+  tipoPension: z.enum(['SIN', 'MEDIA', 'COMPLETA']).default('SIN'),
 
-  tipoPension: z.enum(['SIN', 'MEDIA', 'COMPLETA'], {
-    required_error: 'Selecciona el tipo de pensión',
-  }),
+  fechaEntrada: z.string().default(''),
+  fechaSalida: z.string().default(''),
 
-  fechaEntrada: z.string().min(1, 'Selecciona la fecha de entrada'),
-  fechaSalida: z.string().min(1, 'Selecciona la fecha de salida'),
-
-  numEntradas: z
-    .coerce.number({ required_error: 'Indica el número de entradas' })
-    .int()
-    .min(1, 'Mínimo 1 entrada')
-    .max(20, 'Máximo 20 entradas'),
+  lineas: z.array(lineaSchema).min(1, 'Añade al menos una entrada'),
 })

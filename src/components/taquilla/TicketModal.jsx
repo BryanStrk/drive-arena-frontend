@@ -7,20 +7,19 @@ import Button from '@/components/Button'
  * Recibe la compra creada (respuesta del backend) + datos de apoyo
  * (cliente, hotel, tarifa) para mostrar un resumen completo.
  */
-export default function TicketModal({ compra, cliente, hotel, tarifa, onClose }) {
+export default function TicketModal({ compra, cliente, hotel, onClose }) {
   if (!compra) return null
 
   const rows = [
     { label: 'ID Compra', value: `#${compra.id}` },
-    { label: 'Cliente', value: `${cliente?.nombre ?? ''} ${cliente?.apellidos ?? ''}`.trim() },
-    { label: 'DNI', value: cliente?.dni ?? '—' },
-    { label: 'Lodge', value: hotel?.nombre ?? compra.hotelNombre ?? '—' },
-    { label: 'Tarifa', value: tarifa?.nombre ?? compra.tarifaNombre ?? '—' },
-    { label: 'Pensión', value: compra.tipoPension ?? '—' },
-    { label: 'Entrada', value: compra.fechaEntrada ?? '—' },
-    { label: 'Salida', value: compra.fechaSalida ?? '—' },
-    { label: 'Entradas', value: compra.entradas?.length ?? compra.numEntradas ?? '—' },
-    { label: 'Total', value: compra.total != null ? `€ ${Number(compra.total).toLocaleString('es-ES', { minimumFractionDigits: 2 })}` : '—' },
+    { label: 'Cliente',   value: `${cliente?.nombre ?? ''} ${cliente?.apellidos ?? ''}`.trim() },
+    { label: 'DNI',       value: cliente?.dni ?? '—' },
+    { label: 'Lodge',     value: hotel?.nombre ?? compra.hotelNombre ?? '—' },
+    { label: 'Pensión',   value: compra.tipoPension ?? '—' },
+    { label: 'Entrada',   value: compra.fechaEntrada ?? '—' },
+    { label: 'Salida',    value: compra.fechaSalida ?? '—' },
+    { label: 'Entradas',  value: compra.entradas?.length ?? '—' },
+    { label: 'Total',     value: compra.total != null ? `€ ${Number(compra.total).toLocaleString('es-ES', { minimumFractionDigits: 2 })}` : '—' },
   ]
 
   return (
