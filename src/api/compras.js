@@ -14,6 +14,11 @@ import axiosClient from './axiosClient'
  * no desde aquí. Aquí solo lectura + borrado.
  */
 
+export async function crearCompra(payload) {
+  const { data } = await axiosClient.post('/compras', payload)
+  return data
+}
+
 export async function obtenerCompras({ clienteId, hotelId } = {}) {
   const params = {}
   if (clienteId) params.clienteId = clienteId

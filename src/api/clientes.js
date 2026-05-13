@@ -42,6 +42,11 @@ export const clientesApi = {
     return data
   },
 
+  async buscar(q) {
+    const { data } = await axiosClient.get(`${BASE_URL}/buscar`, { params: { q } })
+    return data
+  },
+
   async create(payload) {
     const { data } = await axiosClient.post(BASE_URL, payload)
     return data
