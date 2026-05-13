@@ -104,7 +104,11 @@ function DashboardLayout() {
                 <p className="font-display text-sm tracking-wide text-text uppercase truncate">
                   {user?.username}
                 </p>
-                <Badge variant="primary" size="xs">
+                <Badge
+                  variant={user?.rol === 'TECNICO' ? 'warning' : 'primary'}
+                  size="xs"
+                  className={user?.rol === 'TECNICO' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : ''}
+                >
                   {user?.rol}
                 </Badge>
               </div>
