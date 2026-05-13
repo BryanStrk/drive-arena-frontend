@@ -20,7 +20,7 @@ const schema = z.object({
   password: z
     .string()
     .min(8, 'Mínimo 8 caracteres'),
-  rol: z.enum(['ADMIN', 'TAQUILLA'], { required_error: 'Selecciona un rol' }),
+  rol: z.enum(['ADMIN', 'TAQUILLA', 'TECNICO'], { required_error: 'Selecciona un rol' }),
 })
 
 const DEFAULTS = { username: '', password: '', rol: 'TAQUILLA' }
@@ -132,7 +132,7 @@ export default function UsuarioFormModal({ isOpen, onClose, onCreated }) {
                     Rol <span className="text-primary ml-1">*</span>
                   </legend>
                   <div className="flex gap-4">
-                    {['ADMIN', 'TAQUILLA'].map((r) => (
+                    {['ADMIN', 'TAQUILLA', 'TECNICO'].map((r) => (
                       <label key={r} className="flex items-center gap-2.5 cursor-pointer">
                         <input
                           type="radio"
@@ -140,7 +140,7 @@ export default function UsuarioFormModal({ isOpen, onClose, onCreated }) {
                           {...register('rol')}
                           className="accent-primary"
                         />
-                        <span className="font-mono text-sm text-text">{r}</span>
+                        <span className={`font-mono text-sm ${r === 'TECNICO' ? 'text-orange-400' : 'text-text'}`}>{r}</span>
                       </label>
                     ))}
                   </div>
