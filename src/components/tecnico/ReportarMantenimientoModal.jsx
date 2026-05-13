@@ -8,24 +8,21 @@ import toast from 'react-hot-toast'
 
 import { mantenimientosApi } from '@/api/mantenimientos'
 import { atraccionesApi } from '@/api/atracciones'
-import { empleadosApi } from '@/api/empleados'
 import Button from '@/components/Button'
 
 const schema = z.object({
   atraccionId:     z.string().min(1, 'Selecciona un circuito'),
-  tecnicoId:       z.string().min(1, 'Selecciona un técnico'),
   fechaProgramada: z.string().min(1, 'Indica la fecha programada'),
   descripcion:     z.string().optional(),
 })
 
-const DEFAULTS = { atraccionId: '', tecnicoId: '', fechaProgramada: '', descripcion: '' }
+const DEFAULTS = { atraccionId: '', fechaProgramada: '', descripcion: '' }
 
-const selectClass = 'w-full px-4 py-3 bg-surface-2 font-sans text-sm text-text rounded-inner border border-border-strong focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary'
+const fieldClass = 'w-full px-4 py-3 bg-surface-2 font-sans text-sm text-text rounded-inner border border-border-strong focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary'
 
 export default function ReportarMantenimientoModal({ onClose, onCreated }) {
   const [atracciones, setAtracciones] = useState([])
-  const [tecnicos, setTecnicos] = useState([])
-  const [loadingCatalogos, setLoadingCatalogos] = useState(true)
+  const [loadingCircuitos, setLoadingCircuitos] = useState(true)
 
   const {
     register,
@@ -35,23 +32,23 @@ export default function ReportarMantenimientoModal({ onClose, onCreated }) {
 
   useEffect(() => {
     let cancelled = false
-    Promise.all([
-      atraccionesApi.list(),
-      empleadosApi.list({ oficio: 'TECNICO', soloActivos: true }),
-    ])
-      .then(([atrs, tecs]) => {
+    atraccionesApi.list()
+      .then((data) => {
         if (cancelled) return
-        setAtracciones(atrs)
-        setTecnicos(tecs)
+        setAtracciones(Array.isArray(data) ? data : [])
       })
-      .catch(() => toast.error('Error al cargar circuitos y técnicos'))
-      .finally(() => { if (!cancelled) setLoadingCatalogos(false) })
+      .catch(() => toast.error('Error al cargar los circuitos'))
+      .finally(() => { if (!cancelled) setLoadingCircuitos(false) })
     return () => { cancelled = true }
   }, [])
 
-  const onSubmit = async (data) => {
+  const onSubmit = async ({ atraccionId, fechaProgramada, descripcion }) => {
     try {
-      await mantenimientosApi.create(data)
+      await mantenimientosApi.create({
+        atraccionId:     Number(atraccionId),
+        fechaProgramada,
+        descripcion:     descripcion || undefined,
+      })
       toast.success('Mantenimiento reportado')
       onCreated()
     } catch (err) {
@@ -100,10 +97,10 @@ export default function ReportarMantenimientoModal({ onClose, onCreated }) {
 
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="p-6 space-y-5">
-              {loadingCatalogos ? (
+              {loadingCircuitos ? (
                 <div className="flex items-center gap-2 text-text-muted py-4">
                   <Loader2 size={16} className="animate-spin" />
-                  <span className="font-sans text-sm">Cargando...</span>
+                  <span className="font-sans text-sm">Cargando circuitos...</span>
                 </div>
               ) : (
                 <>
@@ -112,7 +109,7 @@ export default function ReportarMantenimientoModal({ onClose, onCreated }) {
                     <label className="block font-sans text-sm font-medium text-text mb-2">
                       Circuito <span className="text-primary ml-1">*</span>
                     </label>
-                    <select {...register('atraccionId')} className={selectClass}>
+                    <select {...register('atraccionId')} className={fieldClass}>
                       <option value="">Selecciona un circuito</option>
                       {atracciones.map((a) => (
                         <option key={a.id} value={String(a.id)}>{a.nombre}</option>
@@ -120,26 +117,6 @@ export default function ReportarMantenimientoModal({ onClose, onCreated }) {
                     </select>
                     {errors.atraccionId && (
                       <p className="mt-1 font-mono text-[10px] text-danger">▶ {errors.atraccionId.message}</p>
-                    )}
-                  </div>
-
-                  {/* Técnico */}
-                  <div>
-                    <label className="block font-sans text-sm font-medium text-text mb-2">
-                      Técnico asignado <span className="text-primary ml-1">*</span>
-                    </label>
-                    <select {...register('tecnicoId')} className={selectClass}>
-                      <option value="">
-                        {tecnicos.length === 0 ? 'No hay técnicos disponibles' : 'Selecciona un técnico'}
-                      </option>
-                      {tecnicos.map((t) => {
-                        const fullName = `${t.nombre ?? ''} ${t.apellidos ?? ''}`.trim()
-                        const label = t.dni ? `${fullName} · ${t.dni}` : fullName
-                        return <option key={t.id} value={String(t.id)}>{label}</option>
-                      })}
-                    </select>
-                    {errors.tecnicoId && (
-                      <p className="mt-1 font-mono text-[10px] text-danger">▶ {errors.tecnicoId.message}</p>
                     )}
                   </div>
 
@@ -151,7 +128,7 @@ export default function ReportarMantenimientoModal({ onClose, onCreated }) {
                     <input
                       type="date"
                       {...register('fechaProgramada')}
-                      className={selectClass}
+                      className={fieldClass}
                     />
                     {errors.fechaProgramada && (
                       <p className="mt-1 font-mono text-[10px] text-danger">▶ {errors.fechaProgramada.message}</p>
@@ -167,7 +144,7 @@ export default function ReportarMantenimientoModal({ onClose, onCreated }) {
                       {...register('descripcion')}
                       rows={3}
                       placeholder="Describe el problema o tarea..."
-                      className={`${selectClass} resize-none`}
+                      className={`${fieldClass} resize-none`}
                     />
                   </div>
                 </>
@@ -182,7 +159,7 @@ export default function ReportarMantenimientoModal({ onClose, onCreated }) {
                 type="submit"
                 variant="primary"
                 size="md"
-                disabled={isSubmitting || loadingCatalogos}
+                disabled={isSubmitting || loadingCircuitos}
               >
                 {isSubmitting
                   ? <><Loader2 size={14} className="animate-spin" /> Reportando...</>
