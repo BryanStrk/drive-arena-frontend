@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { X, Loader2, ArrowRight, Calendar, User, Wrench } from 'lucide-react'
+import { X, Loader2, ArrowRight, Calendar, User, Wrench, UserCheck } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 import { mantenimientosApi } from '@/api/mantenimientos'
+import { useAuth } from '@/context/AuthContext'
 import Button from '@/components/Button'
 
 const ESTADO_CONFIG = {
@@ -24,9 +25,26 @@ function fmtFecha(s) {
 }
 
 export default function MantenimientoDetailModal({ mantenimiento, onClose, onUpdated }) {
+  const { user } = useAuth()
   const [loading, setLoading] = useState(false)
   const config = ESTADO_CONFIG[mantenimiento.estado] ?? ESTADO_CONFIG.PENDIENTE
   const transition = TRANSITIONS[mantenimiento.estado]
+  const isPool = !mantenimiento.tecnicoAsignadoUsername
+  const canTomar = isPool && mantenimiento.estado !== 'COMPLETADO' && mantenimiento.estado !== 'CANCELADO'
+
+  const handleTomar = async () => {
+    setLoading(true)
+    try {
+      await mantenimientosApi.asignarTecnico(mantenimiento.id, user.userId)
+      toast.success('Tarea tomada correctamente')
+      onUpdated()
+    } catch (err) {
+      const msg = err.response?.data?.message ?? 'No se pudo tomar la tarea'
+      toast.error(msg)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleTransition = async () => {
     if (!transition) return
@@ -94,9 +112,10 @@ export default function MantenimientoDetailModal({ mantenimiento, onClose, onUpd
                 <dt className="flex items-center gap-1.5 font-sans text-[10px] uppercase tracking-[0.15em] text-text-muted mb-1">
                   <User size={11} /> Técnico
                 </dt>
-                <dd className="font-sans text-sm text-text">{mantenimiento.tecnicoNombreCompleto ?? '—'}</dd>
-                {mantenimiento.tecnicoDni && (
-                  <dd className="font-mono text-[10px] text-text-dim mt-0.5">{mantenimiento.tecnicoDni}</dd>
+                {mantenimiento.tecnicoAsignadoUsername ? (
+                  <dd className="font-sans text-sm text-text">{mantenimiento.tecnicoAsignadoUsername}</dd>
+                ) : (
+                  <dd className="font-sans text-sm text-white/30 italic">Pool compartido</dd>
                 )}
               </div>
               <div>
@@ -123,6 +142,13 @@ export default function MantenimientoDetailModal({ mantenimiento, onClose, onUpd
             <Button variant="secondary" size="md" onClick={onClose} disabled={loading}>
               Cerrar
             </Button>
+            {canTomar && (
+              <Button variant="secondary" size="md" onClick={handleTomar} disabled={loading}>
+                {loading
+                  ? <><Loader2 size={14} className="animate-spin" /> Tomando...</>
+                  : <><UserCheck size={14} /> Tomar tarea</>}
+              </Button>
+            )}
             {transition && (
               <Button variant="primary" size="md" onClick={handleTransition} disabled={loading}>
                 {loading

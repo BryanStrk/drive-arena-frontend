@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Plus, RefreshCw } from 'lucide-react'
 import { mantenimientosApi } from '@/api/mantenimientos'
+import { useAuth } from '@/context/AuthContext'
 import MantenimientoDetailModal from '@/components/tecnico/MantenimientoDetailModal'
 import ReportarMantenimientoModal from '@/components/tecnico/ReportarMantenimientoModal'
 import { cn } from '@/lib/cn'
@@ -31,21 +32,43 @@ function fmtFecha(s) {
   return new Date(s).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
-function KanbanCard({ m, onClick }) {
+function KanbanCard({ m, me, onClick }) {
+  const isAssignedToMe = m.tecnicoAsignadoUsername === me
+  const isPool = !m.tecnicoAsignadoUsername
+  const isOther = Boolean(m.tecnicoAsignadoUsername) && m.tecnicoAsignadoUsername !== me
+
   return (
     <button
       type="button"
-      onClick={() => onClick(m)}
-      className="w-full text-left rounded-inner border border-border-strong bg-surface-2 p-4 hover:border-primary hover:bg-surface-1 transition-colors"
+      onClick={isOther ? undefined : () => onClick(m)}
+      disabled={isOther}
+      className={cn(
+        'w-full text-left rounded-inner border border-border-strong bg-surface-2 p-4 transition-colors',
+        isOther
+          ? 'opacity-40 cursor-not-allowed'
+          : 'hover:border-primary hover:bg-surface-1',
+      )}
     >
       <p className="font-display text-base uppercase tracking-wide text-text line-clamp-1">
         {m.atraccionNombre}
       </p>
-      {m.tecnicoNombreCompleto && (
-        <p className="mt-1 font-sans text-xs text-text-muted line-clamp-1">
-          {m.tecnicoNombreCompleto}
-        </p>
-      )}
+      <div className="mt-2">
+        {isAssignedToMe && (
+          <span className="inline-flex items-center rounded-full border border-orange-500/30 bg-orange-500/15 px-2 py-0.5 font-mono text-[9px] tracking-widest uppercase text-orange-400">
+            Asignado a ti
+          </span>
+        )}
+        {isPool && (
+          <span className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-2 py-0.5 font-mono text-[9px] tracking-widest uppercase text-white/40">
+            Pool
+          </span>
+        )}
+        {isOther && (
+          <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2 py-0.5 font-mono text-[9px] tracking-widest uppercase text-white/30 line-clamp-1 max-w-full">
+            {m.tecnicoAsignadoUsername}
+          </span>
+        )}
+      </div>
       {m.fechaProgramada && (
         <p className="mt-2 font-mono text-[10px] text-text-dim">
           {fmtFecha(m.fechaProgramada)}
@@ -56,6 +79,8 @@ function KanbanCard({ m, onClick }) {
 }
 
 export default function MantenimientosTecnicoPage() {
+  const { user } = useAuth()
+  const me = user?.username
   const [todos, setTodos] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [selected, setSelected] = useState(null)
@@ -124,7 +149,7 @@ export default function MantenimientosTecnicoPage() {
                     <div key={i} className="h-20 rounded-inner bg-surface-2 animate-pulse" />
                   ))
                 : byEstado(estado).map((m) => (
-                    <KanbanCard key={m.id} m={m} onClick={setSelected} />
+                    <KanbanCard key={m.id} m={m} me={me} onClick={setSelected} />
                   ))}
               {!isLoading && byEstado(estado).length === 0 && (
                 <p className="py-8 text-center font-sans text-xs text-text-dim">
