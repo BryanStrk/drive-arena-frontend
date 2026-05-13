@@ -150,7 +150,19 @@ export default function NuevaCompraPage() {
   // ── Submit ─────────────────────────────────────────────────
   const onSubmit = async (data) => {
     try {
-      const compra = await crearCompra(data)
+      const payload = {
+        clienteId: data.clienteId,
+        hotelId: data.hotelId ? Number(data.hotelId) : null,
+        tipoPension: data.tipoPension,
+        fechaEntrada: data.fechaEntrada,
+        fechaSalida: data.fechaSalida,
+        entradas: Array.from({ length: data.numEntradas }, () => ({
+          tarifaId: Number(data.tarifaId),
+          nombreAcompanante: '',
+          apellidosAcompanante: '',
+        })),
+      }
+      const compra = await crearCompra(payload)
       toast.success('Compra registrada correctamente')
 
       const hotelSeleccionado = hoteles.find((h) => h.id === Number(data.hotelId))
@@ -158,7 +170,6 @@ export default function NuevaCompraPage() {
       setTicketMeta({ cliente: clienteSeleccionado, hotel: hotelSeleccionado, tarifa: tarifaSeleccionada })
       setTicket(compra)
 
-      // reset del form
       reset(DEFAULT_VALUES)
       setClienteSeleccionado(null)
       setHotelIdLocal('')
@@ -167,7 +178,8 @@ export default function NuevaCompraPage() {
       setFechaEntrada('')
       setFechaSalida('')
     } catch (err) {
-      toast.error(extractApiError(err))
+      console.error('POST /api/compras error:', err.response?.data)
+      toast.error(err.response?.data?.message ?? JSON.stringify(err.response?.data) ?? extractApiError(err))
     }
   }
 

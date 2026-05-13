@@ -19,7 +19,7 @@ export default function TicketModal({ compra, cliente, hotel, tarifa, onClose })
     { label: 'Pensión', value: compra.tipoPension ?? '—' },
     { label: 'Entrada', value: compra.fechaEntrada ?? '—' },
     { label: 'Salida', value: compra.fechaSalida ?? '—' },
-    { label: 'Entradas', value: compra.numEntradas ?? '—' },
+    { label: 'Entradas', value: compra.entradas?.length ?? compra.numEntradas ?? '—' },
     { label: 'Total', value: compra.total != null ? `€ ${Number(compra.total).toLocaleString('es-ES', { minimumFractionDigits: 2 })}` : '—' },
   ]
 
