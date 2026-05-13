@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { DayPicker } from 'react-day-picker'
-import { format, parseISO, isValid } from 'date-fns'
+import { format, parseISO, isValid, differenceInDays } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Search, UserPlus, X, Plus, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -29,6 +29,12 @@ const PENSION_OPTS = [
 
 const TIPO_LABELS = { ADULTO: 'Adulto', NINO: 'Niño', PENSIONISTA: 'Pensionista' }
 const formatTipo = (tipo) => TIPO_LABELS[tipo] ?? tipo
+
+// Format price: strip trailing .00 decimals, keep real ones (80.50 → "80,5€")
+const fmtPrice = (v) =>
+  v != null
+    ? `${Number(v).toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}€`
+    : null
 
 const EMPTY_LINEA = { circuitoId: '', tarifaId: '', cantidad: 1 }
 const EMPTY_META  = { circuitoId: '', tarifas: [] }
@@ -65,8 +71,9 @@ export default function NuevaCompraPage() {
   const [ticket, setTicket] = useState(null)
   const [ticketMeta, setTicketMeta] = useState({ cliente: null, hotel: null })
 
-  // ── Lodge local — controla visibilidad de DETALLES/FECHAS ──
+  // ── Lodge + pensión local — controlan visibilidad y estimación ──
   const [hotelIdLocal, setHotelIdLocal] = useState('')
+  const [pensionLocal, setPensionLocal] = useState('SIN')
 
   // ── Form ───────────────────────────────────────────────────
   const {
@@ -210,6 +217,7 @@ export default function NuevaCompraPage() {
       reset(DEFAULT_VALUES)
       setClienteSeleccionado(null)
       setHotelIdLocal('')
+      setPensionLocal('SIN')
       setLineasMeta([EMPTY_META])
       setFechaEntrada('')
       setFechaSalida('')
@@ -308,13 +316,21 @@ export default function NuevaCompraPage() {
                 onChange={(e) => {
                   setValue('hotelId', e.target.value, { shouldValidate: true, shouldDirty: true })
                   setHotelIdLocal(e.target.value)
+                  if (!e.target.value) setPensionLocal('SIN')
                 }}
                 className="w-full sm:w-72 px-4 py-3 bg-surface-2 text-text border border-border-strong rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
               >
                 <option value="">Sin alojamiento</option>
-                {hoteles.map((h) => (
-                  <option key={h.id} value={h.id}>{h.nombre}</option>
-                ))}
+                {hoteles.map((h) => {
+                  const mp = fmtPrice(h.precioMediaPension)
+                  const pc = fmtPrice(h.precioPensionCompleta)
+                  const prices = [mp && `MP ${mp}`, pc && `PC ${pc}`].filter(Boolean).join(' · ')
+                  return (
+                    <option key={h.id} value={h.id}>
+                      {h.nombre}{prices ? ` · ${prices}` : ''}
+                    </option>
+                  )
+                })}
               </select>
             </div>
           </section>
@@ -427,7 +443,16 @@ export default function NuevaCompraPage() {
                 <div className="flex flex-col gap-2">
                   {PENSION_OPTS.map(({ value, label }) => (
                     <label key={value} className="flex items-center gap-3 cursor-pointer group">
-                      <input type="radio" value={value} {...register('tipoPension')} className="w-4 h-4 accent-primary" />
+                      <input
+                        type="radio"
+                        value={value}
+                        {...register('tipoPension')}
+                        onChange={(e) => {
+                          setValue('tipoPension', e.target.value)
+                          setPensionLocal(e.target.value)
+                        }}
+                        className="w-4 h-4 accent-primary"
+                      />
                       <span className="font-sans text-sm text-text-muted group-hover:text-text transition-colors">{label}</span>
                     </label>
                   ))}
@@ -468,6 +493,24 @@ export default function NuevaCompraPage() {
                   {fechaSalida && `Salida: ${fechaSalida}`}
                 </p>
               )}
+
+              {/* Estimación de coste de alojamiento */}
+              {(() => {
+                if (!fechaEntrada || !fechaSalida || pensionLocal === 'SIN') return null
+                const hotel = hoteles.find((h) => h.id === Number(hotelIdLocal))
+                if (!hotel) return null
+                const noches = differenceInDays(parseISO(fechaSalida), parseISO(fechaEntrada))
+                if (noches <= 0) return null
+                const pxn = pensionLocal === 'MEDIA' ? hotel.precioMediaPension : hotel.precioPensionCompleta
+                if (pxn == null) return null
+                const total = Number(pxn) * noches
+                return (
+                  <p className="mt-3 font-mono text-[11px] text-text-muted">
+                    Alojamiento estimado: {noches} {noches === 1 ? 'noche' : 'noches'} × {fmtPrice(pxn)} ={' '}
+                    <span className="text-primary font-bold">{fmtPrice(total)}</span>
+                  </p>
+                )
+              })()}
             </section>
           )}
 
