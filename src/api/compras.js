@@ -40,3 +40,7 @@ export async function obtenerCompraPorId(id) {
 export async function eliminarCompra(id) {
   await axiosClient.delete(`/compras/${id}`)
 }
+
+export async function enviarTicket(compraId) {
+  await axiosClient.post(`/compras/${compraId}/enviar-ticket`)
+}
