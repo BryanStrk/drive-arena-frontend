@@ -49,4 +49,9 @@ export const usuariosApi = {
     const { data } = await axiosClient.patch(`${BASE_URL}/${id}/toggle-active`)
     return data
   },
+
+  async listTecnicosActivos() {
+    const { data } = await axiosClient.get(`${BASE_URL}/tecnicos-activos`)
+    return data
+  },
 }

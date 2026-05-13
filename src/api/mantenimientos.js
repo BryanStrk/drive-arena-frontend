@@ -64,4 +64,9 @@ export const mantenimientosApi = {
     const { data } = await axiosClient.patch(`${BASE_URL}/${id}/estado`, { estado })
     return data
   },
+
+  async asignarTecnico(id, tecnicoId) {
+    const { data } = await axiosClient.patch(`${BASE_URL}/${id}/asignar-tecnico`, { tecnicoId })
+    return data
+  },
 }
