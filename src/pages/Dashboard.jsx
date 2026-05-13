@@ -8,6 +8,7 @@ import AgeRangeSalesWidget from '@/components/dashboard/AgeRangeSalesWidget'
 import TopLodgesWidget from '@/components/dashboard/TopLodgesWidget'
 import MonthlyRevenueWidget from '@/components/dashboard/MonthlyRevenueWidget'
 import PendingMaintenanceWidget from '@/components/dashboard/PendingMaintenanceWidget'
+import MantenimientosWidget from '@/components/dashboard/MantenimientosWidget'
 import Button from '@/components/Button'
 
 // ── Constantes de fecha ────────────────────────────────────────────────────
@@ -207,9 +208,12 @@ function Dashboard() {
         )}
       </section>
 
-      {/* FILA 4 — Mantenimientos pendientes (datos reales del backend) */}
-      <section aria-label="Mantenimientos pendientes" className="mb-8">
-        <PendingMaintenanceWidget />
+      {/* FILA 4 — KPIs de mantenimientos + tabla de pendientes */}
+      <section aria-label="Mantenimientos" className="mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <MantenimientosWidget />
+          <PendingMaintenanceWidget />
+        </div>
       </section>
     </div>
   )
