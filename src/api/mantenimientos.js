@@ -61,13 +61,7 @@ export const mantenimientosApi = {
   },
 
   async changeEstado(id, estado) {
-    const current = await this.getById(id)
-    const { data } = await axiosClient.put(`${BASE_URL}/${id}`, {
-      atraccionId:      current.atraccionId,
-      tecnicoId:        current.tecnicoId,
-      fechaProgramada:  current.fechaProgramada,
-      estado,
-    })
+    const { data } = await axiosClient.patch(`${BASE_URL}/${id}/estado`, { estado })
     return data
   },
 }
