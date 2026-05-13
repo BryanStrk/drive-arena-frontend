@@ -58,3 +58,31 @@ html, body, #root {
   background: var(--color-primary);
   color: var(--color-text);
 }
+
+/* ── Print — muestra sólo el ticket, oculta todo lo demás ── */
+.print-only { display: none; }
+
+@media print {
+  body * { visibility: hidden; }
+  .print-area,
+  .print-area * { visibility: visible; }
+  .print-area {
+    position: fixed;
+    left: 0; top: 0;
+    width: 100%;
+    background: white !important;
+    color: black !important;
+    padding: 32px;
+    font-family: 'Courier New', monospace;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+  }
+  .print-area * {
+    color: black !important;
+    background: transparent !important;
+    border-color: #999 !important;
+  }
+  .no-print    { display: none !important; }
+  .print-only  { display: block !important; }
+}
