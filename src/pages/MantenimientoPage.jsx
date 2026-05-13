@@ -14,6 +14,7 @@ import {
 
 import MantenimientoCard from '@/components/mantenimiento/MantenimientoCard'
 import MantenimientoFormModal from '@/components/mantenimiento/MantenimientoFormModal'
+import AsignarTecnicoModal from '@/components/mantenimiento/AsignarTecnicoModal'
 import { useMantenimientos } from '@/hooks/useMantenimientos'
 
 /**
@@ -51,6 +52,7 @@ export default function MantenimientoPage() {
 
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState(null)
+  const [asignando, setAsignando] = useState(null)
 
   // Conteos por estado (sobre la lista actual del backend, sin filtro extra)
   // Para el contador del header usamos siempre la longitud actual
@@ -82,6 +84,10 @@ export default function MantenimientoPage() {
 
   const handleCloseForm = () => {
     setFormOpen(false)
+  }
+
+  const handleAsignar = (mantenimiento) => {
+    setAsignando(mantenimiento)
   }
 
   // ─── Render ────────────────────────────────────────────────────────────
@@ -146,19 +152,26 @@ export default function MantenimientoPage() {
                 mantenimiento={mantenimiento}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onAsignar={handleAsignar}
               />
             ))}
           </AnimatePresence>
         </motion.div>
       )}
 
-      {/* MODAL */}
+      {/* MODALES */}
       <MantenimientoFormModal
         isOpen={formOpen}
         onClose={handleCloseForm}
         mantenimiento={editing}
         createMantenimiento={createMantenimiento}
         updateMantenimiento={updateMantenimiento}
+      />
+
+      <AsignarTecnicoModal
+        mantenimiento={asignando}
+        onClose={() => setAsignando(null)}
+        onAsignado={() => { setAsignando(null); refetch() }}
       />
     </div>
   )

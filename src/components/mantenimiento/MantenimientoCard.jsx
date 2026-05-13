@@ -6,6 +6,7 @@ import {
   Pencil,
   PlayCircle,
   Trash2,
+  UserPlus,
   Wrench,
   XCircle,
 } from 'lucide-react'
@@ -58,7 +59,7 @@ const TAMANO_LABEL = {
  *   - Acciones (editar/eliminar) en hover
  *   - Animación de entrada/salida con Framer Motion
  */
-export default function MantenimientoCard({ mantenimiento, onEdit, onDelete }) {
+export default function MantenimientoCard({ mantenimiento, onEdit, onDelete, onAsignar }) {
   const config = ESTADO_CONFIG[mantenimiento.estado] ?? ESTADO_CONFIG.PENDIENTE
   const { Icon } = config
 
@@ -84,6 +85,16 @@ export default function MantenimientoCard({ mantenimiento, onEdit, onDelete }) {
           </div>
 
           <div className="flex gap-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 focus-within:opacity-100">
+            {onAsignar && (
+              <button
+                type="button"
+                onClick={() => onAsignar(mantenimiento)}
+                aria-label="Asignar técnico"
+                className="grid size-8 place-items-center rounded-full border border-border-strong bg-surface-2 text-white/60 transition-colors hover:border-blue-400 hover:bg-blue-400/20 hover:text-blue-300"
+              >
+                <UserPlus size={12} />
+              </button>
+            )}
             <button
               type="button"
               onClick={() => onEdit?.(mantenimiento)}
@@ -128,16 +139,15 @@ export default function MantenimientoCard({ mantenimiento, onEdit, onDelete }) {
             <p className="font-sans text-[10px] uppercase tracking-[0.15em] text-white/40">
               Técnico
             </p>
-            <p
-              className="font-sans text-sm text-white line-clamp-1"
-              title={mantenimiento.tecnicoNombreCompleto}
-            >
-              {mantenimiento.tecnicoNombreCompleto}
-            </p>
-            {mantenimiento.tecnicoDni && (
-              <p className="font-mono text-[10px] text-white/30">
-                {mantenimiento.tecnicoDni}
+            {mantenimiento.tecnicoAsignadoUsername ? (
+              <p
+                className="font-sans text-sm text-white line-clamp-1"
+                title={mantenimiento.tecnicoAsignadoUsername}
+              >
+                {mantenimiento.tecnicoAsignadoUsername}
               </p>
+            ) : (
+              <p className="font-sans text-sm text-white/30 italic">Sin asignar</p>
             )}
           </div>
           <div className="space-y-0.5 text-right">

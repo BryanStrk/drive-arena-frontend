@@ -148,7 +148,7 @@ function TableHeader({ children, align = 'left' }) {
 }
 
 function MaintenanceRow({ maintenance, onAction }) {
-  const { id, atraccionNombre, tecnicoNombreCompleto, fechaProgramada } =
+  const { id, atraccionNombre, tecnicoAsignadoUsername, fechaProgramada } =
     maintenance
 
   const urgencia = getUrgenciaDesdefecha(fechaProgramada)
@@ -169,7 +169,7 @@ function MaintenanceRow({ maintenance, onAction }) {
 
       {/* Técnico */}
       <td className="px-3 py-3 font-sans text-sm text-text-muted">
-        {tecnicoNombreCompleto}
+        {tecnicoAsignadoUsername ?? '—'}
       </td>
 
       {/* Fecha programada + badge de urgencia */}
