@@ -1,37 +1,27 @@
 import { Navigate, useLocation } from 'react-router'
 import { useAuth } from '@/context/useAuth'
+import { HOME_BY_ROLE } from '@/lib/roleRoutes'
 
 /**
- * Protege rutas privadas que requieren autenticación.
+ * Protege rutas privadas que requieren autenticación y opcionalmente un rol.
  *
  * Comportamiento:
- * - Si hay sesión activa → renderiza children
- * - Si NO hay sesión → redirect a /login (preservando la ruta intentada
- *   en location.state.from para volver tras login)
- * - Si la sesión está cargando → no renderiza nada (placeholder vacío)
- *
- * Uso en router.jsx:
- *   {
- *     path: '/dashboard',
- *     element: <ProtectedRoute><Dashboard /></ProtectedRoute>
- *   }
+ * - Si NO hay sesión → redirect a /login
+ * - Si hay sesión pero el rol no está en allowedRoles → redirect al home del rol
+ * - Si todo OK → renderiza children
  *
  * @param {Object} props
- * @param {React.ReactNode} props.children - Contenido a proteger
+ * @param {React.ReactNode} props.children
+ * @param {string[]} [props.allowedRoles] - Roles permitidos. Sin este prop, solo verifica auth.
  */
-function ProtectedRoute({ children }) {
-  const { isAuthenticated, isLoading } = useAuth()
+function ProtectedRoute({ children, allowedRoles }) {
+  const { isAuthenticated, isLoading, user } = useAuth()
   const location = useLocation()
 
-  // Mientras rehidrata la sesión, no renderizamos nada para evitar
-  // un parpadeo de redirect/redirect-back. Hoy es síncrono pero
-  // dejamos la guarda para futuras validaciones async.
   if (isLoading) {
     return null
   }
 
-  // Sin sesión: redirect al login. Guardamos la ruta intentada
-  // para que el login pueda redirigir aquí tras autenticación exitosa.
   if (!isAuthenticated) {
     return (
       <Navigate
@@ -40,6 +30,11 @@ function ProtectedRoute({ children }) {
         state={{ from: location.pathname }}
       />
     )
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user.rol)) {
+    const home = HOME_BY_ROLE[user.rol] ?? '/login'
+    return <Navigate to={home} replace />
   }
 
   return children
