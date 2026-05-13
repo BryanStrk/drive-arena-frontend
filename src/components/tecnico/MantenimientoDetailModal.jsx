@@ -4,7 +4,7 @@ import { X, Loader2, ArrowRight, Calendar, User, Wrench, UserCheck } from 'lucid
 import toast from 'react-hot-toast'
 
 import { mantenimientosApi } from '@/api/mantenimientos'
-import { useAuth } from '@/context/AuthContext'
+import { useAuth } from '@/context/useAuth'
 import Button from '@/components/Button'
 
 const ESTADO_CONFIG = {

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Plus, RefreshCw } from 'lucide-react'
 import { mantenimientosApi } from '@/api/mantenimientos'
-import { useAuth } from '@/context/AuthContext'
+import { useAuth } from '@/context/useAuth'
 import MantenimientoDetailModal from '@/components/tecnico/MantenimientoDetailModal'
 import ReportarMantenimientoModal from '@/components/tecnico/ReportarMantenimientoModal'
 import { cn } from '@/lib/cn'
