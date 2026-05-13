@@ -1,290 +1,272 @@
-import { useMemo, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
-import {
-  AlertCircle,
-  Plus,
-  RefreshCw,
-  Search,
-  Users,
-} from 'lucide-react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { RefreshCw, AlertCircle, Search, Users, Plus, ChevronLeft, ChevronRight } from 'lucide-react'
+import toast from 'react-hot-toast'
 
-import ClienteCard from '@/components/clientes/ClienteCard'
+import { clientesApi } from '@/api/clientes'
 import ClienteFormModal from '@/components/clientes/ClienteFormModal'
-import { useClientes } from '@/hooks/useClientes'
+import ClienteDetailModal from '@/components/taquilla/ClienteDetailModal'
+import VentaDetailModal from '@/components/taquilla/VentaDetailModal'
+import Button from '@/components/Button'
 
-/**
- * Página de gestión de Clientes (admin / CRM).
- *
- * Replica el patrón Lodges/Circuitos:
- *   - Header con contador y CTA "Nuevo Cliente"
- *   - Buscador client-side por nombre, apellidos, email o DNI
- *   - Grid responsivo (1/2/3/4 cols)
- *   - Estados separados: loading (skeleton), error, empty, empty-filter, lista
- *   - CRUD completo con optimistic updates
- *
- * Búsqueda multicampo: el operador de taquilla puede pegar un DNI, email
- * o tipear un nombre y filtra al instante. Sin re-fetch al backend.
- */
+const PAGE_SIZE = 10
+
+const COLS = [
+  { label: 'DNI',      key: 'dni' },
+  { label: 'Nombre',   key: 'nombre' },
+  { label: 'Email',    key: 'email' },
+  { label: 'Teléfono', key: 'telefono' },
+]
+
+const EMPTY_PAGE_INFO = { totalPages: 1, totalElements: 0, number: 0, first: true, last: true }
+
+function SkeletonRow() {
+  return (
+    <tr>
+      {COLS.map((c) => (
+        <td key={c.key} className="px-4 py-3">
+          <div className="h-4 rounded bg-surface-2 animate-pulse" />
+        </td>
+      ))}
+    </tr>
+  )
+}
+
 export default function ClientesPage() {
-  const {
-    clientes,
-    isLoading,
-    error,
-    refetch,
-    createCliente,
-    updateCliente,
-    removeCliente,
-  } = useClientes()
+  const [clientes, setClientes]     = useState([])
+  const [pageInfo, setPageInfo]     = useState(EMPTY_PAGE_INFO)
+  const [isLoading, setIsLoading]   = useState(true)
+  const [error, setError]           = useState(null)
+  const [q, setQ]                   = useState('')
+  const [page, setPage]             = useState(0)
+  const [selectedCliente, setSelectedCliente] = useState(null)
+  const [selectedVentaId, setSelectedVentaId] = useState(null)
+  const [formOpen, setFormOpen]     = useState(false)
+  const [editing, setEditing]       = useState(null)
 
-  const [search, setSearch] = useState('')
+  const abortRef = useRef(null)
 
-  const [formOpen, setFormOpen] = useState(false)
-  const [editing, setEditing] = useState(null)
+  const doFetch = useCallback((searchQ, pageNum) => {
+    if (abortRef.current) abortRef.current.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
 
-  /**
-   * Filtrado client-side memoizado por nombre, apellidos, email o DNI.
-   */
-  const filtered = useMemo(() => {
-    const query = search.trim().toLowerCase()
-    if (!query) return clientes
-    return clientes.filter(
-      (c) =>
-        c.nombre.toLowerCase().includes(query) ||
-        c.apellidos.toLowerCase().includes(query) ||
-        c.email.toLowerCase().includes(query) ||
-        c.dni.toLowerCase().includes(query),
-    )
-  }, [clientes, search])
+    setIsLoading(true)
+    setError(null)
+    clientesApi.listPaged({ q: searchQ || undefined, page: pageNum, size: PAGE_SIZE }, controller.signal)
+      .then((data) => {
+        if (controller.signal.aborted) return
+        const content = data?.content
+        setClientes(Array.isArray(content) ? content : (Array.isArray(data) ? data : []))
+        setPageInfo({
+          totalPages:    data.totalPages    ?? 1,
+          totalElements: data.totalElements ?? 0,
+          number:        data.number        ?? pageNum,
+          first:         data.first         ?? (pageNum === 0),
+          last:          data.last          ?? true,
+        })
+      })
+      .catch((err) => {
+        if (err.code === 'ERR_CANCELED' || err.name === 'AbortError' || err.name === 'CanceledError') return
+        setError(err)
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setIsLoading(false)
+      })
+  }, [])
 
-  // ─── Handlers ──────────────────────────────────────────────────────────
+  useEffect(() => {
+    const delay = q ? 300 : 0
+    const t = setTimeout(() => {
+      setPage(0)
+      doFetch(q, 0)
+    }, delay)
+    return () => clearTimeout(t)
+  }, [q, doFetch])
 
-  const handleDelete = async (cliente) => {
-    const fullName = `${cliente.nombre} ${cliente.apellidos}`
-    const confirmed = window.confirm(
-      `¿Eliminar al cliente "${fullName}"?\n\nEsta acción no se puede deshacer.`,
-    )
-    if (!confirmed) return
-    try {
-      await removeCliente(cliente.id)
-    } catch {
-      // El hook ya mostró el toast.
-    }
+  const handlePrev = () => {
+    const prev = Math.max(0, page - 1)
+    setPage(prev)
+    doFetch(q, prev)
+  }
+  const handleNext = () => {
+    const next = Math.min(pageInfo.totalPages - 1, page + 1)
+    setPage(next)
+    doFetch(q, next)
   }
 
-  const handleCreate = () => {
-    setEditing(null)
-    setFormOpen(true)
+  const createCliente = async (payload) => {
+    const created = await clientesApi.create(payload)
+    toast.success('Cliente registrado correctamente')
+    setPage(0)
+    doFetch(q, 0)
+    return created
   }
 
-  const handleEdit = (cliente) => {
+  const updateCliente = async (id, payload) => {
+    const updated = await clientesApi.update(id, payload)
+    toast.success('Cliente actualizado correctamente')
+    if (selectedCliente?.id === id) setSelectedCliente((prev) => ({ ...prev, ...updated }))
+    doFetch(q, page)
+    return updated
+  }
+
+  const handleOpenForm = (cliente = null) => {
     setEditing(cliente)
     setFormOpen(true)
   }
 
-  const handleCloseForm = () => {
-    setFormOpen(false)
-  }
-
-  // ─── Render ────────────────────────────────────────────────────────────
-
   return (
-    <div className="space-y-6 p-6 md:p-8">
-      {/* HEADER */}
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div className="min-h-full bg-bg p-8">
+      {/* Header */}
+      <div className="mb-8 flex items-start justify-between gap-4">
         <div>
-          <h1 className="font-display text-4xl uppercase tracking-wide text-white">
+          <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-primary">
+            ▌ Dashboard · Clientes
+          </p>
+          <h1 className="mt-2 font-display font-extrabold text-4xl tracking-tight text-text">
             Clientes
           </h1>
-          <p className="mt-1 font-sans text-sm text-white/50">
-            Pilotos registrados en el sistema
-            {!isLoading && !error && (
-              <span className="ml-2 font-mono text-white/30">
-                · {clientes.length}{' '}
-                {clientes.length === 1 ? 'registrado' : 'registrados'}
-              </span>
-            )}
-          </p>
+          {!isLoading && !error && (
+            <p className="mt-1 font-mono text-xs text-text-muted">
+              {pageInfo.totalElements} cliente{pageInfo.totalElements !== 1 ? 's' : ''} registrados
+            </p>
+          )}
         </div>
+        <div className="flex items-center gap-3 shrink-0">
+          <Button variant="ghost" size="sm" onClick={() => doFetch(q, page)} disabled={isLoading}>
+            <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
+            Actualizar
+          </Button>
+          <Button variant="primary" size="sm" onClick={() => handleOpenForm(null)}>
+            <Plus size={14} />
+            Nuevo Cliente
+          </Button>
+        </div>
+      </div>
 
-        <button
-          type="button"
-          onClick={handleCreate}
-          className="inline-flex items-center gap-2 self-start rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold uppercase tracking-wide text-white transition-all hover:bg-primary-dark hover:shadow-[0_0_20px_var(--color-primary-glow)] sm:self-auto"
-        >
-          <Plus size={18} strokeWidth={2.5} />
-          Nuevo Cliente
-        </button>
-      </header>
-
-      {/* BUSCADOR */}
-      <div className="relative max-w-md">
-        <Search
-          size={16}
-          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/40"
-        />
+      {/* Buscador */}
+      <div className="mb-4 relative max-w-sm">
+        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
         <input
-          type="search"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Buscar por nombre, email o DNI..."
-          className="w-full rounded-lg border border-border-strong bg-surface-2 py-2.5 pl-10 pr-4 font-sans text-sm text-white placeholder:text-white/30 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+          type="text"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Buscar por nombre, DNI o email..."
+          className="w-full pl-9 pr-4 py-2.5 bg-surface-1 text-text placeholder:text-text-dim border border-border-strong rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
         />
       </div>
 
-      {/* CONTENIDO */}
-      {isLoading && <SkeletonGrid />}
-
-      {!isLoading && error && <ErrorState onRetry={refetch} />}
-
-      {!isLoading && !error && clientes.length === 0 && (
-        <EmptyState onCreate={handleCreate} />
+      {/* Error */}
+      {error && !isLoading && (
+        <div className="flex flex-col items-center gap-4 py-16 text-center">
+          <AlertCircle size={32} className="text-danger" />
+          <p className="font-sans text-sm text-text-muted">No se pudieron cargar los clientes</p>
+          <Button variant="secondary" size="sm" onClick={() => doFetch(q, page)}>Reintentar</Button>
+        </div>
       )}
 
-      {!isLoading &&
-        !error &&
-        clientes.length > 0 &&
-        filtered.length === 0 && (
-          <EmptyFilterState query={search} onClear={() => setSearch('')} />
-        )}
+      {/* Tabla */}
+      {!error && (
+        <div className="bg-surface-1 border border-border-strong rounded-card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-border-strong bg-surface-2">
+                  {COLS.map((c) => (
+                    <th key={c.key} className="px-4 py-3 font-mono text-[10px] tracking-[0.2em] uppercase text-text-muted">
+                      {c.label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border-strong">
+                {isLoading
+                  ? Array.from({ length: 8 }).map((_, i) => <SkeletonRow key={i} />)
+                  : clientes.length === 0
+                    ? (
+                      <tr>
+                        <td colSpan={COLS.length} className="px-4 py-16 text-center">
+                          <div className="flex flex-col items-center gap-3">
+                            <Users size={28} className="text-text-dim" />
+                            <p className="font-sans text-sm text-text-muted">
+                              {q ? 'Sin resultados para esta búsqueda' : 'No hay clientes registrados'}
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                    : clientes.map((c) => (
+                      <tr
+                        key={c.id}
+                        onClick={() => setSelectedCliente(c)}
+                        className="hover:bg-surface-2 transition-colors cursor-pointer"
+                      >
+                        <td className="px-4 py-3 font-mono text-xs text-text-muted">{c.dni ?? '—'}</td>
+                        <td className="px-4 py-3 font-sans text-sm text-text">
+                          {c.nombre} {c.apellidos}
+                        </td>
+                        <td className="px-4 py-3 font-sans text-sm text-text-muted">{c.email ?? '—'}</td>
+                        <td className="px-4 py-3 font-mono text-xs text-text-muted">{c.telefono ?? '—'}</td>
+                      </tr>
+                    ))}
+              </tbody>
+            </table>
+          </div>
 
-      {!isLoading && !error && filtered.length > 0 && (
-        <motion.div
-          layout
-          className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
-        >
-          <AnimatePresence mode="popLayout">
-            {filtered.map((cliente) => (
-              <ClienteCard
-                key={cliente.id}
-                cliente={cliente}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            ))}
-          </AnimatePresence>
-        </motion.div>
+          {/* Pagination */}
+          {!isLoading && pageInfo.totalPages > 1 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-border-strong bg-surface-2">
+              <p className="font-mono text-[11px] text-text-muted">
+                Página {pageInfo.number + 1} de {pageInfo.totalPages}
+                {' · '}
+                {pageInfo.totalElements} total
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handlePrev}
+                  disabled={pageInfo.first}
+                  className="p-1.5 rounded border border-border-strong text-text-muted hover:text-text hover:border-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  aria-label="Página anterior"
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  disabled={pageInfo.last}
+                  className="p-1.5 rounded border border-border-strong text-text-muted hover:text-text hover:border-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  aria-label="Página siguiente"
+                >
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
-      {/* MODAL */}
+      {/* Modals */}
+      {selectedCliente && (
+        <ClienteDetailModal
+          cliente={selectedCliente}
+          onClose={() => { setSelectedCliente(null); setSelectedVentaId(null) }}
+          onEdit={handleOpenForm}
+          onSelectVenta={setSelectedVentaId}
+        />
+      )}
+
+      {selectedVentaId && (
+        <VentaDetailModal ventaId={selectedVentaId} onClose={() => setSelectedVentaId(null)} />
+      )}
+
       <ClienteFormModal
         isOpen={formOpen}
-        onClose={handleCloseForm}
+        onClose={() => setFormOpen(false)}
         cliente={editing}
         createCliente={createCliente}
         updateCliente={updateCliente}
       />
-    </div>
-  )
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// SUB-COMPONENTES
-// ═══════════════════════════════════════════════════════════════════════
-
-function SkeletonGrid() {
-  return (
-    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-      {Array.from({ length: 6 }).map((_, index) => (
-        <div
-          key={index}
-          className="space-y-4 overflow-hidden rounded-card border border-border-strong bg-surface-1 p-5"
-        >
-          <div className="flex items-center gap-3">
-            <div className="size-12 animate-pulse rounded-full bg-surface-2" />
-            <div className="flex-1 space-y-2">
-              <div className="h-4 w-3/4 animate-pulse rounded bg-surface-2" />
-              <div className="h-3 w-1/3 animate-pulse rounded bg-surface-2" />
-            </div>
-          </div>
-          <div className="space-y-2.5">
-            <div className="h-3 w-full animate-pulse rounded bg-surface-2" />
-            <div className="h-3 w-2/3 animate-pulse rounded bg-surface-2" />
-            <div className="h-3 w-1/2 animate-pulse rounded bg-surface-2" />
-          </div>
-          <div className="flex justify-between border-t border-border-strong pt-3">
-            <div className="h-3 w-20 animate-pulse rounded bg-surface-2" />
-            <div className="h-3 w-16 animate-pulse rounded bg-surface-2" />
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function ErrorState({ onRetry }) {
-  return (
-    <div className="flex flex-col items-center justify-center gap-4 rounded-card border border-border-strong bg-surface-1 px-6 py-12 text-center">
-      <div className="grid size-14 place-items-center rounded-full bg-danger/10 text-danger">
-        <AlertCircle size={28} />
-      </div>
-      <div className="space-y-1">
-        <h3 className="font-display text-xl uppercase tracking-wide text-white">
-          No se pudieron cargar los clientes
-        </h3>
-        <p className="font-sans text-sm text-white/50">
-          Verifica tu conexión o reintenta en unos segundos
-        </p>
-      </div>
-      <button
-        type="button"
-        onClick={onRetry}
-        className="inline-flex items-center gap-2 rounded-lg border border-border-strong bg-surface-2 px-4 py-2 font-sans text-sm text-white transition-colors hover:border-primary hover:bg-primary/10"
-      >
-        <RefreshCw size={14} />
-        Reintentar
-      </button>
-    </div>
-  )
-}
-
-function EmptyState({ onCreate }) {
-  return (
-    <div className="flex flex-col items-center justify-center gap-4 rounded-card border border-dashed border-border-strong bg-surface-1 px-6 py-16 text-center">
-      <div className="grid size-14 place-items-center rounded-full bg-primary/10 text-primary">
-        <Users size={28} />
-      </div>
-      <div className="space-y-1">
-        <h3 className="font-display text-xl uppercase tracking-wide text-white">
-          No hay clientes registrados
-        </h3>
-        <p className="font-sans text-sm text-white/50">
-          Registra el primer piloto para empezar la gestión
-        </p>
-      </div>
-      <button
-        type="button"
-        onClick={onCreate}
-        className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-primary-dark"
-      >
-        <Plus size={16} strokeWidth={2.5} />
-        Registrar primer cliente
-      </button>
-    </div>
-  )
-}
-
-function EmptyFilterState({ query, onClear }) {
-  return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-card border border-border-strong bg-surface-1 px-6 py-12 text-center">
-      <div className="grid size-12 place-items-center rounded-full bg-surface-2 text-white/40">
-        <Search size={22} />
-      </div>
-      <div className="space-y-1">
-        <p className="font-sans text-sm text-white">
-          Ningún cliente coincide con{' '}
-          <span className="font-mono text-primary">"{query}"</span>
-        </p>
-        <p className="font-sans text-xs text-white/50">
-          Prueba con otro nombre, email o DNI
-        </p>
-      </div>
-      <button
-        type="button"
-        onClick={onClear}
-        className="font-sans text-xs text-primary underline-offset-4 hover:underline"
-      >
-        Limpiar búsqueda
-      </button>
     </div>
   )
 }
