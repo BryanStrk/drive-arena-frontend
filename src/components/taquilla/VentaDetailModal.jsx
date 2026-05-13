@@ -4,6 +4,8 @@ import { X, Loader2, AlertCircle } from 'lucide-react'
 import { obtenerCompraPorId } from '@/api/compras'
 import Button from '@/components/Button'
 
+const TIPO_LABELS = { ADULTO: 'Adulto', NINO: 'Niño', PENSIONISTA: 'Pensionista' }
+
 const fmtEur = (v) =>
   v != null
     ? `€ ${Number(v).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -130,7 +132,7 @@ export default function VentaDetailModal({ ventaId, onClose }) {
                             <tr key={e.id ?? idx} className="text-sm">
                               <td className="px-3 py-2.5 font-mono text-xs text-text-muted">{idx + 1}</td>
                               <td className="px-3 py-2.5 font-sans text-text">
-                                {e.tarifaNombre ?? e.tarifa?.nombre ?? '—'}
+                                {[TIPO_LABELS[e.tipoTarifa], e.tarifaDescripcion].filter(Boolean).join(' · ') || '—'}
                               </td>
                               <td className="px-3 py-2.5 font-mono text-xs text-text">
                                 {fmtEur(e.precioUnitario ?? e.precio)}
