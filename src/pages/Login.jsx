@@ -10,6 +10,7 @@ import Badge from '@/components/Badge'
 import { ASSETS_BRAND, ASSETS_HERO } from '@/data/cloudinaryAssets'
 import { loginSchema } from '@/lib/validators'
 import { useAuth } from '@/context/useAuth'
+import { HOME_BY_ROLE } from '@/lib/roleRoutes'
 
 /**
  * Pantalla de Login del sistema operativo Drive Arena.
@@ -52,7 +53,7 @@ function Login() {
     try {
       const userInfo = await login(data)
       toast.success(`Bienvenido, ${userInfo.username}`)
-      navigate('/', { replace: true })
+      navigate(HOME_BY_ROLE[userInfo.rol] ?? '/dashboard', { replace: true })
     } catch (error) {
       // El AuthContext propaga errores del backend.
       // Mapeamos códigos HTTP a mensajes amigables.

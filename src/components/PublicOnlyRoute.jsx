@@ -1,36 +1,21 @@
 import { Navigate } from 'react-router'
 import { useAuth } from '@/context/useAuth'
+import { HOME_BY_ROLE } from '@/lib/roleRoutes'
 
 /**
- * Componente espejo de ProtectedRoute.
  * Restringe rutas que solo deben ser visibles a usuarios SIN sesión activa.
- *
- * Comportamiento:
- * - Si NO hay sesión → renderiza children (login, registro...)
- * - Si HAY sesión → redirect al dashboard
- * - Si la sesión está cargando → no renderiza nada
- *
- * Uso típico: envolver el Login para que un usuario ya autenticado
- * no pueda volver al formulario.
- *
- * Uso en router.jsx:
- *   {
- *     path: '/login',
- *     element: <PublicOnlyRoute><Login /></PublicOnlyRoute>
- *   }
- *
- * @param {Object} props
- * @param {React.ReactNode} props.children - Contenido público
+ * Si hay sesión activa, redirige al home del rol correspondiente.
  */
 function PublicOnlyRoute({ children }) {
-  const { isAuthenticated, isLoading } = useAuth()
+  const { isAuthenticated, isLoading, user } = useAuth()
 
   if (isLoading) {
     return null
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />
+    const home = HOME_BY_ROLE[user?.rol] ?? '/dashboard'
+    return <Navigate to={home} replace />
   }
 
   return children
