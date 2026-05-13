@@ -19,10 +19,11 @@ export async function crearCompra(payload) {
   return data
 }
 
-export async function obtenerCompras({ clienteId, hotelId } = {}) {
+export async function obtenerCompras({ clienteId, hotelId, q } = {}) {
   const params = {}
   if (clienteId) params.clienteId = clienteId
-  if (hotelId) params.hotelId = hotelId
+  if (hotelId)   params.hotelId   = hotelId
+  if (q)         params.q         = q
 
   const { data } = await axiosClient.get('/compras', { params })
   return data

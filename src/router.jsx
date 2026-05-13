@@ -26,6 +26,7 @@ import UsuariosPage from '@/pages/UsuariosPage'
 // Pages — TAQUILLA
 import NuevaCompraPage from '@/pages/taquilla/NuevaCompraPage'
 import MisComprasPage from '@/pages/taquilla/MisComprasPage'
+import TodasLasVentasPage from '@/pages/taquilla/TodasLasVentasPage'
 import TaquillaClientesPage from '@/pages/taquilla/TaquillaClientesPage'
 
 // Reserva wizard (standalone público)
@@ -98,8 +99,9 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="nueva-compra" replace /> },
       { path: 'nueva-compra', element: <NuevaCompraPage /> },
-      { path: 'mis-compras', element: <MisComprasPage /> },
-      { path: 'clientes', element: <TaquillaClientesPage /> },
+      { path: 'mis-compras',      element: <MisComprasPage />       },
+      { path: 'todas-las-ventas', element: <TodasLasVentasPage />   },
+      { path: 'clientes',         element: <TaquillaClientesPage /> },
     ],
   },
   {

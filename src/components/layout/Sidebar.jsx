@@ -35,8 +35,9 @@ const NAV_BY_ROLE = {
     {
       label: 'Ventas',
       items: [
-        { label: 'Nueva Compra', to: '/taquilla/nueva-compra' },
-        { label: 'Mis Compras', to: '/taquilla/mis-compras' },
+        { label: 'Nueva Venta',      to: '/taquilla/nueva-compra'      },
+        { label: 'Mis Ventas',       to: '/taquilla/mis-compras'       },
+        { label: 'Todas las Ventas', to: '/taquilla/todas-las-ventas'  },
       ],
     },
     {

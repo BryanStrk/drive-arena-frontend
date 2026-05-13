@@ -21,9 +21,10 @@ const BREADCRUMB_MAP = {
   '/dashboard/clientes': ['Inicio', 'Panel', 'Gestión', 'Clientes'],
   '/dashboard/circuitos': ['Inicio', 'Panel', 'Gestión', 'Circuitos'],
   '/dashboard/usuarios': ['Inicio', 'Panel', 'Administración', 'Usuarios'],
-  '/taquilla/nueva-compra': ['Taquilla', 'Nueva Compra'],
-  '/taquilla/mis-compras': ['Taquilla', 'Mis Compras'],
-  '/taquilla/clientes': ['Taquilla', 'Clientes'],
+  '/taquilla/nueva-compra':      ['Taquilla', 'Nueva Venta'],
+  '/taquilla/mis-compras':       ['Taquilla', 'Mis Ventas'],
+  '/taquilla/todas-las-ventas':  ['Taquilla', 'Todas las Ventas'],
+  '/taquilla/clientes':          ['Taquilla', 'Clientes'],
 }
 
 function DashboardLayout() {

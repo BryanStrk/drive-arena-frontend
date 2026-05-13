@@ -569,7 +569,7 @@ export default function NuevaCompraPage() {
 
           {/* ── 7. SUBMIT ── */}
           <Button type="submit" variant="primary" size="lg" disabled={isSubmitting} className="w-full sm:w-auto">
-            {isSubmitting ? 'Registrando...' : 'Registrar Compra'}
+            {isSubmitting ? 'Registrando...' : 'Registrar Venta'}
           </Button>
         </div>
       </form>
