@@ -148,8 +148,7 @@ function TableHeader({ children, align = 'left' }) {
 }
 
 function MaintenanceRow({ maintenance, onAction }) {
-  const { id, atraccionNombre, tecnicoAsignadoUsername, fechaProgramada } =
-    maintenance
+  const { id, atraccionNombre, tecnicosAsignados, fechaProgramada } = maintenance
 
   const urgencia = getUrgenciaDesdefecha(fechaProgramada)
   const variant = getUrgenciaVariant(urgencia)
@@ -169,7 +168,9 @@ function MaintenanceRow({ maintenance, onAction }) {
 
       {/* Técnico */}
       <td className="px-3 py-3 font-sans text-sm text-text-muted">
-        {tecnicoAsignadoUsername ?? '—'}
+        {(tecnicosAsignados ?? []).length === 0
+          ? '—'
+          : tecnicosAsignados.map((t) => t.username).join(', ')}
       </td>
 
       {/* Fecha programada + badge de urgencia */}

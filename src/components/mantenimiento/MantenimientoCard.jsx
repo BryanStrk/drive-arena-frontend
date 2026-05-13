@@ -133,21 +133,25 @@ export default function MantenimientoCard({ mantenimiento, onEdit, onDelete, onA
           )}
         </div>
 
-        {/* Footer: técnico + fecha */}
+        {/* Footer: técnicos + fecha */}
         <div className="grid grid-cols-2 gap-3 border-t border-border-strong pt-3">
-          <div className="space-y-0.5">
+          <div className="space-y-1.5">
             <p className="font-sans text-[10px] uppercase tracking-[0.15em] text-white/40">
               Técnico
             </p>
-            {mantenimiento.tecnicoAsignadoUsername ? (
-              <p
-                className="font-sans text-sm text-white line-clamp-1"
-                title={mantenimiento.tecnicoAsignadoUsername}
-              >
-                {mantenimiento.tecnicoAsignadoUsername}
-              </p>
+            {(mantenimiento.tecnicosAsignados ?? []).length === 0 ? (
+              <p className="font-sans text-sm italic text-white/30">Sin asignar</p>
             ) : (
-              <p className="font-sans text-sm text-white/30 italic">Sin asignar</p>
+              <div className="flex flex-wrap gap-1">
+                {mantenimiento.tecnicosAsignados.map((t) => (
+                  <span
+                    key={t.id}
+                    className="inline-flex items-center rounded-full border border-white/15 bg-white/8 px-2 py-0.5 font-mono text-[9px] text-white/70"
+                  >
+                    {t.username}
+                  </span>
+                ))}
+              </div>
             )}
           </div>
           <div className="space-y-0.5 text-right">
