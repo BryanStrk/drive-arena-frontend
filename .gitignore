@@ -40,3 +40,6 @@ dist-ssr
 
 # Backup files locales
 *.bak
+
+### Claude Code ###
+.claude/
