@@ -307,7 +307,7 @@ export default function UsuariosPage() {
                         <td className="px-4 py-3"><RolBadge rol={u.rol} /></td>
                         <td className="px-4 py-3"><EstadoBadge activo={u.activo} /></td>
                         <td className="px-4 py-3 font-mono text-xs text-text-muted">
-                          {fmtFecha(u.fechaCreacion ?? u.createdAt)}
+                          {fmtFecha(u.fechaAlta)}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1">
