@@ -65,7 +65,7 @@ export default function CompraDetailModal({ compraId, onClose }) {
         <div className="sticky top-0 bg-[#0A0A0A] border-b border-white/10 px-6 py-4 flex items-center justify-between z-10">
           <div>
             <p className="text-xs uppercase tracking-widest text-gray-500 font-mono">
-              Detalle de compra
+              Detalle de venta
             </p>
             <h2 className="text-2xl font-bold text-white mt-1 font-mono tracking-wider">
               {compra?.codigo ?? `#${compraId}`}
@@ -88,7 +88,7 @@ export default function CompraDetailModal({ compraId, onClose }) {
 
           {error && (
             <div className="border border-red-500/40 bg-red-500/10 p-4 text-red-300">
-              No se pudo cargar el detalle de la compra.
+              No se pudo cargar el detalle de la venta.
             </div>
           )}
 
@@ -107,7 +107,7 @@ export default function CompraDetailModal({ compraId, onClose }) {
                   mono
                 />
                 <Field
-                  label="Fecha de compra"
+                  label="Fecha de venta"
                   value={formatFechaHora(compra.fechaCompra)}
                   mono
                   span={2}

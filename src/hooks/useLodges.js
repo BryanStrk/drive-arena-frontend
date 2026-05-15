@@ -113,7 +113,7 @@ export function useLodges() {
       setLodges(previous) // rollback
       const message =
         err.response?.data?.message ??
-        'No se pudo eliminar el lodge. Puede tener compras asociadas.'
+        'No se pudo eliminar el lodge. Puede tener ventas asociadas.'
       toast.error(message)
       throw err
     }

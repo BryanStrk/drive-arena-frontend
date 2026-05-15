@@ -5,11 +5,10 @@ const NAV_BY_ROLE = {
   ADMIN: [
     {
       label: 'Principal',
-      items: [{ label: 'Dashboard', to: '/dashboard' }],
-    },
-    {
-      label: 'Ventas',
-      items: [{ label: 'Compras', to: '/dashboard/compras' }],
+      items: [
+        { label: 'Dashboard', to: '/dashboard' },
+        { label: 'Ventas', to: '/dashboard/compras' },
+      ],
     },
     {
       label: 'Gestión',

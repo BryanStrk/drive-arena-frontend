@@ -15,7 +15,7 @@ const APP_VERSION = packageJson.version
 const BREADCRUMB_MAP = {
   '/dashboard': ['Inicio', 'Panel', 'Dashboard'],
   '/dashboard/lodges': ['Inicio', 'Panel', 'Gestión', 'Lodges'],
-  '/dashboard/compras': ['Inicio', 'Panel', 'Ventas', 'Compras'],
+  '/dashboard/compras': ['Inicio', 'Panel', 'Ventas'],
   '/dashboard/ranking': ['Inicio', 'Panel', 'Operativa', 'Ranking'],
   '/dashboard/mantenimiento': ['Inicio', 'Panel', 'Operativa', 'Mantenimiento'],
   '/dashboard/clientes': ['Inicio', 'Panel', 'Gestión', 'Clientes'],

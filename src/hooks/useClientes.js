@@ -73,7 +73,7 @@ export function useClientes() {
       setClientes(previous) // rollback
       const message =
         err.response?.data?.message ??
-        'No se pudo eliminar el cliente. Puede tener compras asociadas.'
+        'No se pudo eliminar el cliente. Puede tener ventas asociadas.'
       toast.error(message)
       throw err
     }

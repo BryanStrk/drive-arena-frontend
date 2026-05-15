@@ -57,7 +57,7 @@ export default function ComprasPage() {
         {/* HEADER */}
         <header className="flex flex-col gap-2">
           <h1 className="font-display text-4xl uppercase tracking-wide text-white">
-            Compras
+            Ventas
           </h1>
           <p className="font-sans text-sm text-white/50">
             Reservas registradas en el sistema
@@ -253,7 +253,7 @@ function OrigenBadge({ usuario }) {
   return (
     <span
       className="inline-flex items-center gap-1 rounded-full border border-border-strong bg-surface-2 px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-white/70"
-      title="Compra registrada por un empleado en taquilla"
+      title="Venta registrada por un empleado en taquilla"
     >
       <User size={10} />
       {usuario}
@@ -303,7 +303,7 @@ function ErrorState({ onRetry }) {
       </div>
       <div className="space-y-1">
         <h3 className="font-display text-xl uppercase tracking-wide text-white">
-          No se pudieron cargar las compras
+          No se pudieron cargar las ventas
         </h3>
         <p className="font-sans text-sm text-white/50">
           Verifica tu conexión o reintenta en unos segundos
@@ -329,7 +329,7 @@ function EmptyState() {
       </div>
       <div className="space-y-1">
         <h3 className="font-display text-xl uppercase tracking-wide text-white">
-          Sin compras todavía
+          Sin ventas todavía
         </h3>
         <p className="font-sans text-sm text-white/50">
           Las reservas del wizard público aparecerán aquí automáticamente
@@ -347,7 +347,7 @@ function EmptyFilterState({ query, onClear }) {
       </div>
       <div className="space-y-1">
         <p className="font-sans text-sm text-white">
-          Ninguna compra coincide con{' '}
+          Ninguna venta coincide con{' '}
           <span className="font-mono text-primary">"{query}"</span>
         </p>
         <p className="font-sans text-xs text-white/50">
