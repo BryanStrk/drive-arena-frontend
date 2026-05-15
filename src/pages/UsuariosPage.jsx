@@ -22,6 +22,7 @@ const ROL_CHIPS  = [
   { label: 'Todos',    value: '' },
   { label: 'Admin',    value: 'ADMIN' },
   { label: 'Taquilla', value: 'TAQUILLA' },
+  { label: 'Técnico',  value: 'TECNICO' },
 ]
 const ACTIVO_CHIPS = [
   { label: 'Todos',    value: '' },
@@ -229,7 +230,7 @@ export default function UsuariosPage() {
       </div>
 
       {/* Filters row */}
-      <div className="mb-4 flex flex-wrap items-center gap-4">
+      <div className="mb-4 flex flex-wrap items-end gap-6">
         {/* Search */}
         <div className="relative flex-1 min-w-48 max-w-sm">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
@@ -241,10 +242,16 @@ export default function UsuariosPage() {
             className="w-full pl-9 pr-4 py-2.5 bg-surface-1 text-text placeholder:text-text-dim border border-border-strong rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
           />
         </div>
-        {/* Rol chips */}
-        <ChipGroup chips={ROL_CHIPS} value={rolFilter} onChange={setRolFilter} />
-        {/* Activo chips */}
-        <ChipGroup chips={ACTIVO_CHIPS} value={activoFilter} onChange={setActivoFilter} />
+        <div className="flex items-start gap-10">
+          <div className="flex flex-col gap-1.5">
+            <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-text-muted">Rol</p>
+            <ChipGroup chips={ROL_CHIPS} value={rolFilter} onChange={setRolFilter} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-text-muted">Estado</p>
+            <ChipGroup chips={ACTIVO_CHIPS} value={activoFilter} onChange={setActivoFilter} />
+          </div>
+        </div>
       </div>
 
       {/* Error */}
