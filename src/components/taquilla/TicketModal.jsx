@@ -167,34 +167,36 @@ export default function TicketModal({ compra, cliente, hotel, onClose }) {
           </div>
 
           {/* ── SCREEN FOOTER (hidden on print) ───────────────────────── */}
-          <footer className="no-print border-t border-border-strong p-6 flex items-center gap-3">
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => window.print()}
-              className="flex-1"
-            >
-              <Printer size={14} />
-              Imprimir
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={handleSendEmail}
-              disabled={sending}
-              className="flex-1"
-            >
-              <Mail size={14} />
-              {sending ? 'Enviando...' : 'Enviar Email'}
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={onClose}
-              className="flex-1"
-            >
-              Cerrar
-            </Button>
+          <footer className="no-print border-t border-border-strong p-6">
+            <div className="grid grid-cols-3 gap-2">
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => window.print()}
+                className="h-11 whitespace-nowrap"
+              >
+                <Printer className="w-4 h-4 shrink-0" />
+                Imprimir
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleSendEmail}
+                disabled={sending}
+                className="h-11 whitespace-nowrap"
+              >
+                <Mail className="w-4 h-4 shrink-0" />
+                {sending ? 'Enviando...' : 'Enviar Email'}
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={onClose}
+                className="h-11 whitespace-nowrap"
+              >
+                Cerrar
+              </Button>
+            </div>
           </footer>
         </motion.div>
       </motion.div>
