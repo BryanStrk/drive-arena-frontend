@@ -480,7 +480,7 @@ git push origin main --tags
 
 ## 👤 Autor
 
-**Bryan Albines** — _Desarrollo de Aplicaciones Web (DAW) · TFG 2026_
+**Bryan Alejandro Paico Albines** — _Desarrollo de Aplicaciones Web (DAW) · 2026_
 
 - GitHub: [@BryanStrk](https://github.com/BryanStrk)
 - Proyecto backend: [drive-arena-backend](https://github.com/BryanStrk/drive-arena-backend)
