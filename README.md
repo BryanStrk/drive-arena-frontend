@@ -1,431 +1,500 @@
 <div align="center">
 
-# 🏎️ Drive Arena · Frontend
+# 🏁 Drive Arena — Frontend
 
-### Panel de administración + frontend público para resort de motorsport
+**Interfaz de operación del resort experiencial · React 19 + Vite + Tailwind v4**
 
-[![React](https://img.shields.io/badge/React-19-61DAFB.svg)]()
-[![Vite](https://img.shields.io/badge/Vite-7-646CFF.svg)]()
-[![TailwindCSS](https://img.shields.io/badge/Tailwind-v4-06B6D4.svg)]()
-[![React Router](https://img.shields.io/badge/Router-v7-CA4245.svg)]()
-[![License](https://img.shields.io/badge/license-MIT-green.svg)]()
-[![Version](https://img.shields.io/badge/version-1.6.1-blue.svg)]()
-
-**Aplicación SPA construida con React 19 + Vite que sirve dos experiencias en una sola base de código: una zona pública con wizard de reserva y una zona privada con panel de administración del resort.**
-
-[Resumen](#-resumen) ·
-[Stack](#-stack-tecnológico) ·
-[Módulos](#-módulos-implementados) ·
-[Estructura](#-estructura-del-proyecto) ·
-[Instalación](#-instalación-y-puesta-en-marcha) ·
-[Diseño](#-diseño-y-experiencia-de-usuario) ·
-[Roadmap](#-roadmap)
-
-> **Backend asociado:** [drive-arena-backend](https://github.com/BryanStrk/drive-arena-backend) (Spring Boot 4 + Java 25 + MySQL)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![React Router](https://img.shields.io/badge/Router-7-CA4245?logo=reactrouter&logoColor=white)](https://reactrouter.com/)
+[![Framer Motion](https://img.shields.io/badge/Framer%20Motion-12-0055FF?logo=framer&logoColor=white)](https://www.framer.com/motion/)
+[![Vercel](https://img.shields.io/badge/Deploy-Vercel-000000?logo=vercel&logoColor=white)](https://vercel.com/)
+[![Version](https://img.shields.io/badge/Version-v2.1.0-FF2D2D)](#versionado)
 
 </div>
 
 ---
 
-## 📋 Resumen
+## 📋 Tabla de contenidos
 
-Este repositorio contiene el **frontend** del proyecto **Drive Arena**, una SPA en **React 19** con dos zonas claramente diferenciadas:
-
-- **Zona pública**: home del resort, catálogo de packs y lodges, y un wizard de reserva multi-paso que culmina con confirmación por email.
-- **Zona privada**: panel de administración con 7 módulos para gestionar todos los recursos del negocio (compras, clientes, lodges, circuitos, mantenimientos y ranking de pilotos).
-
-El frontend consume la **API REST** del backend mediante un cliente Axios con interceptor JWT, gestiona el estado local con React Hook Form + Zod, y aplica un sistema de diseño propio basado en TailwindCSS v4.
-
-> Trabajo de Fin de Grado del ciclo **FP Superior en Desarrollo de Aplicaciones Web (DAW)** — Convocatoria mayo 2026.
+- [Visión general](#-visión-general)
+- [Stack tecnológico](#-stack-tecnológico)
+- [Design System](#-design-system)
+- [Features](#-features)
+- [Quick Start](#-quick-start)
+- [Variables de entorno](#-variables-de-entorno)
+- [Estructura del proyecto](#-estructura-del-proyecto)
+- [Routing y roles](#-routing-y-roles)
+- [Arquitectura de componentes](#-arquitectura-de-componentes)
+- [Gestión de estado y data fetching](#-gestión-de-estado-y-data-fetching)
+- [Responsive design](#-responsive-design)
+- [Despliegue](#-despliegue)
+- [Versionado](#-versionado)
+- [Convenciones de Git](#-convenciones-de-git)
+- [Autor](#-autor)
 
 ---
 
-## 🛠️ Stack tecnológico
+## 🎯 Visión general
 
-### Core
+**Drive Arena Frontend** es la SPA que da forma a la operación diaria del resort: gestiona el turno de taquilla, el panel de control del administrador, y el flujo Kanban del técnico de mantenimiento. Consume la API REST del [backend](https://github.com/BryanStrk/drive-arena-backend) mediante Axios autenticado con JWT, y materializa un sistema de diseño propio inspirado en la estética de circuitos nocturnos: dark + rojo de marca + tipografía condensada.
+
+La aplicación está construida con **React 19, Vite 7, Tailwind CSS v4 y React Router 7**, organizada por rol con tres layouts independientes (`DashboardLayout` para escritorio, `TecnicoLayout` para tablet, `PublicLayout` para landing y reserva pública), y desplegada en **Vercel** con auto-deploy desde `main`.
+
+---
+
+## 🛠 Stack tecnológico
 
 | Categoría | Tecnología | Versión |
-|-----------|------------|---------|
-| Framework | **React** | 19 |
-| Build tool | **Vite** | 7 |
-| Routing | **React Router** | 7 |
-| Estilos | **TailwindCSS** | v4 |
-| Lenguaje | JavaScript (ES2024+) | — |
+|---|---|---|
+| Framework | React | 19 |
+| Build tool | Vite | 7 |
+| Estilos | Tailwind CSS | v4 (CSS variables, sin config JS) |
+| Routing | React Router | 7 |
+| Formularios | react-hook-form + zod + @hookform/resolvers | 7 / 3 |
+| HTTP | Axios | 1.x |
+| Animaciones | framer-motion | 12 |
+| Iconografía | lucide-react | 0.x |
+| Notificaciones | react-hot-toast | 2.x |
+| Fechas | react-day-picker + date-fns | 9 |
+| Linting | ESLint | 9 |
 
-> **Nota técnica**: el proyecto utiliza **JavaScript puro** (`.jsx` / `.js`), no TypeScript. Esto es una decisión consciente del autor para mantener el foco en la lógica del dominio durante el TFG.
-
-### Forms y validación
-
-| Librería | Uso |
-|----------|-----|
-| **react-hook-form** | Gestión de formularios con re-renders mínimos |
-| **zod** | Schemas de validación tipados |
-| **@hookform/resolvers** | Bridge entre Zod y React Hook Form |
-
-### HTTP y comunicación
-
-| Librería | Uso |
-|----------|-----|
-| **axios** | Cliente HTTP con interceptor JWT centralizado |
-| **react-hot-toast** | Notificaciones de feedback (éxito / error) |
-
-### UX y animación
-
-| Librería | Uso |
-|----------|-----|
-| **framer-motion** | Animaciones de entrada/salida y transiciones de listas |
-| **lucide-react** | Iconografía consistente en toda la app |
-| **react-day-picker** | Selector de rangos de fechas en el wizard |
+> Cero dependencias UI heavyweight: ni Material UI, ni Chakra, ni Headless UI. Todo el sistema visual está construido sobre **Tailwind v4 + tokens CSS personalizados**.
 
 ---
 
-## 🎯 Funcionalidades destacadas
+## 🎨 Design System
 
-### Zona pública
+### Paleta
 
-- **Home** con hero, listado de packs, listado de lodges, sección de localización con mapa y bottom nav sticky en mobile.
-- **Wizard de reserva** multi-step con persistencia de estado entre pasos:
-  1. Selección de fechas (entrada / salida)
-  2. Selección de lodge
-  3. Selección de pase de circuito
-  4. Datos del cliente
-  5. Resumen y confirmación
-- **Email automático** de confirmación tras reserva exitosa.
+| Token Tailwind | Color | Uso |
+|---|---|---|
+| `bg-primary` | `#FF2D2D` (Drive Arena Red) | CTAs, KPI signature, badges activos, marca |
+| `bg-bg` | `#0A0A0F` | Fondo global |
+| `bg-surface-1` | `#13131A` | Cards, modales, headers |
+| `bg-surface-2` | `#1A1A22` | Hover states, sub-superficies |
+| `border-border-strong` | `#2A2A35` | Bordes y divisores |
+| `text-text` | `#F5F5F7` | Texto principal |
+| `text-text-muted` | `#A0A0AB` | Texto secundario |
+| `text-text-dim` | `#6B6B75` | Texto terciario |
 
-### Zona privada (panel admin)
+### Tipografía
 
-| Módulo | Operaciones | Características destacadas |
-|--------|-------------|----------------------------|
-| **Dashboard** | Lectura | Widget de mantenimientos pendientes con datos reales del backend y lógica de urgencia automática |
-| **Compras** | Lectura, eliminación | Tabla con badges WEB / TAQUILLA, modal de detalle con entradas anidadas |
-| **Clientes** | CRUD completo | CRM con avatar de iniciales, búsqueda multicampo (nombre / email / DNI) |
-| **Lodges** | CRUD completo | Subida de imagen a Cloudinary mediante `POST /api/upload` |
-| **Circuitos** | CRUD completo | Selector de tamaño + frecuencia de revisión |
-| **Mantenimiento** | CRUD completo | Filtros por estado en chips, selector de circuito y técnico, gestión de transiciones de estado |
-| **Ranking** | Lectura | Selector de circuito + podio top 3 + récord absoluto |
+| Familia | Token | Uso |
+|---|---|---|
+| **Bebas Neue** | `font-display` | Headings, KPIs, números grandes |
+| **Roboto Mono** | `font-mono` | Etiquetas, metadata, micro-copy técnico |
+| **Inter** | `font-sans` | Cuerpo de texto, formularios |
 
-### Características transversales
+### Signature effects
 
-- **Lógica de urgencia automática**: el dashboard calcula client-side la criticidad de cada mantenimiento (`VENCIDO` / `CRÍTICO` / `REVISIÓN` / `PROGRAMADO`) en función de la diferencia entre fecha programada y hoy.
-- **Optimistic updates** en todas las eliminaciones, con rollback automático si el backend devuelve error.
-- **Estados visuales coherentes** en todos los módulos: `loading` (skeleton), `empty`, `emptyFilter`, `error` (con botón de reintentar), `data`.
-- **Validación dual**: client-side con Zod antes de enviar, y server-side con Bean Validation en el backend.
-- **Reutilización de componentes**: el modal de edición de mantenimiento se invoca tanto desde la página completa como desde el widget del dashboard, recibiendo las funciones CRUD por props (inversión de control).
+- **KPI glow**: valores numéricos principales con `text-primary` + `drop-shadow-[0_0_8px_rgba(255,45,45,0.3)]`.
+- **CTA glow**: botones `size="lg"` con `hover:shadow-xl hover:shadow-primary/50`.
+- **Micro-interactions**: cards con `hover:bg-surface-2/50`, botones con `active:scale-[0.98]`.
+- **Stagger animations**: listas con `framer-motion` entrando escalonadas (50 ms).
+- **Skeleton loaders**: componente `<SkeletonCard />` reutilizable con `animate-pulse`.
 
 ---
 
-## 📦 Estructura del proyecto
+## ⚡ Features
 
-```
-drive-arena-frontend/
-├── src/
-│   ├── api/                          # Clientes HTTP por dominio
-│   │   ├── axiosClient.js            # Cliente base con interceptor JWT
-│   │   ├── atracciones.js
-│   │   ├── clientes.js
-│   │   ├── compras.js
-│   │   ├── empleados.js
-│   │   ├── lodges.js
-│   │   ├── mantenimientos.js
-│   │   ├── ranking.js
-│   │   └── reservaApi.js
-│   │
-│   ├── components/                   # Componentes organizados por dominio
-│   │   ├── circuitos/
-│   │   │   ├── AtraccionCard.jsx
-│   │   │   └── AtraccionFormModal.jsx
-│   │   ├── clientes/
-│   │   │   ├── ClienteCard.jsx
-│   │   │   └── ClienteFormModal.jsx
-│   │   ├── compras/
-│   │   │   └── CompraDetailModal.jsx
-│   │   ├── dashboard/
-│   │   │   ├── AgeRangeSalesWidget.jsx
-│   │   │   ├── MonthlyRevenueWidget.jsx
-│   │   │   ├── PendingMaintenanceWidget.jsx
-│   │   │   └── TopLodgesWidget.jsx
-│   │   ├── home/                     # Hero, LodgeCard, PackCard, etc.
-│   │   ├── lodges/
-│   │   ├── mantenimiento/
-│   │   ├── reserva/                  # Wizard multi-step
-│   │   ├── Badge.jsx
-│   │   ├── Button.jsx
-│   │   ├── Input.jsx
-│   │   └── KpiCard.jsx
-│   │
-│   ├── context/                      # Auth + Reserva (estado global)
-│   │   ├── AuthContext.jsx
-│   │   └── ReservaContext.jsx
-│   │
-│   ├── hooks/                        # Custom hooks por módulo
-│   │   ├── useAtracciones.js
-│   │   ├── useClientes.js
-│   │   ├── useCompras.js
-│   │   ├── useLodges.js
-│   │   ├── useMantenimientos.js
-│   │   ├── useMantenimientosPendientes.js
-│   │   ├── useRanking.js
-│   │   └── useReservaCatalogo.js
-│   │
-│   ├── layouts/
-│   │   └── DashboardLayout.jsx       # Sidebar + topbar + breadcrumbs
-│   │
-│   ├── lib/
-│   │   ├── cn.js                     # Helper de classNames
-│   │   ├── storage.js                # Wrapper de localStorage
-│   │   └── schemas/                  # Schemas Zod por dominio
-│   │       ├── atraccionSchema.js
-│   │       ├── clienteSchema.js
-│   │       ├── lodgeSchema.js
-│   │       └── mantenimientoSchema.js
-│   │
-│   ├── pages/                        # Páginas (rutas)
-│   │   ├── Home.jsx
-│   │   ├── Login.jsx
-│   │   ├── Dashboard.jsx
-│   │   ├── ComprasPage.jsx
-│   │   ├── ClientesPage.jsx
-│   │   ├── LodgesPage.jsx
-│   │   ├── CircuitosPage.jsx
-│   │   ├── MantenimientoPage.jsx
-│   │   ├── RankingPage.jsx
-│   │   ├── Reserva.jsx               # Layout del wizard
-│   │   ├── reserva/                  # Pasos del wizard
-│   │   │   ├── LodgeSelect.jsx
-│   │   │   ├── PassSelect.jsx
-│   │   │   ├── CustomerData.jsx
-│   │   │   └── Summary.jsx
-│   │   ├── Confirmation.jsx
-│   │   └── NotFound.jsx
-│   │
-│   ├── utils/
-│   │   ├── extractApiError.js
-│   │   ├── reservaCalc.js
-│   │   └── mapsUrls.js
-│   │
-│   ├── router.jsx                    # Definición de rutas
-│   ├── App.jsx
-│   ├── main.jsx                      # Entry point
-│   └── index.css                     # Tailwind + Google Fonts
-│
-├── public/
-├── index.html
-├── tailwind.config.js
-├── vite.config.js
-└── package.json
-```
+### Operativa por rol
+
+- **ADMIN**: panel de control con KPIs en tiempo real, dashboard con widgets editables (ingresos mensuales, top lodges, ventas por edad, mantenimientos pendientes), gestión completa de clientes, ventas, lodges, circuitos, mantenimientos y usuarios sistema.
+- **TAQUILLA**: flujo de venta optimizado (`/taquilla/nueva-compra`), gestión de clientes, listado de "mis ventas" y "todas las ventas".
+- **TÉCNICO**: vista Kanban a 3 columnas (Pendiente / En curso / Resuelto), asignación dinámica de mantenimientos, reportes de finalización.
+
+### UX detallada
+
+- **Sidebar drawer** con hamburger menu en mobile (`<md`), comportamiento idéntico al sidebar fijo en desktop (`md:`).
+- **Tablas con reflow tabla→cards** en mobile (las páginas de listado mantienen `<table>` en desktop pero muestran cards apiladas en mobile, sin scroll horizontal).
+- **Modales bottom-sheet** en mobile (entran desde abajo) y centrados en desktop, todo con `framer-motion`.
+- **Filtros con wrap automático** (`flex-wrap`) para evitar overflow horizontal.
+- **Formularios con validación zod** y feedback de errores inline.
+- **Notificaciones toast** para todas las acciones CRUD.
+- **Skeleton states** durante carga para evitar layout shift.
+- **Imágenes desde Cloudinary** con componente `<ImageWithFallback />`.
+
+### Performance y DX
+
+- **Code splitting** automático por ruta vía React Router.
+- **HMR** instantáneo con Vite.
+- **ESLint** con reglas de hooks y react-refresh.
+- **Build producción** ~460 ms, gzip ~540 KB total.
 
 ---
 
-## 🎨 Diseño y experiencia de usuario
+## 🚀 Quick Start
 
-### Sistema de diseño "Drive Arena"
+### Prerequisitos
 
-El proyecto aplica un **design system propio** con tokens centralizados en TailwindCSS v4:
+- **Node.js** ≥ 20
+- **npm** ≥ 10
+- Backend corriendo en `http://localhost:8080` (ver [backend repo](https://github.com/BryanStrk/drive-arena-backend))
 
-| Token | Uso |
-|-------|-----|
-| `bg-bg` | Fondo general (oscuro) |
-| `bg-surface-1`, `bg-surface-2` | Superficies elevadas |
-| `bg-primary`, `bg-primary-dark` | Color de acento (rojo Drive Arena) |
-| `border-border-strong` | Bordes de cards y separadores |
-| `text-text`, `text-text-muted`, `text-text-dim` | Jerarquía tipográfica |
-| `font-display`, `font-sans`, `font-mono` | Familias tipográficas (display + sans + mono) |
-| `rounded-card`, `rounded-inner` | Radios consistentes |
-
-### Principios visuales
-
-- **Tema oscuro** por defecto en toda la aplicación.
-- **Tipografía display** para títulos y métricas grandes; tipografía mono para datos técnicos (DNIs, IDs, fechas).
-- **Cards consistentes** con bordes sutiles y hover states uniformes.
-- **Animaciones de entrada/salida** con Framer Motion en listados y modales.
-- **Iconografía Lucide** para coherencia visual.
-
-### Patrones de UX aplicados
-
-- **Estados explícitos** en todas las páginas: skeleton de carga, empty state inicial, empty state de filtro, error con retry, lista poblada.
-- **Feedback inmediato** mediante toasts (`react-hot-toast`) tras cada operación de éxito o error.
-- **Confirmaciones explícitas** antes de operaciones destructivas (eliminar).
-- **Búsqueda local** en módulos con datasets pequeños (filtrado client-side memoizado).
-- **Filtros server-side** en módulos con datasets que crecen (mantenimientos por estado).
-
----
-
-## 🚀 Instalación y puesta en marcha
-
-### Requisitos previos
-
-- **Node.js 20+** y **npm** (o `pnpm` / `yarn`)
-- Backend de Drive Arena corriendo en `http://localhost:8080` ([drive-arena-backend](https://github.com/BryanStrk/drive-arena-backend))
-
-### 1. Clonar el repositorio
+### Pasos
 
 ```bash
+# 1. Clonar
 git clone https://github.com/BryanStrk/drive-arena-frontend.git
 cd drive-arena-frontend
-```
 
-### 2. Instalar dependencias
-
-```bash
+# 2. Instalar dependencias
 npm install
-```
 
-### 3. Variables de entorno
+# 3. Configurar variables (ver siguiente sección)
+cp .env.example .env
 
-Crear el archivo `.env.local` en la raíz del proyecto:
-
-```env
-VITE_API_URL=http://localhost:8080/api
-```
-
-> Las variables de Vite que se exponen al cliente deben empezar siempre por `VITE_`.
-
-### 4. Arrancar el servidor de desarrollo
-
-```bash
+# 4. Arrancar dev server
 npm run dev
 ```
 
-La aplicación queda disponible en `http://localhost:5173`.
+La app quedará disponible en `http://localhost:5173`.
 
-### 5. Build de producción
+### Scripts disponibles
 
 ```bash
-npm run build
-npm run preview
+npm run dev       # Dev server con HMR (Vite)
+npm run build     # Build producción → dist/
+npm run preview   # Preview del build de producción
+npm run lint      # ESLint sobre src/
 ```
-
-El bundle optimizado se genera en `dist/`. Listo para desplegar en cualquier hosting estático (Vercel, Netlify, S3 + CloudFront).
 
 ---
 
-## 🔐 Autenticación
+## 🔐 Variables de entorno
 
-El frontend gestiona la sesión mediante **JWT** almacenado en `localStorage` bajo la clave `drive_arena_token`.
+```env
+# URL del backend
+VITE_API_BASE_URL=http://localhost:8080/api
 
-### Flujo
+# Cloudinary (solo si hay upload directo desde el cliente)
+VITE_CLOUDINARY_CLOUD_NAME=tu_cloud
+VITE_CLOUDINARY_UPLOAD_PRESET=tu_preset
 
-1. El usuario hace login en `/login` con credenciales (`username` + `password`).
-2. El backend devuelve un token JWT.
-3. El token se guarda mediante el helper `storage.js` (`setSession` / `getSession` / `clearSession`).
-4. El **interceptor de Axios** en `axiosClient.js` inyecta automáticamente la cabecera `Authorization: Bearer <token>` en cada petición.
-5. Al cerrar sesión, se ejecuta `clearSession()` y se redirige a `/login`.
+# Entorno
+VITE_APP_ENV=development
+```
 
-### Rutas protegidas
+> **Importante:** Vite expone al cliente **solo** las variables prefijadas con `VITE_`. Nunca pongas secretos como API keys de servidor en estas variables.
 
-Las rutas bajo `/dashboard/*` requieren autenticación. El componente `AuthContext` expone el estado de sesión y un `ProtectedRoute` redirige a login si el usuario no está autenticado.
+### Proxy en desarrollo
+
+`vite.config.js` incluye un proxy para evitar problemas de CORS en local:
+
+```js
+server: {
+  proxy: {
+    '/api': {
+      target: 'http://localhost:8080',
+      changeOrigin: true,
+      rewrite: (path) => path.replace(/^\/api/, ''),
+    },
+  },
+}
+```
 
 ---
 
-## 🧠 Patrones aplicados
-
-### Arquitectura por dominio
-
-Cada módulo (clientes, lodges, mantenimientos…) sigue la **misma estructura**:
+## 📁 Estructura del proyecto
 
 ```
-api/{modulo}.js                 → Cliente HTTP (objeto con métodos list/getById/create/update/remove)
-hooks/use{Modulo}.js            → Custom hook con estado + CRUD + optimistic updates
-lib/schemas/{modulo}Schema.js   → Schema Zod + defaults
-components/{modulo}/Card.jsx    → Card individual
-components/{modulo}/FormModal.jsx → Modal de alta/edición con react-hook-form
-pages/{Modulo}Page.jsx          → Página con grid + búsqueda + estados
+drive-arena-frontend/
+├── public/
+│   └── favicon.svg
+├── src/
+│   ├── components/
+│   │   ├── Button.jsx, Input.jsx, Card.jsx, KpiCard.jsx,
+│   │   ├── Badge.jsx, SkeletonCard.jsx, ImageWithFallback.jsx
+│   │   ├── circuitos/         ← Modales y forms específicos de circuitos
+│   │   ├── clientes/
+│   │   ├── compras/
+│   │   ├── dashboard/         ← Widgets del panel
+│   │   │   ├── MonthlyRevenueWidget.jsx
+│   │   │   ├── TopLodgesWidget.jsx
+│   │   │   ├── AgeRangeSalesWidget.jsx
+│   │   │   └── MantenimientosWidget.jsx
+│   │   ├── layout/            ← Sidebar y elementos de chrome
+│   │   ├── lodges/
+│   │   ├── mantenimiento/     ← MantenimientoCard, modales
+│   │   ├── taquilla/          ← Modales detalle venta, ticket, cliente
+│   │   ├── tecnico/           ← Kanban, reporte de mantenimiento
+│   │   └── usuarios/          ← Modales de gestión usuario sistema
+│   ├── layouts/
+│   │   ├── DashboardLayout.jsx  ← ADMIN + TAQUILLA (sidebar + breadcrumbs)
+│   │   ├── TecnicoLayout.jsx    ← TÉCNICO (header simple, optimizado tablet)
+│   │   └── PublicLayout.jsx     ← Landing y reserva pública
+│   ├── lib/
+│   │   ├── api.js              ← Axios instance con interceptors JWT
+│   │   ├── motion.js           ← Variantes framer-motion reutilizables
+│   │   └── utils.js            ← Formatters (fechas, moneda, etc)
+│   ├── pages/
+│   │   ├── Login.jsx, Landing.jsx, NotFound.jsx
+│   │   ├── Dashboard.jsx
+│   │   ├── ClientesPage.jsx, UsuariosPage.jsx,
+│   │   ├── ComprasPage.jsx, LodgesPage.jsx, CircuitosPage.jsx,
+│   │   ├── MantenimientoPage.jsx, RankingPage.jsx
+│   │   ├── taquilla/
+│   │   │   ├── NuevaCompraPage.jsx
+│   │   │   ├── MisComprasPage.jsx
+│   │   │   ├── TodasLasVentasPage.jsx
+│   │   │   └── TaquillaClientesPage.jsx
+│   │   └── tecnico/
+│   │       └── KanbanPage.jsx
+│   ├── hooks/
+│   │   ├── useAuth.js          ← Context auth + login/logout
+│   │   ├── useApi.js           ← Wrapper sobre Axios con loading/error
+│   │   └── useDebounce.js
+│   ├── router/
+│   │   └── index.jsx           ← Definición de rutas + ProtectedRoute por rol
+│   ├── styles/
+│   │   └── globals.css         ← Tokens CSS + @import tailwindcss
+│   ├── App.jsx
+│   └── main.jsx
+├── vercel.json                 ← Rewrite SPA + headers
+├── vite.config.js              ← Proxy /api + alias @/
+├── eslint.config.js
+├── package.json
+└── README.md
 ```
-
-Esta uniformidad acelera el desarrollo y simplifica el onboarding mental al saltar entre módulos.
-
-### Inversión de control en componentes
-
-Los modales (ej. `MantenimientoFormModal`) **no saben de dónde vienen sus datos**: reciben las funciones CRUD por props. Esto permite que el mismo modal se reutilice tanto desde la página completa de Mantenimiento como desde el widget del Dashboard, cada uno con su propia implementación de las funciones.
-
-### Custom hooks como capa de abstracción
-
-Los componentes de página **no llaman directamente a la API**: llaman a un custom hook (`useClientes`, `useMantenimientos`, ...) que encapsula la carga inicial, los estados (`isLoading`, `error`), las funciones de CRUD y los toasts. Esto mantiene los componentes enfocados solo en presentación.
-
-### Optimistic updates con rollback
-
-```
-1. Usuario hace click en "Eliminar"
-2. El UI elimina el item localmente (optimistic)
-3. Se llama a la API
-4. Si OK → se muestra toast de éxito
-5. Si error → se restaura el estado anterior (rollback) + toast de error
-```
-
-### Convenciones de código
-
-- Componentes en **PascalCase**, hooks con prefijo `use`, helpers en **camelCase**.
-- Archivos `.jsx` para componentes con JSX, `.js` para utilidades puras y schemas.
-- **Conventional Commits** estricto: `feat:`, `fix:`, `chore:`, `refactor:`, `docs:`.
 
 ---
 
-## 🗺️ Roadmap
+## 🛣 Routing y roles
 
-### Funcionalidades pendientes
+El routing usa **React Router 7** con un wrapper `<ProtectedRoute>` que valida el rol antes de renderizar.
 
-- [ ] **Nueva venta interna**: wizard de reserva para empleados de taquilla (similar al wizard público pero con búsqueda/creación de cliente integrada)
-- [ ] **CRUD de empleados**, **tarifas** y **turnos** desde el panel admin
-- [ ] **Página "Mi perfil"** para usuarios del sistema
-- [ ] **Modal de detalle público de lodge** con galería de imágenes
-- [ ] **Pre-selección de pack/lodge** al entrar al wizard desde una card del home
+### Mapa de rutas
 
-### Mejoras del Dashboard
+```
+/                              → PublicLayout (Landing)
+/login                         → Login (sin layout)
+/reservar                      → PublicLayout (Reserva pública)
 
-- [ ] Conectar los **4 KPIs superiores** a datos reales agregados (ventas hoy, reservas activas, tiempos en pista, nuevos clientes)
-- [ ] Conectar **Top 3 Lodges del mes** a agregación real de compras por hotel
-- [ ] Conectar **Evolución mensual de ingresos** a agregación real
-- [ ] Reemplazar **"Ventas por rango de edad"** por una métrica calculable (ej. ventas por tipo de pensión o canal)
+/dashboard                     → DashboardLayout · ADMIN
+  ├── /clientes
+  ├── /lodges
+  ├── /circuitos
+  ├── /usuarios
+  ├── /mantenimiento
+  └── /compras
 
-### Mejoras técnicas
+/taquilla                      → DashboardLayout · TAQUILLA
+  ├── /nueva-compra
+  ├── /mis-compras
+  ├── /todas-las-ventas
+  └── /clientes
 
-- [ ] **Interceptor de respuesta** en Axios que detecte HTTP 401 y redirija automáticamente al login (gestión de token expirado)
-- [ ] **Drag & drop kanban** en la página de Mantenimiento para cambiar estado arrastrando
-- [ ] **Validación de NIE** en el regex de DNI de cliente (formato `[XYZ][0-9]{7}[A-Za-z]`)
-- [ ] **Tests** con Vitest + Testing Library para componentes críticos
+/tecnico                       → TecnicoLayout · TÉCNICO
+  └── /kanban
+```
+
+### ProtectedRoute
+
+```jsx
+<ProtectedRoute allowedRoles={['ADMIN']}>
+  <DashboardLayout>
+    <UsuariosPage />
+  </DashboardLayout>
+</ProtectedRoute>
+```
+
+Si el usuario no tiene rol, redirección a `/login`. Si tiene un rol que no está en `allowedRoles`, redirección a su home por rol.
 
 ---
 
-## 📦 Versiones
+## 🧩 Arquitectura de componentes
 
-| Versión | Hito |
-|---------|------|
-| `1.0.0` | Estructura base + login + Lodges como módulo gold standard |
-| `1.3.0` | Frontend público completo (home + wizard de reserva + confirmación) |
-| `1.4.0` | Mantenimiento + Ranking + refactor visual de Compras |
-| `1.5.0` | Módulo de Clientes (CRM con avatar de iniciales) |
-| `1.5.1` | Hotfix: recuperación de archivos del módulo Circuitos |
-| `1.6.0` | Dashboard con widget de mantenimientos conectado a datos reales |
-| `1.6.1` | UX: edición rápida de mantenimientos desde el widget del dashboard |
+### Componentes atómicos reutilizables
+
+- **`<Button variant size>`** — variants: `primary` (rojo), `secondary` (outline), `ghost`, `danger`. Sizes: `sm`, `md`, `lg`.
+- **`<Input>`** — wrapper sobre `<input>` con focus ring de marca, error state, label embebido.
+- **`<Card>`** — superficie con `bg-surface-1`, `border-border-strong`, `rounded-card`.
+- **`<Badge variant dot>`** — pills de estado con punto de color opcional.
+- **`<KpiCard>`** — número grande con `drop-shadow` rojo signature.
+- **`<SkeletonCard count>`** — loader con `animate-pulse`.
+
+### Patrón de modales
+
+Todos los modales del proyecto siguen el mismo patrón con **`framer-motion`**:
+
+```jsx
+<AnimatePresence>
+  {isOpen && (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.div
+        className="bg-surface-1 rounded-t-card sm:rounded-card max-h-[90vh] overflow-y-auto"
+        initial={{ y: '100%' }}
+        animate={{ y: 0 }}
+        exit={{ y: '100%' }}
+        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+      >
+        {/* contenido */}
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
+```
+
+→ **Bottom-sheet en mobile**, **centrado en desktop**.
+
+### Patrón de páginas de listado
+
+```jsx
+<PageHeader title="Clientes" cta={<Button>Nuevo Cliente</Button>} />
+<SearchAndFilters />
+{isLoading
+  ? <SkeletonList count={5} />
+  : <>
+      <table className="hidden md:block">...</table>   {/* desktop */}
+      <motion.ul className="md:hidden">...</motion.ul>  {/* mobile cards con stagger */}
+    </>
+}
+<Pagination />
+```
 
 ---
 
-## 👨‍💻 Autor
+## 🔌 Gestión de estado y data fetching
 
-**Bryan Paico Albines**
+### Estado global
 
-- 🎓 Estudiante de FP Superior en **Desarrollo de Aplicaciones Web (DAW)**
-- 💼 [GitHub @BryanStrk](https://github.com/BryanStrk)
+- **Auth context** (`useAuth`) — usuario actual, token JWT, login, logout, refresh.
+- **Sin Redux ni Zustand** — el estado global se reduce a auth; el resto se gestiona localmente con `useState` / `useReducer`.
 
-Proyecto desarrollado como **Trabajo de Fin de Grado** del ciclo DAW.
+### Data fetching
+
+- **Axios instance** (`lib/api.js`) con interceptor que inyecta el JWT en cada request y maneja `401` (logout automático + redirect a `/login`).
+- **Patrón ad-hoc con `useEffect`** y `useState({ data, loading, error })`.
+- **No se usa SWR ni React Query**: el alcance del proyecto no lo justifica y mantiene la curva de aprendizaje baja para el tribunal.
+
+### Ejemplo
+
+```jsx
+const [clientes, setClientes] = useState([]);
+const [isLoading, setIsLoading] = useState(true);
+
+useEffect(() => {
+  api.get('/clientes', { params: { page, search } })
+    .then(res => setClientes(res.data.content))
+    .catch(err => toast.error('Error al cargar clientes'))
+    .finally(() => setIsLoading(false));
+}, [page, search]);
+```
+
+---
+
+## 📱 Responsive design
+
+### Breakpoints
+
+| Token | Pixels | Uso |
+|---|---|---|
+| `sm:` | ≥ 640px | Ajustes de spacing y tipografía |
+| `md:` | ≥ 768px | **Breakpoint principal mobile/desktop** |
+| `lg:` | ≥ 1024px | Grids multi-columna |
+| `xl:` | ≥ 1280px | Dashboard a 3 columnas |
+
+### Estrategia mobile-first
+
+A partir de la versión `v2.1.0`, todo el código sigue una estrategia **mobile-first**: clases base aplican al mobile, los modificadores `sm:` / `md:` aplican a desktop. Esto evita el anti-patrón de "desktop primero con `max-md:` para mobile".
+
+### Patrones aplicados
+
+- **Sidebar**: drawer overlay con backdrop en mobile (`<md`), sidebar fijo en desktop (`md:`).
+- **Tablas**: `<table className="hidden md:block">` + `<ul className="md:hidden">` para reflow a cards.
+- **Modales**: `items-end sm:items-center` (bottom-sheet vs centrado).
+- **Filtros**: `flex-wrap` para wrap automático sin overflow.
+- **Headers**: `flex-col sm:flex-row` para stack vertical en mobile.
+
+---
+
+## 🚢 Despliegue
+
+### Vercel
+
+El frontend se despliega automáticamente en **Vercel** con auto-deploy desde la rama `main`.
+
+```json
+// vercel.json
+{
+  "rewrites": [{ "source": "/(.*)", "destination": "/" }]
+}
+```
+
+> El rewrite es **necesario** para que React Router gestione las rutas SPA sin que Vercel devuelva 404 en refresh.
+
+### Build
+
+```bash
+npm run build         # → dist/
+```
+
+El output (`dist/`) es estático y puede servirse desde cualquier CDN o servidor estático.
+
+---
+
+## 🏷 Versionado
+
+| Tag | Hito |
+|---|---|
+| `v1.0.0` | Primera versión funcional con CRUDs básicos |
+| `v1.5.0` | Sistema de auth + rutas protegidas por rol |
+| `v1.8.0` | Dashboard con widgets y métricas |
+| `v2.0.0` | Multi-técnico, roles TÉCNICO + TAQUILLA, paginación |
+| **`v2.1.0`** | **Responsive mobile completo + visual polish (micro-interactions, stagger animations, signature effects)** |
+
+---
+
+## 📝 Convenciones de Git
+
+Mismas convenciones que el backend: **Conventional Commits** + **GitFlow** simplificado + merges `--no-ff`.
+
+| Tipo | Uso |
+|---|---|
+| `feat` | Nueva feature de UI |
+| `fix` | Bug visual o funcional |
+| `refactor` | Reorganización de componentes |
+| `chore` | Dependencias, config |
+| `style` | Cambios CSS sin lógica |
+| `docs` | README, comentarios |
+
+### Workflow
+
+```bash
+git checkout -b feature/nombre-acotado
+# trabajo + commits temáticos por área
+git checkout main
+git merge feature/nombre-acotado --no-ff
+git tag -a vX.Y.Z -m "..."
+git push origin main --tags
+```
+
+---
+
+## 👤 Autor
+
+**Bryan Albines** — _Desarrollo de Aplicaciones Web (DAW) · TFG 2026_
+
+- GitHub: [@BryanStrk](https://github.com/BryanStrk)
+- Proyecto backend: [drive-arena-backend](https://github.com/BryanStrk/drive-arena-backend)
 
 ---
 
 ## 📄 Licencia
 
-Distribuido bajo licencia **MIT**. Ver `LICENSE` para más detalles.
+Proyecto académico desarrollado como **Trabajo academico de Desarrollo de Aplicaciones Web**. Uso no comercial.
 
 ---
-
-## 📊 Estado del proyecto
-
-> 🟢 **Activo** — En desarrollo y mantenimiento. Última versión estable: **v1.6.1**.
 
 <div align="center">
 
----
-
-Hecho con ☕ y mucho asfalto en Barcelona.
+**Drive Arena** · _Conduce · Compite · Domina_
 
 </div>
