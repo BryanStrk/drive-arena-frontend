@@ -71,12 +71,12 @@ const Input = forwardRef(function Input(
           'bg-surface-2 text-text placeholder:text-text-dim',
           'font-sans text-sm',
           'border rounded-inner',
-          'transition-colors duration-150',
+          'transition-all duration-150',
           'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-bg',
           // Estados normales y de error
           hasError
-            ? 'border-danger focus:border-danger focus:ring-danger/30'
-            : 'border-border-strong focus:border-primary focus:ring-primary/30',
+            ? 'border-danger focus:border-danger focus:ring-danger/40'
+            : 'border-border-strong focus:border-primary focus:ring-primary/40',
           'disabled:opacity-50 disabled:cursor-not-allowed',
           inputClassName
         )}

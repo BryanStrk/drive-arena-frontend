@@ -53,7 +53,7 @@ export default function ResetPasswordModal({ usuario, onClose, onUpdated }) {
         exit={{ opacity: 0 }}
         transition={{ duration: 0.15 }}
         onClick={onClose}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-bg/80 p-4 backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex items-end justify-center bg-bg/80 p-0 backdrop-blur-sm sm:items-center sm:p-4"
         aria-modal="true"
         role="dialog"
       >
@@ -63,7 +63,7 @@ export default function ResetPasswordModal({ usuario, onClose, onUpdated }) {
           exit={{ scale: 0.95, opacity: 0, y: 8 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
           onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-md rounded-card border border-border-strong bg-surface-1 shadow-2xl"
+          className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-t-card border border-border-strong bg-surface-1 shadow-2xl sm:rounded-card"
         >
           {/* Header */}
           <header className="flex items-center justify-between gap-4 border-b border-border-strong p-6">

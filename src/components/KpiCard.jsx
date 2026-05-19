@@ -36,8 +36,8 @@ function KpiCard({
         )}
       </div>
 
-      {/* Valor principal */}
-      <p className="mt-3 font-display font-bold text-3xl tracking-tight text-text tabular-nums">
+      {/* Valor principal — glow sutil de marca */}
+      <p className="mt-3 font-display font-bold text-3xl tracking-tight text-primary tabular-nums drop-shadow-[0_0_8px_rgba(255,45,45,0.3)]">
         {value}
         {suffix && (
           <span className="ml-1 text-xl text-text-muted font-normal">

@@ -24,7 +24,7 @@ function Button({
   const baseClasses = cn(
     'inline-flex items-center justify-center gap-2',
     'font-mono font-medium uppercase tracking-widest',
-    'transition-all duration-150',
+    'transition-all duration-200',
     'focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-bg',
     'disabled:opacity-50 disabled:cursor-not-allowed',
     'cursor-pointer'
@@ -40,7 +40,7 @@ function Button({
     secondary: cn(
       'bg-transparent text-text',
       'border border-border-strong',
-      'hover:bg-surface-2 hover:border-text-muted',
+      'hover:bg-surface-2 hover:border-primary hover:text-primary',
       'active:scale-[0.98]'
     ),
     ghost: cn(
@@ -65,6 +65,16 @@ function Button({
   // Para variante ghost, ignoramos padding del size
   const finalSizeClasses = variant === 'ghost' ? 'text-xs' : sizeClasses[size]
 
+  // Glow rojo de marca en hover, escalado por tamaño:
+  // - sm/md: glow sutil (acciones secundarias en headers de página)
+  // - lg:    glow pronunciado (CTAs principales tipo "Acceder al sistema" o "Reservar pase")
+  const primaryGlow =
+    variant === 'primary'
+      ? size === 'lg'
+        ? 'hover:shadow-xl hover:shadow-primary/50'
+        : 'hover:shadow-lg hover:shadow-primary/30'
+      : ''
+
   return (
     <button
       type="button"
@@ -73,6 +83,7 @@ function Button({
         baseClasses,
         variantClasses[variant],
         finalSizeClasses,
+        primaryGlow,
         fullWidth && 'w-full',
         className
       )}

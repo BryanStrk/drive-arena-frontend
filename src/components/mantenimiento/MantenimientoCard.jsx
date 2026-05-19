@@ -134,7 +134,7 @@ export default function MantenimientoCard({ mantenimiento, onEdit, onDelete, onA
         </div>
 
         {/* Footer: técnicos + fecha */}
-        <div className="grid grid-cols-2 gap-3 border-t border-border-strong pt-3">
+        <div className="grid grid-cols-2 gap-3 border-t border-border-strong/60 pt-3">
           <div className="space-y-1.5">
             <p className="font-sans text-[10px] uppercase tracking-[0.15em] text-white/40">
               Técnico
