@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router'
+import { Menu, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 import { useAuth } from '@/context/useAuth'
@@ -32,6 +34,17 @@ function DashboardLayout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  // Cierra el drawer con ESC
+  useEffect(() => {
+    if (!sidebarOpen) return
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setSidebarOpen(false)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [sidebarOpen])
 
   const handleLogout = () => {
     logout()
@@ -45,16 +58,32 @@ function DashboardLayout() {
   return (
     <div className="min-h-screen bg-bg">
       {/* TOPBAR — sticky top */}
-      <header className="sticky top-0 z-30 h-14 border-b border-border-strong bg-surface-1/95 backdrop-blur-md flex items-center justify-between px-6">
-        <div className="flex items-center gap-6">
+      <header className="sticky top-0 z-40 h-14 border-b border-border-strong bg-surface-1/95 backdrop-blur-md flex items-center justify-between px-4 sm:px-6">
+        <div className="flex items-center gap-3 sm:gap-6">
+          <button
+            type="button"
+            onClick={() => setSidebarOpen((open) => !open)}
+            className="md:hidden -ml-1 p-2 text-text-muted hover:text-text transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-primary rounded-sm"
+            aria-label={sidebarOpen ? 'Cerrar menú' : 'Abrir menú'}
+            aria-expanded={sidebarOpen}
+            aria-controls="dashboard-sidebar"
+          >
+            {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+
           <button
             type="button"
             onClick={() => navigate(homeRoute)}
-            className="block transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary rounded-sm"
+            className="block transition-all duration-200 hover:opacity-80 sm:hover:scale-[1.02] focus:outline-none focus-visible:ring-1 focus-visible:ring-primary rounded-sm"
             aria-label="Ir al inicio"
           >
             <Logo className="h-7 w-auto text-text" />
           </button>
+
+          {/* Mobile: solo la página actual (los intermedios se omiten) */}
+          <span className="sm:hidden max-w-[45vw] truncate font-mono text-[11px] font-bold tracking-[0.2em] uppercase text-text">
+            {breadcrumbs[breadcrumbs.length - 1]}
+          </span>
 
           <nav aria-label="Breadcrumb" className="hidden sm:flex items-center gap-2">
             {breadcrumbs.map((crumb, idx) => {
@@ -85,9 +114,29 @@ function DashboardLayout() {
         </Button>
       </header>
 
+      {/* Backdrop del drawer — solo mobile, click fuera para cerrar */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-x-0 bottom-0 top-14 z-20 bg-bg/80 backdrop-blur-sm md:hidden"
+          aria-hidden="true"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* CONTENT: SIDEBAR + OUTLET */}
       <div className="flex">
-        <aside className="sticky top-14 h-[calc(100vh-3.5rem)] w-64 shrink-0 border-r border-border-strong bg-surface-1 flex flex-col">
+        <aside
+          id="dashboard-sidebar"
+          className={cn(
+            // Común a mobile y desktop
+            'top-14 h-[calc(100vh-3.5rem)] w-64 border-r border-border-strong bg-surface-1 flex flex-col',
+            // Mobile: drawer fijo fuera de pantalla, slide-in al abrir
+            'fixed left-0 z-30 transition-transform duration-300 ease-out',
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+            // Desktop (md+): sidebar fijo en flujo, comportamiento original intacto
+            'md:sticky md:z-auto md:shrink-0 md:translate-x-0 md:transition-none'
+          )}
+        >
           {/* Avatar + datos del usuario */}
           <div className="px-4 pt-5 pb-5 border-b border-border-strong">
             <div className="flex items-center gap-3">
@@ -111,8 +160,11 @@ function DashboardLayout() {
             </div>
           </div>
 
-          {/* Navegación filtrada por rol */}
-          <Sidebar role={user?.rol} />
+          {/* Navegación filtrada por rol. El click cierra el drawer en mobile;
+              en desktop el aside es siempre visible, así que no tiene efecto. */}
+          <div className="flex-1 min-h-0 flex flex-col" onClick={() => setSidebarOpen(false)}>
+            <Sidebar role={user?.rol} />
+          </div>
 
           {/* Footer del sidebar */}
           <div className="border-t border-border-strong p-4">
