@@ -13,6 +13,7 @@ import {
 
 import CompraDetailModal from '@/components/compras/CompraDetailModal'
 import { useCompras } from '@/hooks/useCompras'
+import { listContainer, listItem, pageFade } from '@/lib/motion'
 
 /**
  * Página de listado de compras (reservas).
@@ -53,7 +54,7 @@ export default function ComprasPage() {
 
   return (
     <>
-      <div className="space-y-6 p-6 md:p-8">
+      <motion.div className="space-y-6 p-4 sm:p-6 md:p-8" {...pageFade}>
         {/* HEADER */}
         <header className="flex flex-col gap-2">
           <h1 className="font-display text-4xl uppercase tracking-wide text-white">
@@ -81,7 +82,7 @@ export default function ComprasPage() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Buscar por código, cliente u hotel..."
-            className="w-full rounded-lg border border-border-strong bg-surface-2 py-2.5 pl-10 pr-4 font-sans text-sm text-white placeholder:text-white/30 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className="w-full rounded-lg border border-border-strong bg-surface-2 py-2.5 pl-10 pr-4 font-sans text-sm text-white placeholder:text-white/30 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all duration-150"
           />
         </div>
 
@@ -104,7 +105,7 @@ export default function ComprasPage() {
             layout
             className="overflow-hidden rounded-card border border-border-strong bg-surface-1"
           >
-            <div className="overflow-x-auto">
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border-strong bg-surface-2/40">
@@ -131,9 +132,26 @@ export default function ComprasPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* Mobile: reflow a cards (la tabla se oculta en <md) */}
+            <motion.div
+              variants={listContainer}
+              initial="hidden"
+              animate="visible"
+              className="md:hidden divide-y divide-border-strong/50"
+            >
+              {filtered.map((c) => (
+                <motion.div key={c.id} variants={listItem}>
+                  <CompraCard
+                    compra={c}
+                    onView={() => setSelectedId(c.id)}
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
           </motion.div>
         )}
-      </div>
+      </motion.div>
 
       {/* Modal de detalle */}
       {selectedId && (
@@ -208,6 +226,48 @@ function CompraRow({ compra, onView }) {
         </button>
       </Td>
     </motion.tr>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// CARD (mobile)
+// ═══════════════════════════════════════════════════════════════════════
+
+function CompraCard({ compra, onView }) {
+  return (
+    <button
+      type="button"
+      onClick={onView}
+      className="block w-full px-4 py-4 text-left transition-all duration-200 hover:bg-surface-2/50"
+    >
+      <div className="flex items-center justify-between gap-3">
+        {compra.codigo ? (
+          <span className="font-mono text-xs font-semibold tracking-wider text-primary">
+            {compra.codigo}
+          </span>
+        ) : (
+          <span className="font-mono text-xs text-white/30">—</span>
+        )}
+        <span className="font-mono text-sm font-semibold text-white shrink-0">
+          {formatEur(compra.total)}
+        </span>
+      </div>
+      <p className="mt-1.5 font-sans text-sm text-white">
+        {compra.clienteNombreCompleto}
+      </p>
+      <p className="mt-0.5 font-sans text-xs text-white/60">
+        {compra.hotelNombre}
+      </p>
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <PensionBadge tipo={compra.tipoPension} />
+        <OrigenBadge usuario={compra.usuarioSistemaUsername} />
+      </div>
+      <div className="mt-2 flex items-center gap-2 font-mono text-xs text-white/60">
+        <span>{formatFechaCorta(compra.fechaEntrada)}</span>
+        <ArrowRight size={11} className="text-white/30" />
+        <span>{formatFechaCorta(compra.fechaSalida)}</span>
+      </div>
+    </button>
   )
 }
 

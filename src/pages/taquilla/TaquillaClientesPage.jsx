@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { motion } from 'framer-motion'
 import { RefreshCw, AlertCircle, Search, Users, Plus, ChevronLeft, ChevronRight } from 'lucide-react'
 import toast from 'react-hot-toast'
+
+import { listContainer, listItem, pageFade } from '@/lib/motion'
+import { SkeletonList } from '@/components/SkeletonCard'
 
 import { clientesApi } from '@/api/clientes'
 import ClienteFormModal from '@/components/clientes/ClienteFormModal'
@@ -118,9 +122,9 @@ export default function TaquillaClientesPage() {
   }
 
   return (
-    <div className="min-h-full bg-bg p-8">
+    <motion.div className="min-h-full bg-bg p-4 sm:p-6 md:p-8" {...pageFade}>
       {/* Header */}
-      <div className="mb-8 flex items-start justify-between gap-4">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-primary">
             ▌ Taquilla · Clientes
@@ -154,7 +158,7 @@ export default function TaquillaClientesPage() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Buscar por nombre, DNI o email..."
-          className="w-full pl-9 pr-4 py-2.5 bg-surface-1 text-text placeholder:text-text-dim border border-border-strong rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+          className="w-full pl-9 pr-4 py-2.5 bg-surface-1 text-text placeholder:text-text-dim border border-border-strong rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all duration-150"
         />
       </div>
 
@@ -170,7 +174,7 @@ export default function TaquillaClientesPage() {
       {/* Tabla */}
       {!error && (
         <div className="bg-surface-1 border border-border-strong rounded-card overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-border-strong bg-surface-2">
@@ -181,7 +185,7 @@ export default function TaquillaClientesPage() {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border-strong">
+              <tbody className="divide-y divide-border-strong/60">
                 {isLoading
                   ? Array.from({ length: 8 }).map((_, i) => <SkeletonRow key={i} />)
                   : clientes.length === 0
@@ -213,6 +217,44 @@ export default function TaquillaClientesPage() {
                     ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile: reflow a cards (la tabla se oculta en <md) */}
+          <div className="md:hidden">
+            {isLoading ? (
+              <SkeletonList count={6} />
+            ) : clientes.length === 0 ? (
+              <div className="flex flex-col items-center gap-3 px-4 py-16 text-center">
+                <Users size={28} className="text-text-dim" />
+                <p className="font-sans text-sm text-text-muted">
+                  {q ? 'Sin resultados para esta búsqueda' : 'No hay clientes registrados'}
+                </p>
+              </div>
+            ) : (
+              <motion.div
+                variants={listContainer}
+                initial="hidden"
+                animate="visible"
+                className="divide-y divide-border-strong/60"
+              >
+                {clientes.map((c) => (
+                  <motion.button
+                    key={c.id}
+                    variants={listItem}
+                    type="button"
+                    onClick={() => setSelectedCliente(c)}
+                    className="block w-full px-4 py-4 text-left transition-all duration-200 hover:bg-surface-2/60"
+                  >
+                    <p className="font-sans text-sm text-text">{c.nombre} {c.apellidos}</p>
+                    <p className="mt-1 font-mono text-xs text-text-muted">{c.dni ?? '—'}</p>
+                    <div className="mt-2 flex flex-col gap-0.5 font-mono text-xs text-text-muted">
+                      <span className="truncate">{c.email ?? '—'}</span>
+                      <span>{c.telefono ?? '—'}</span>
+                    </div>
+                  </motion.button>
+                ))}
+              </motion.div>
+            )}
           </div>
 
           {/* Pagination */}
@@ -269,6 +311,6 @@ export default function TaquillaClientesPage() {
         createCliente={createCliente}
         updateCliente={updateCliente}
       />
-    </div>
+    </motion.div>
   )
 }

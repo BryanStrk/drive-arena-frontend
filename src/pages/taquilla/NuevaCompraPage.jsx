@@ -271,7 +271,7 @@ export default function NuevaCompraPage() {
                       if (!e.target.value.trim() || e.target.value.length < 2) setResultados([])
                     }}
                     placeholder="Buscar por nombre, email o DNI..."
-                    className="w-full pl-9 pr-4 py-3 bg-surface-2 text-text placeholder:text-text-dim border border-border-strong rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                    className="w-full pl-9 pr-4 py-3 bg-surface-2 text-text placeholder:text-text-dim border border-border-strong rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all duration-150"
                   />
                 </div>
 
@@ -323,7 +323,7 @@ export default function NuevaCompraPage() {
                     setPensionLocal('SIN')
                   }
                 }}
-                className="w-full sm:w-72 px-4 py-3 bg-surface-2 text-text border border-border-strong rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                className="w-full sm:w-72 px-4 py-3 bg-surface-2 text-text border border-border-strong rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all duration-150"
               >
                 <option value="">Sin alojamiento</option>
                 {hoteles.map((h) => {
@@ -372,7 +372,7 @@ export default function NuevaCompraPage() {
                         <select
                           value={meta.circuitoId}
                           onChange={(e) => handleCircuitoChange(index, e.target.value)}
-                          className="w-full px-3 py-2.5 bg-surface-1 text-text border border-border-strong rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                          className="w-full px-3 py-2.5 bg-surface-1 text-text border border-border-strong rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all duration-150"
                         >
                           <option value="">Seleccionar...</option>
                           {atracciones.map((a) => (
@@ -398,7 +398,7 @@ export default function NuevaCompraPage() {
                             })
                           }}
                           className={cn(
-                            'w-full px-3 py-2.5 bg-surface-1 text-text border rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary disabled:opacity-40 disabled:cursor-not-allowed',
+                            'w-full px-3 py-2.5 bg-surface-1 text-text border rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed',
                             lineaErrors?.tarifaId ? 'border-danger' : 'border-border-strong'
                           )}
                         >
@@ -433,7 +433,7 @@ export default function NuevaCompraPage() {
                             })
                           }}
                           className={cn(
-                            'w-full px-3 py-2.5 bg-surface-1 text-text border rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary',
+                            'w-full px-3 py-2.5 bg-surface-1 text-text border rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all duration-150',
                             lineaErrors?.cantidad ? 'border-danger' : 'border-border-strong'
                           )}
                         />

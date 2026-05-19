@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
+import { motion } from 'framer-motion'
 import { RefreshCw, AlertCircle, Search, ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react'
+
+import { listContainer, listItem, pageFade } from '@/lib/motion'
+import { SkeletonList } from '@/components/SkeletonCard'
 
 import { obtenerCompras } from '@/api/compras'
 import VentaDetailModal from '@/components/taquilla/VentaDetailModal'
@@ -87,9 +91,9 @@ export default function TodasLasVentasPage() {
   }
 
   return (
-    <div className="min-h-full bg-bg p-8">
+    <motion.div className="min-h-full bg-bg p-4 sm:p-6 md:p-8" {...pageFade}>
       {/* Header */}
-      <div className="mb-8 flex items-start justify-between gap-4">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-primary">
             ▌ Taquilla · Ventas
@@ -117,7 +121,7 @@ export default function TodasLasVentasPage() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Buscar por nombre, DNI o email..."
-          className="w-full pl-9 pr-4 py-2.5 bg-surface-1 text-text placeholder:text-text-dim border border-border-strong rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+          className="w-full pl-9 pr-4 py-2.5 bg-surface-1 text-text placeholder:text-text-dim border border-border-strong rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all duration-150"
         />
       </div>
 
@@ -133,7 +137,7 @@ export default function TodasLasVentasPage() {
       {/* Tabla */}
       {!error && (
         <div className="bg-surface-1 border border-border-strong rounded-card overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-border-strong bg-surface-2">
@@ -144,7 +148,7 @@ export default function TodasLasVentasPage() {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border-strong">
+              <tbody className="divide-y divide-border-strong/60">
                 {isLoading
                   ? Array.from({ length: 8 }).map((_, i) => <SkeletonRow key={i} />)
                   : ventas.length === 0
@@ -188,6 +192,54 @@ export default function TodasLasVentasPage() {
             </table>
           </div>
 
+          {/* Mobile: reflow a cards (la tabla se oculta en <md) */}
+          <div className="md:hidden">
+            {isLoading ? (
+              <SkeletonList count={6} />
+            ) : ventas.length === 0 ? (
+              <div className="flex flex-col items-center gap-3 px-4 py-16 text-center">
+                <ShoppingBag size={28} className="text-text-dim" />
+                <p className="font-sans text-sm text-text-muted">
+                  {q ? 'Sin resultados para esta búsqueda' : 'No hay ventas registradas'}
+                </p>
+              </div>
+            ) : (
+              <motion.div
+                variants={listContainer}
+                initial="hidden"
+                animate="visible"
+                className="divide-y divide-border-strong/60"
+              >
+                {ventas.map((v) => (
+                  <motion.button
+                    key={v.id}
+                    variants={listItem}
+                    type="button"
+                    onClick={() => setSelectedId(v.id)}
+                    className="block w-full px-4 py-4 text-left transition-all duration-200 hover:bg-surface-2/60"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="font-sans text-sm text-text">{v.clienteNombreCompleto ?? '—'}</p>
+                      <span className="font-mono text-sm font-semibold text-text shrink-0">
+                        {v.total != null
+                          ? `€ ${Number(v.total).toLocaleString('es-ES', { minimumFractionDigits: 2 })}`
+                          : '—'}
+                      </span>
+                    </div>
+                    <p className="mt-1 font-mono text-xs text-text-muted">
+                      #{v.id} · {v.hotelNombre ?? '—'} · op. {v.usuarioSistemaUsername ?? '—'}
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2 font-mono text-[11px] text-text-muted">
+                      <span className="uppercase tracking-widest">{v.tipoPension ?? '—'}</span>
+                      <span aria-hidden="true">·</span>
+                      <span>{v.fechaEntrada ?? '—'} → {v.fechaSalida ?? '—'}</span>
+                    </div>
+                  </motion.button>
+                ))}
+              </motion.div>
+            )}
+          </div>
+
           {/* Pagination */}
           {!isLoading && pageInfo.totalPages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t border-border-strong bg-surface-2">
@@ -224,6 +276,6 @@ export default function TodasLasVentasPage() {
       {selectedId && (
         <VentaDetailModal ventaId={selectedId} onClose={() => setSelectedId(null)} />
       )}
-    </div>
+    </motion.div>
   )
 }

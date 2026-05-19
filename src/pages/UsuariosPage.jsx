@@ -1,10 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { motion } from 'framer-motion'
 import {
   RefreshCw, AlertCircle, Search, Users, Plus,
   ChevronLeft, ChevronRight, Pencil, KeyRound, Power,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
+import { listContainer, listItem, pageFade } from '@/lib/motion'
+import { SkeletonList } from '@/components/SkeletonCard'
 import { useAuth } from '@/context/useAuth'
 import { usuariosApi } from '@/api/usuarios'
 import UsuarioFormModal from '@/components/usuarios/UsuarioFormModal'
@@ -74,7 +77,7 @@ function EstadoBadge({ activo }) {
 
 function ChipGroup({ chips, value, onChange }) {
   return (
-    <div className="flex gap-1">
+    <div className="flex flex-wrap gap-1">
       {chips.map((chip) => (
         <button
           key={chip.value}
@@ -201,9 +204,9 @@ export default function UsuariosPage() {
   }
 
   return (
-    <div className="min-h-full bg-bg p-8">
+    <motion.div className="min-h-full bg-bg p-4 sm:p-6 md:p-8" {...pageFade}>
       {/* Header */}
-      <div className="mb-8 flex items-start justify-between gap-4">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-primary">
             ▌ Administración
@@ -239,10 +242,10 @@ export default function UsuariosPage() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Buscar por username..."
-            className="w-full pl-9 pr-4 py-2.5 bg-surface-1 text-text placeholder:text-text-dim border border-border-strong rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+            className="w-full pl-9 pr-4 py-2.5 bg-surface-1 text-text placeholder:text-text-dim border border-border-strong rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all duration-150"
           />
         </div>
-        <div className="flex items-start gap-10">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-10">
           <div className="flex flex-col gap-1.5">
             <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-text-muted">Rol</p>
             <ChipGroup chips={ROL_CHIPS} value={rolFilter} onChange={setRolFilter} />
@@ -266,7 +269,7 @@ export default function UsuariosPage() {
       {/* Table */}
       {!error && (
         <div className="bg-surface-1 border border-border-strong rounded-card overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-border-strong bg-surface-2">
@@ -277,7 +280,7 @@ export default function UsuariosPage() {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border-strong">
+              <tbody className="divide-y divide-border-strong/60">
                 {isLoading
                   ? Array.from({ length: 8 }).map((_, i) => <SkeletonRow key={i} />)
                   : usuarios.length === 0
@@ -340,6 +343,67 @@ export default function UsuariosPage() {
                     ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile: reflow a cards (la tabla se oculta en <md) */}
+          <div className="md:hidden">
+            {isLoading ? (
+              <SkeletonList count={6} />
+            ) : usuarios.length === 0 ? (
+              <div className="flex flex-col items-center gap-3 px-4 py-16 text-center">
+                <Users size={28} className="text-text-dim" />
+                <p className="font-sans text-sm text-text-muted">
+                  {q || rolFilter || activoFilter
+                    ? 'Sin resultados para estos filtros'
+                    : 'No hay usuarios registrados'}
+                </p>
+              </div>
+            ) : (
+              <motion.div
+                variants={listContainer}
+                initial="hidden"
+                animate="visible"
+                className="divide-y divide-border-strong/60"
+              >
+                {usuarios.map((u) => (
+                  <motion.div
+                    key={u.id}
+                    variants={listItem}
+                    className={cn('px-4 py-4 transition-all duration-200 hover:bg-surface-2/60', !u.activo && 'opacity-50')}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-mono text-sm text-text truncate">
+                          {u.username}
+                          {u.id === me?.userId && (
+                            <span className="ml-2 font-mono text-[9px] text-text-dim border border-border-strong rounded-full px-1.5 py-0.5 uppercase tracking-widest">
+                              tú
+                            </span>
+                          )}
+                        </p>
+                        <p className="mt-1 font-mono text-xs text-text-muted">
+                          {fmtFecha(u.fechaAlta)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <ActionBtn icon={Pencil} label="Editar rol" onClick={() => setRolTarget(u)} />
+                        <ActionBtn icon={KeyRound} label="Resetear contraseña" onClick={() => setPwdTarget(u)} />
+                        <ActionBtn
+                          icon={Power}
+                          label={u.activo ? 'Desactivar' : 'Activar'}
+                          danger={u.activo}
+                          onClick={() => handleToggleClick(u)}
+                        />
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-center gap-2">
+                      <RolBadge rol={u.rol} />
+                      <EstadoBadge activo={u.activo} />
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
           </div>
 
           {/* Pagination */}
@@ -413,7 +477,7 @@ export default function UsuariosPage() {
           onClose={() => setToggleTarget(null)}
         />
       )}
-    </div>
+    </motion.div>
   )
 }
 
