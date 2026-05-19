@@ -8,7 +8,6 @@ import Button from '@/components/Button'
 import Input from '@/components/Input'
 import Badge from '@/components/Badge'
 import { ASSETS_HERO } from '@/data/cloudinaryAssets'
-import Logo from '@/components/Logo'
 import { loginSchema } from '@/lib/validators'
 import { useAuth } from '@/context/useAuth'
 import { HOME_BY_ROLE } from '@/lib/roleRoutes'
@@ -75,7 +74,7 @@ function Login() {
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col px-6 py-6 overflow-hidden">
+    <div className="relative min-h-screen flex flex-col px-4 sm:px-6 py-6 overflow-hidden">
       {/* Background con imagen Cloudinary nítida */}
       <div
         className="absolute inset-0 bg-cover bg-center opacity-60"
@@ -98,21 +97,27 @@ function Login() {
 
       {/* Contenido principal */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center max-w-md mx-auto w-full">
-        <Logo className="h-20 w-auto text-text" />
+        <img
+          src="https://res.cloudinary.com/dutmn3xde/image/upload/v1777374497/logo-drive-arena_wxkvaq.png"
+          alt="Drive Arena"
+          className="h-32 sm:h-48 w-auto mx-auto"
+          loading="eager"
+        />
 
-        {/* Tagline con líneas rojas */}
-        <div className="-mt-12 flex items-center gap-3">
-          <span className="block h-[2px] w-10 bg-primary" aria-hidden="true" />
-          <p className="font-mono text-xs tracking-[0.3em] uppercase text-text-muted">
+        {/* Tagline con líneas rojas. Margen positivo: la imagen no tiene el
+            whitespace del SVG anterior, así que no hace falta el pull negativo. */}
+        <div className="mt-3 flex items-center gap-2 sm:mt-4 sm:gap-3">
+          <span className="block h-[2px] w-6 bg-primary sm:w-10" aria-hidden="true" />
+          <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-text-muted sm:text-xs sm:tracking-[0.3em]">
             Conduce · Compite · Domina
           </p>
-          <span className="block h-[2px] w-10 bg-primary" aria-hidden="true" />
+          <span className="block h-[2px] w-6 bg-primary sm:w-10" aria-hidden="true" />
         </div>
 
         {/* Card del formulario */}
         <section
           aria-labelledby="login-heading"
-          className="mt-4 w-full bg-surface-1/90 backdrop-blur-md border border-border-strong rounded-card p-8 shadow-2xl shadow-bg/70"
+          className="mt-4 w-full bg-surface-1/90 backdrop-blur-md border border-border-strong rounded-card p-6 sm:p-8 shadow-2xl shadow-bg/70"
         >
           {/* Eyebrow + heading */}
           <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-primary">
@@ -188,7 +193,7 @@ function Login() {
       </div>
 
       {/* Footer minimal de página */}
-      <footer className="relative z-10 mt-4 flex items-center justify-between font-mono text-[10px] tracking-widest uppercase text-text-dim">
+      <footer className="relative z-10 mt-4 flex flex-col items-center gap-2 text-center font-mono text-[10px] tracking-widest uppercase text-text-dim sm:flex-row sm:justify-between sm:gap-0 sm:text-left">
         <span>© 2026 Drive Arena Resort · All Rights Reserved</span>
         <div className="flex gap-4">
           <a href="#" className="hover:text-text transition-colors">Privacidad</a>
