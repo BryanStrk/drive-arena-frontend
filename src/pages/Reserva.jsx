@@ -6,7 +6,7 @@ import {
   useReserva,
   RESERVA_ACTIONS,
 } from "@/context/ReservaContext";
-import { ASSETS_BRAND } from "@/data/cloudinaryAssets";
+import Logo from '@/components/Logo'
 import WizardStepper from "@/components/reserva/WizardStepper";
 import WizardNav from "@/components/reserva/WizardNav";
 import { crearReservaPublica } from "@/api/reservaApi";
@@ -100,11 +100,7 @@ function ReservaContent() {
       {/* Header minimal con logo + salida */}
       <header className="border-b border-border-strong px-6 py-4 flex items-center justify-between">
         <Link to="/" aria-label="Volver al inicio">
-          <img
-            src={ASSETS_BRAND.logo}
-            alt="Drive Arena"
-            className="h-8 w-auto"
-          />
+          <Logo className="h-8 w-auto text-text" />
         </Link>
         <Link
           to="/"

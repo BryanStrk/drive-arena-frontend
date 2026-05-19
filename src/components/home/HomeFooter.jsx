@@ -1,6 +1,6 @@
 import { Camera, Volume2, Play } from 'lucide-react'
 
-import { ASSETS_BRAND } from '@/data/cloudinaryAssets'
+import Logo from '@/components/Logo'
 
 /**
  * Footer rico específico del Home público.
@@ -16,11 +16,7 @@ function HomeFooter() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-start">
           {/* Col 1 - Marca */}
           <div className="col-span-2 md:col-span-1">
-            <img
-              src={ASSETS_BRAND.logo}
-              alt="Drive Arena"
-              className="h-28 w-auto"
-            />
+            <Logo className="h-16 w-auto text-text" />
             <p className="font-mono text-[10px] tracking-widest uppercase text-text-muted mt-2 leading-relaxed">
               © 2026 Drive Arena Resort
               <br />

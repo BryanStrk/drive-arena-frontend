@@ -2,8 +2,8 @@ import { Outlet, useNavigate } from 'react-router'
 import toast from 'react-hot-toast'
 
 import { useAuth } from '@/context/useAuth'
-import { ASSETS_BRAND } from '@/data/cloudinaryAssets'
 import Button from '@/components/Button'
+import Logo from '@/components/Logo'
 import packageJson from '../../package.json'
 
 const APP_VERSION = packageJson.version
@@ -28,12 +28,7 @@ export default function TecnicoLayout() {
             className="block transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary rounded-sm"
             aria-label="Ir al inicio"
           >
-            <img
-              src={ASSETS_BRAND.logo}
-              alt="Drive Arena"
-              className="h-7 w-auto"
-              style={{ mixBlendMode: 'lighten' }}
-            />
+            <Logo className="h-7 w-auto text-text" />
           </button>
           <div className="hidden sm:block">
             <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-orange-400">▌ Técnico</p>

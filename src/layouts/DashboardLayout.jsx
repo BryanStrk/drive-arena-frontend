@@ -5,6 +5,7 @@ import { useAuth } from '@/context/useAuth'
 import { HOME_BY_ROLE } from '@/lib/roleRoutes'
 import Badge from '@/components/Badge'
 import Button from '@/components/Button'
+import Logo from '@/components/Logo'
 import Sidebar from '@/components/layout/Sidebar'
 import { ASSETS_BRAND } from '@/data/cloudinaryAssets'
 import { cn } from '@/lib/cn'
@@ -52,12 +53,7 @@ function DashboardLayout() {
             className="block transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary rounded-sm"
             aria-label="Ir al inicio"
           >
-            <img
-              src={ASSETS_BRAND.logo}
-              alt="Drive Arena"
-              className="h-7 w-auto"
-              style={{ mixBlendMode: 'lighten' }}
-            />
+            <Logo className="h-7 w-auto text-text" />
           </button>
 
           <nav aria-label="Breadcrumb" className="hidden sm:flex items-center gap-2">
