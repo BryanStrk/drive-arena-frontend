@@ -40,7 +40,7 @@
 
 **Drive Arena Frontend** es la SPA que da forma a la operación diaria del resort: gestiona el turno de taquilla, el panel de control del administrador, y el flujo Kanban del técnico de mantenimiento. Consume la API REST del [backend](https://github.com/BryanStrk/drive-arena-backend) mediante Axios autenticado con JWT, y materializa un sistema de diseño propio inspirado en la estética de circuitos nocturnos: dark + rojo de marca + tipografía condensada.
 
-La aplicación está construida con **React 19, Vite 7, Tailwind CSS v4 y React Router 7**, organizada por rol con tres layouts independientes (`DashboardLayout` para escritorio, `TecnicoLayout` para tablet, `PublicLayout` para landing y reserva pública), y desplegada en **Vercel** con auto-deploy desde `main`.
+La aplicación está construida con **React 19, Vite 7, Tailwind CSS v4 y React Router 7**, organizada por rol con tres layouts independientes (`DashboardLayout` para escritorio, `TecnicoLayout` para tablet, `PublicLayout` para landing y reserva pública).
 
 ---
 
