@@ -31,8 +31,8 @@ export const usuariosApi = {
     return data
   },
 
-  async create({ username, password, rol }) {
-    const { data } = await axiosClient.post(BASE_URL, { username, password, rol })
+  async create({ nombre, apellidos, email, username, password, rol }) {
+    const { data } = await axiosClient.post(BASE_URL, { nombre, apellidos, email, username, password, rol })
     return data
   },
 

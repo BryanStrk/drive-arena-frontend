@@ -11,6 +11,22 @@ import Button from '@/components/Button'
 import Input from '@/components/Input'
 
 const schema = z.object({
+  nombre: z
+    .string()
+    .trim()
+    .min(1, 'El nombre es obligatorio')
+    .max(50, 'Máximo 50 caracteres'),
+  apellidos: z
+    .string()
+    .trim()
+    .min(1, 'Los apellidos son obligatorios')
+    .max(100, 'Máximo 100 caracteres'),
+  email: z
+    .string()
+    .trim()
+    .min(1, 'El email es obligatorio')
+    .email('Email no válido')
+    .max(100, 'Máximo 100 caracteres'),
   username: z
     .string()
     .trim()
@@ -23,7 +39,7 @@ const schema = z.object({
   rol: z.enum(['ADMIN', 'TAQUILLA', 'TECNICO'], { required_error: 'Selecciona un rol' }),
 })
 
-const DEFAULTS = { username: '', password: '', rol: 'TAQUILLA' }
+const DEFAULTS = { nombre: '', apellidos: '', email: '', username: '', password: '', rol: 'TAQUILLA' }
 
 export default function UsuarioFormModal({ isOpen, onClose, onCreated }) {
   const [showPwd, setShowPwd] = useState(false)
@@ -96,6 +112,31 @@ export default function UsuarioFormModal({ isOpen, onClose, onCreated }) {
             {/* Form */}
             <form onSubmit={handleSubmit(onSubmit)}>
               <div className="p-6 space-y-5">
+                <Input
+                  label="Nombre"
+                  required
+                  placeholder="Ana"
+                  error={errors.nombre?.message}
+                  {...register('nombre')}
+                />
+
+                <Input
+                  label="Apellidos"
+                  required
+                  placeholder="García López"
+                  error={errors.apellidos?.message}
+                  {...register('apellidos')}
+                />
+
+                <Input
+                  label="Email"
+                  required
+                  type="email"
+                  placeholder="ana.garcia@drivearena.com"
+                  error={errors.email?.message}
+                  {...register('email')}
+                />
+
                 <Input
                   label="Username"
                   required
