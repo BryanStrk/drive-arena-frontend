@@ -10,9 +10,26 @@
 [![React Router](https://img.shields.io/badge/Router-7-CA4245?logo=reactrouter&logoColor=white)](https://reactrouter.com/)
 [![Framer Motion](https://img.shields.io/badge/Framer%20Motion-12-0055FF?logo=framer&logoColor=white)](https://www.framer.com/motion/)
 [![Vercel](https://img.shields.io/badge/Deploy-Vercel-000000?logo=vercel&logoColor=white)](https://vercel.com/)
-[![Version](https://img.shields.io/badge/Version-v2.1.0-FF2D2D)](#versionado)
+[![Version](https://img.shields.io/badge/Version-v2.1.0-FF2D2D)](#-versionado)
 
 </div>
+
+---
+
+## 🔗 Demo en vivo
+
+🌐 **[drive-arena-frontend.vercel.app](https://drive-arena-frontend.vercel.app)**
+
+Prueba la aplicación con las cuentas de demostración (cada rol ve una operativa distinta):
+
+| Rol | Usuario | Contraseña |
+|-----|---------|------------|
+| 🎟️ Taquilla | `demo` | `demo12345` |
+| 🔧 Técnico | `demotecnico` | `demo12345` |
+
+> Cuentas de demostración para evaluación. Los datos pueden reiniciarse periódicamente.
+>
+> **Arquitectura del despliegue:** frontend en **Vercel**, backend Spring Boot en **VPS de IONOS** tras **Nginx (HTTPS + reverse proxy)** sobre `https://drivearena.appdeploytest.com/api`.
 
 ---
 
@@ -114,7 +131,7 @@ La aplicación está construida con **React 19, Vite 7, Tailwind CSS v4 y React 
 - **Formularios con validación zod** y feedback de errores inline.
 - **Notificaciones toast** para todas las acciones CRUD.
 - **Skeleton states** durante carga para evitar layout shift.
-- **Imágenes desde Cloudinary** con componente `<ImageWithFallback />`.
+- **Imágenes desde Cloudinary** con componente `<ImageWithFallback />` (las URLs llegan desde la API; la subida la gestiona el backend).
 
 ### Performance y DX
 
@@ -165,35 +182,19 @@ npm run lint      # ESLint sobre src/
 
 ## 🔐 Variables de entorno
 
+La app lee la URL del backend desde `VITE_API_URL`. Si no está definida, usa por defecto `http://localhost:8080/api`.
+
 ```env
-# URL del backend
-VITE_API_BASE_URL=http://localhost:8080/api
+# Desarrollo local
+VITE_API_URL=http://localhost:8080/api
 
-# Cloudinary (solo si hay upload directo desde el cliente)
-VITE_CLOUDINARY_CLOUD_NAME=tu_cloud
-VITE_CLOUDINARY_UPLOAD_PRESET=tu_preset
-
-# Entorno
-VITE_APP_ENV=development
+# Producción (backend en VPS IONOS, vía Nginx + HTTPS)
+# VITE_API_URL=https://drivearena.appdeploytest.com/api
 ```
 
-> **Importante:** Vite expone al cliente **solo** las variables prefijadas con `VITE_`. Nunca pongas secretos como API keys de servidor en estas variables.
+> **Importante:** Vite expone al cliente **solo** las variables prefijadas con `VITE_`. Nunca pongas secretos (API keys de servidor, credenciales) en estas variables: cualquier `VITE_*` acaba en el bundle público.
 
-### Proxy en desarrollo
-
-`vite.config.js` incluye un proxy para evitar problemas de CORS en local:
-
-```js
-server: {
-  proxy: {
-    '/api': {
-      target: 'http://localhost:8080',
-      changeOrigin: true,
-      rewrite: (path) => path.replace(/^\/api/, ''),
-    },
-  },
-}
-```
+En **producción (Vercel)**, `VITE_API_URL` se define en el panel del proyecto (Settings → Environment Variables) con el valor de producción, y se hornea en el build. Cambiarla requiere un redeploy.
 
 ---
 
@@ -204,6 +205,10 @@ drive-arena-frontend/
 ├── public/
 │   └── favicon.svg
 ├── src/
+│   ├── api/
+│   │   ├── axiosClient.js     ← Axios instance con interceptors JWT (lee VITE_API_URL)
+│   │   ├── usuarios.js        ← Endpoints de usuario sistema
+│   │   └── ...                ← Un módulo por recurso (clientes, compras, etc.)
 │   ├── components/
 │   │   ├── Button.jsx, Input.jsx, Card.jsx, KpiCard.jsx,
 │   │   ├── Badge.jsx, SkeletonCard.jsx, ImageWithFallback.jsx
@@ -220,13 +225,13 @@ drive-arena-frontend/
 │   │   ├── mantenimiento/     ← MantenimientoCard, modales
 │   │   ├── taquilla/          ← Modales detalle venta, ticket, cliente
 │   │   ├── tecnico/           ← Kanban, reporte de mantenimiento
-│   │   └── usuarios/          ← Modales de gestión usuario sistema
+│   │   └── usuarios/          ← UsuarioFormModal y gestión usuario sistema
 │   ├── layouts/
 │   │   ├── DashboardLayout.jsx  ← ADMIN + TAQUILLA (sidebar + breadcrumbs)
 │   │   ├── TecnicoLayout.jsx    ← TÉCNICO (header simple, optimizado tablet)
 │   │   └── PublicLayout.jsx     ← Landing y reserva pública
 │   ├── lib/
-│   │   ├── api.js              ← Axios instance con interceptors JWT
+│   │   ├── storage.js          ← Helpers de sesión (token/usuario en localStorage)
 │   │   ├── motion.js           ← Variantes framer-motion reutilizables
 │   │   └── utils.js            ← Formatters (fechas, moneda, etc)
 │   ├── pages/
@@ -243,21 +248,21 @@ drive-arena-frontend/
 │   │   └── tecnico/
 │   │       └── KanbanPage.jsx
 │   ├── hooks/
-│   │   ├── useAuth.js          ← Context auth + login/logout
-│   │   ├── useApi.js           ← Wrapper sobre Axios con loading/error
-│   │   └── useDebounce.js
+│   │   └── ...                 ← Hooks reutilizables (auth, debounce, etc.)
 │   ├── router/
 │   │   └── index.jsx           ← Definición de rutas + ProtectedRoute por rol
 │   ├── styles/
 │   │   └── globals.css         ← Tokens CSS + @import tailwindcss
 │   ├── App.jsx
 │   └── main.jsx
-├── vercel.json                 ← Rewrite SPA + headers
-├── vite.config.js              ← Proxy /api + alias @/
+├── vercel.json                 ← Rewrite SPA
+├── vite.config.js              ← Plugins React + Tailwind, alias @/
 ├── eslint.config.js
 ├── package.json
 └── README.md
 ```
+
+> La estructura del token de sesión vive en `src/lib/storage.js`; las keys de `localStorage` son `drive_arena_token` y `drive_arena_user`.
 
 ---
 
@@ -300,7 +305,7 @@ El routing usa **React Router 7** con un wrapper `<ProtectedRoute>` que valida e
 </ProtectedRoute>
 ```
 
-Si el usuario no tiene rol, redirección a `/login`. Si tiene un rol que no está en `allowedRoles`, redirección a su home por rol.
+Si el usuario no está autenticado, redirección a `/login`. Si tiene un rol que no está en `allowedRoles`, redirección a su home por rol.
 
 ---
 
@@ -365,25 +370,28 @@ Todos los modales del proyecto siguen el mismo patrón con **`framer-motion`**:
 
 ### Estado global
 
-- **Auth context** (`useAuth`) — usuario actual, token JWT, login, logout, refresh.
-- **Sin Redux ni Zustand** — el estado global se reduce a auth; el resto se gestiona localmente con `useState` / `useReducer`.
+- **Auth** — usuario actual y token JWT persistidos en `localStorage` (`drive_arena_token`, `drive_arena_user`), gestionados desde `src/lib/storage.js`.
+- **Sin Redux ni Zustand** — el estado global se reduce a la sesión; el resto se gestiona localmente con `useState` / `useReducer`.
 
 ### Data fetching
 
-- **Axios instance** (`lib/api.js`) con interceptor que inyecta el JWT en cada request y maneja `401` (logout automático + redirect a `/login`).
+- **Axios instance** (`src/api/axiosClient.js`) con interceptor que inyecta el JWT en cada request y maneja `401` (limpia sesión + redirect a `/login`, salvo en el propio login para evitar bucle).
+- **Módulos por recurso** en `src/api/*.js` (p.ej. `usuarios.js`) que encapsulan las llamadas a cada endpoint.
 - **Patrón ad-hoc con `useEffect`** y `useState({ data, loading, error })`.
-- **No se usa SWR ni React Query**: el alcance del proyecto no lo justifica y mantiene la curva de aprendizaje baja para el tribunal.
+- **No se usa SWR ni React Query**: el alcance del proyecto no lo justifica y mantiene la curva de aprendizaje baja.
 
 ### Ejemplo
 
 ```jsx
+import axiosClient from '@/api/axiosClient';
+
 const [clientes, setClientes] = useState([]);
 const [isLoading, setIsLoading] = useState(true);
 
 useEffect(() => {
-  api.get('/clientes', { params: { page, search } })
+  axiosClient.get('/clientes', { params: { page, search } })
     .then(res => setClientes(res.data.content))
-    .catch(err => toast.error('Error al cargar clientes'))
+    .catch(() => toast.error('Error al cargar clientes'))
     .finally(() => setIsLoading(false));
 }, [page, search]);
 ```
@@ -419,7 +427,7 @@ A partir de la versión `v2.1.0`, todo el código sigue una estrategia **mobile-
 
 ### Vercel
 
-El frontend se despliega automáticamente en **Vercel** con auto-deploy desde la rama `main`.
+El frontend se despliega automáticamente en **Vercel** con auto-deploy desde la rama `main`. Cada push dispara un build.
 
 ```json
 // vercel.json
@@ -428,7 +436,13 @@ El frontend se despliega automáticamente en **Vercel** con auto-deploy desde la
 }
 ```
 
-> El rewrite es **necesario** para que React Router gestione las rutas SPA sin que Vercel devuelva 404 en refresh.
+> El rewrite es **necesario** para que React Router gestione las rutas SPA sin que Vercel devuelva 404 al refrescar una ruta interna.
+
+**Variable de entorno en Vercel:** define `VITE_API_URL` en Settings → Environment Variables apuntando al backend de producción (`https://drivearena.appdeploytest.com/api`). Al ser build-time, un cambio requiere redeploy.
+
+### Backend de producción
+
+El backend Spring Boot corre en un **VPS de IONOS** (Ubuntu), como servicio `systemd` escuchando solo en loopback (`127.0.0.1:8081`), detrás de **Nginx** que termina TLS (Let's Encrypt) y hace de reverse proxy sobre `https://drivearena.appdeploytest.com`. La BD MySQL es local al VPS y nunca se expone a Internet.
 
 ### Build
 
@@ -489,7 +503,7 @@ git push origin main --tags
 
 ## 📄 Licencia
 
-Proyecto académico desarrollado como **Trabajo academico de Desarrollo de Aplicaciones Web**. Uso no comercial.
+Proyecto académico desarrollado como **Trabajo académico de Desarrollo de Aplicaciones Web**. Uso no comercial.
 
 ---
 
